@@ -24,3 +24,15 @@ RapBot currently has no external dependencies.
 
 ## Functional Overview
 This section provides a summary of the functionality provided by the RapBot system.
+
+### Exploration
+RapBot's primary purpose is autonomous exploration. For this purpose RapBot must scan its environment to detemrine its location within the space it is exploring. RapBot stores sensor data together with the two-dimensional map, so that we can test algorithmic changes on historic data.
+
+### Two-Dimensional Maps
+RapBot is used to create two-dimensional maps of the explored space. Each time RapBot runs, it creates a new map. All maps are stored locally on disk. Maps contains metadata about the time the map was created. Each map encodes information about how points in a space are reachable from nearby points. One way to think about the maps, is to think of super0imposing a grid over a floor plan of an apartment. RapBot explores the apartment -- not knowing where in the grid it began -- and tracks which points on the grid it can access from its current point. This information lends itself well to a sparse graph format. Where each point on the grid is a node and there is a vertex between its neighboring points that RapBot can access.
+
+### Heat Map
+The heat map is a visualization of RapBot's exploration over time. RapBot aligns each of the two0dimensional maps stored on its filesystem and transforms change over time to the temperature range. Temperature is calculated by the relationship between the number of transitions between the node being accessible, and not, and the number of maps processed.
+
+### Users
+A user is any person with access to the web interfaces running on RapBot. On start, RapBot will launch an interface to view heat maps, historic maps, and the current map.
