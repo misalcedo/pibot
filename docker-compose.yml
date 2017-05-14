@@ -1,12 +1,12 @@
 version: '3'
 services:
   motor-service:
-    build: ./src/main/python/motor
+    build: ./Motor
     volumes:
-      - ./src/main/python/motor:/usr/scr/app
+      - ./Motor/src/main/python:/usr/scr/app
     ports:
       - 3000:80
   robot:
-    build: ./src/main/java
+    build: ./Hub
     depends_on:
       - motor-service

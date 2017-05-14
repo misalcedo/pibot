@@ -1,8 +1,11 @@
-group 'com.salcedo'
+group 'com.salcedo.rapbot'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'idea'
-apply plugin: 'java'
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+mainClassName = 'com.salcedo.rapbot.hub.Main'
 
 repositories {
     mavenCentral()
@@ -11,5 +14,5 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile "org.mockito:mockito-core:2.+"
+    testCompile 'org.mockito:mockito-core:2.+'
 }
