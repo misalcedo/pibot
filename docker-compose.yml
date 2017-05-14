@@ -6,3 +6,7 @@ services:
       - ./src/main/python/motor:/usr/scr/app
     ports:
       - 3000:80
+  robot:
+    build: ./src/main/java
+    depends_on:
+      - motor-service
