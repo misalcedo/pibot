@@ -3,10 +3,14 @@ services:
   motor-service:
     build: ./Motor
     volumes:
-      - ./Motor/src/main/python:/usr/scr/app
+      - ./Motor/src/main/python:/usr/src/app
     ports:
       - 3000:80
+    devices:
+      - /dev/i2c-1
   robot:
     build: ./Hub
+    volumes:
+      - ./Hub/build:/usr/src/app/build
     depends_on:
       - motor-service

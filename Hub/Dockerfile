@@ -1,6 +1,7 @@
-FROM java:8
-ENV DISTRIBUTION_NAME=Hub-1.0-SNAPSHOT
-ADD ./build/distributions/$DISTRIBUTION_NAME.tar /tmp
-RUN mv /tmp/$DISTRIBUTION_NAME /usr/src/app
+FROM resin/raspberry-pi-openjdk:8-jdk
+
+COPY . /usr/src/app
 WORKDIR /usr/src/app
-ENTRYPOINT bin/Hub
+RUN sh gradlew build
+
+ENTRYPOINT sh gradlew run
