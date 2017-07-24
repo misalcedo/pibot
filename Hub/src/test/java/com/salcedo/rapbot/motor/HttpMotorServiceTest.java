@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class HttpMotorServiceTest {
@@ -31,7 +32,7 @@ public class HttpMotorServiceTest {
         system.terminate();
     }
 
-    @Test
+    @Test(expected = ExecutionException.class)
     public void drive() throws Exception {
         service.drive(createRequest(255)).toCompletableFuture().get(1L, TimeUnit.SECONDS);
         service.drive(createRequest(0)).toCompletableFuture().get(1L, TimeUnit.SECONDS);
