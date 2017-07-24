@@ -1,10 +1,17 @@
 import atexit
 
 from Adafruit_MotorHAT import Adafruit_MotorHAT
-from flask import Flask
-from flask_restful import Resource, Api, reqparse, abort
+from flask import Flask, request
 
 # create a default object, no changes to I2C address or frequency
+LOCATION_TO_INDEX = {"BACK_RIGHT": 1, "BACK_LEFT": 2}
+COMMAND_MAP = {
+    "FORWARD": Adafruit_MotorHAT.FORWARD,
+    "BACKWARD": Adafruit_MotorHAT.BACKWARD,
+    "BRAKE": Adafruit_MotorHAT.BRAKE,
+    "RELEASE": Adafruit_MotorHAT.RELEASE
+}
+
 motor_hat = Adafruit_MotorHAT()
 
 
@@ -19,35 +26,25 @@ def turn_off_motors():
 atexit.register(turn_off_motors)
 
 app = Flask(__name__)
-api = Api(app)
-
-parser = reqparse.RequestParser()
-parser.add_argument('speed', type=int, help='Speed of the motor.', required=True)
-parser.add_argument('command', type=int, help='Sets the direction of the rotation for the motor.', required=True)
 
 
-class Motor(Resource):
-    def put(self, motor_id):
-        self.validate_existence(motor_id)
-        arguments = self.parse_arguments()
+def update_motor(key, value):
+    index = LOCATION_TO_INDEX[key]
+    command = value["command"]
+    speed = value["speed"]
 
-        motor = motor_hat.getMotor(motor_id)
-        motor.run(arguments['command'])
-        motor.setSpeed(arguments['speed'])
+    app.logger.debug("Updating %s motor with index %d to speed: %d, command: %s", key, index, speed, command)
 
-        return {'motor_id': motor_id, 'state': arguments}
-
-    @staticmethod
-    def validate_existence(motor_id):
-        if motor_id not in range(1, 5):
-            abort(404, message="Motor {} doesn't exist.".format(motor_id))
-
-    @staticmethod
-    def parse_arguments():
-        return parser.parse_args(strict=True)
+    motor = motor_hat.getMotor(index)
+    motor.run(COMMAND_MAP[command])
+    motor.setSpeed(speed)
 
 
-api.add_resource(Motor, '/motor/<int:motor_id>')
+@app.route('/motors', methods=['PUT'])
+def drive():
+    for key, value in request.json["motors"].items():
+        update_motor(key, value)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
