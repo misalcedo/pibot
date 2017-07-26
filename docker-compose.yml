@@ -1,8 +1,8 @@
 version: '3'
 services:
-  motor-service:
+  motor:
     build: ./Motor
-    image: misalcedo/rapbot:motor-service-1.0
+    image: misalcedo/rapbot:motor-1.0
     volumes:
       - ./Motor/src/main/python:/usr/src/app
     ports:
@@ -22,9 +22,31 @@ services:
       placement:
         constraints:
           - node.id == cyq863hfnupn6rqi69l01yytm
-  robot:
+  vision:
+    build: ./Vision
+    image: misalcedo/rapbot:vision-1.0
+    volumes:
+      - ./Vision/src/main/python:/usr/src/app
+    ports:
+      - 3001:80
+    devices:
+      - /dev/i2c-1
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints:
+          - node.id == cyq863hfnupn6rqi69l01yytm
+  hub:
     build: ./Hub
-    image: misalcedo/rapbot:robot-1.0
+    image: misalcedo/rapbot:hub-1.0
     volumes:
       - ./Hub/build:/usr/src/app/build
     deploy:
@@ -41,4 +63,4 @@ services:
         constraints:
           - node.hostname == Fayt
     depends_on:
-      - motor-service
+      - motor
