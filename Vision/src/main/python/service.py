@@ -1,50 +1,45 @@
-import atexit
+from flask import Flask, request, Response, send_file
+from picamera import PiCamera
+from io import BytesIO
 
-from Adafruit_MotorHAT import Adafruit_MotorHAT
-from flask import Flask, request
-
-# create a default object, no changes to I2C address or frequency
-LOCATION_TO_INDEX = {"BACK_RIGHT": 1, "BACK_LEFT": 2}
-COMMAND_MAP = {
-    "FORWARD": Adafruit_MotorHAT.FORWARD,
-    "BACKWARD": Adafruit_MotorHAT.BACKWARD,
-    "BRAKE": Adafruit_MotorHAT.BRAKE,
-    "RELEASE": Adafruit_MotorHAT.RELEASE
-}
-
-motor_hat = Adafruit_MotorHAT()
-
-
-# recommended for auto-disabling motors on shutdown!
-def turn_off_motors():
-    motor_hat.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
-
-
-atexit.register(turn_off_motors)
-
+camera = PiCamera()
+camera.vflip = True
+camera.start_preview()
 app = Flask(__name__)
 
 
-def update_motor(key, value):
-    index = LOCATION_TO_INDEX[key]
-    command = value["command"]
-    speed = value["speed"]
+@app.route('/capture', methods=['GET'])
+def capture():
+    def generate():
+        stream = BytesIO()
 
-    app.logger.debug("Updating %s motor with index %d to speed: %d, command: %s", key, index, speed, command)
+        camera.capture(stream, 'bmp')
+        stream.seek(0)
 
-    motor = motor_hat.getMotor(index)
-    motor.run(COMMAND_MAP[command])
-    motor.setSpeed(speed)
+        yield stream.read()
+
+    return Response(generate(), mimetype='image/bmp')
 
 
-@app.route('/motors', methods=['PUT'])
-def drive():
-    for key, value in request.json["motors"].items():
-        update_motor(key, value)
+@app.route('/preview', methods=['GET'])
+def preview():
+    stream = BytesIO()
+
+    def generate():
+        for _ in camera.capture_continuous(stream, 'jpeg'):
+            stream.seek(0)
+
+            yield b'--frame\r\n'
+            yield b'Content-Type: image/jpeg\r\n\r\n'
+            yield stream.read()
+            yield b'\r\n'
+
+            # Reset the stream for the next capture
+            stream.seek(0)
+            stream.truncate()
+
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=False)

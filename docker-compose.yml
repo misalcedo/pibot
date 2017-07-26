@@ -30,7 +30,7 @@ services:
     ports:
       - 3001:80
     devices:
-      - /dev/i2c-1
+      - /dev/vchiq
     deploy:
       replicas: 1
       update_config:
