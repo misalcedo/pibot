@@ -16,14 +16,13 @@ motor_hat = Adafruit_MotorHAT()
 
 
 # recommended for auto-disabling motors on shutdown!
+@atexit.register
 def turn_off_motors():
     motor_hat.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
     motor_hat.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
     motor_hat.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
     motor_hat.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
-
-atexit.register(turn_off_motors)
 
 app = Flask(__name__)
 

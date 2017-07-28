@@ -1,10 +1,8 @@
 from flask import Flask, request, Response, send_file
-from picamera import PiCamera
 from io import BytesIO
+from camera import Camera
 
-camera = PiCamera()
-camera.vflip = True
-camera.start_preview()
+
 app = Flask(__name__)
 
 
@@ -13,7 +11,7 @@ def capture():
     def generate():
         stream = BytesIO()
 
-        camera.capture(stream, 'bmp')
+        Camera.singleton().capture(stream, 'bmp')
         stream.seek(0)
 
         yield stream.read()
@@ -26,7 +24,7 @@ def preview():
     stream = BytesIO()
 
     def generate():
-        for _ in camera.capture_continuous(stream, 'jpeg'):
+        for _ in Camera.singleton().capture_continuous(stream, 'jpeg', use_video_port=True):
             stream.seek(0)
 
             yield b'--frame\r\n'
@@ -42,4 +40,4 @@ def preview():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=False)
+    app.run(host='0.0.0.0', port=80, debug=True, threaded=True)
