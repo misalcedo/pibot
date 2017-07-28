@@ -3,20 +3,22 @@ from picamera import PiCamera
 
 
 class Camera:
-    _instance = None
+    instance = None
 
-    @staticmethod
-    def singleton():
-        if Camera._instance is None:
-            Camera._instance = PiCamera()
-            Camera._instance.hflip = True
-            Camera._instance.vflip = True
-            Camera._instance.start_preview()
+    def __init__(self):
+        if Camera.instance is None:
+            self.instance = Camera.instance = PiCamera()
+            self.instance.hflip = True
+            self.instance.vflip = True
+            self.instance.start_preview()
+        else:
+            self.instance = Camera.instance
 
-        return Camera._instance
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
 
-    @staticmethod
-    @atexit.register
-    def close():
-        if Camera._instance is not None:
-            Camera._instance.close()
+
+@atexit.register
+def close():
+    if Camera.instance is not None:
+        Camera.instance.close()

@@ -11,7 +11,7 @@ def capture():
     def generate():
         stream = BytesIO()
 
-        Camera.singleton().capture(stream, 'bmp')
+        Camera().capture(stream, 'bmp')
         stream.seek(0)
 
         yield stream.read()
@@ -24,7 +24,7 @@ def preview():
     stream = BytesIO()
 
     def generate():
-        for _ in Camera.singleton().capture_continuous(stream, 'jpeg', use_video_port=True):
+        for _ in Camera().capture_continuous(stream, 'jpeg', use_video_port=True):
             stream.seek(0)
 
             yield b'--frame\r\n'
