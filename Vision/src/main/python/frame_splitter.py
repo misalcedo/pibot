@@ -1,28 +1,25 @@
 from io import BytesIO
-from threading import Lock
+from collections import deque
 
 
 class FrameSplitter:
     def __init__(self):
-        self.stream = BytesIO()
-        self.lock = Lock()
-        self.frame = None
+        self.output = BytesIO()
+        self.queue = deque()
 
     def write(self, buffer):
         if buffer.startswith(b'\xff\xd8'):
-            # Start of new frame
-            size = self.stream.tell()
+            size = self.output.tell()
+            self.output.seek(0)
+
             if size > 0:
-                self.stream.seek(0)
-                with self.lock:
-                    self.frame = self.stream.read(size)
-                self.stream.seek(0)
+                self.queue.append(self.output.read(size))
+                self.output.seek(0)
 
-        self.stream.write(buffer)
+        self.output.write(buffer)
 
-    def copy_to(self, buffer):
-        with self.lock:
-            if self.frame:
-                buffer.write(self.frame)
-                self.frame = None
-
+    def read(self):
+        try:
+            return self.queue.pop()
+        except IndexError:
+            return None

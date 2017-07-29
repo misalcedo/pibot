@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, send_file
 from io import BytesIO
 from camera import Camera
-from picamera import PiCameraCircularIO
+from frame_splitter import FrameSplitter
 
 
 app = Flask(__name__)
@@ -13,6 +13,7 @@ def capture():
         stream = BytesIO()
 
         Camera().capture(stream, 'bmp', use_video_port=True)
+
         stream.seek(0)
 
         yield stream.read()
@@ -22,30 +23,18 @@ def capture():
 
 @app.route('/preview', methods=['GET'])
 def preview():
-    try:
-        Camera().stop_recording()
-    except:
-        pass
-
     def generate():
-        with PiCameraCircularIO(Camera(), seconds=30) as stream:
-            Camera().start_recording(stream, format='mjpeg')
+        frame_splitter = FrameSplitter()
+        camera = Camera()
+        camera.start_recording(frame_splitter, format='mjpeg')
 
-            while True:
-                for frame in stream.frames:
-                    if frame.complete:
-                        with stream.lock:
-                            stream.seek(frame.position)
-                            contents = stream.read(frame.frame_size)
-                            stream.seek(0, whence=2) # end of stream
-
-                        if contents:
-                            yield b'--FRAME\r\n'
-                            yield b'Content-Type: image/jpeg\r\n\r\n'
-                            yield contents
-                            yield b'\r\n'
-
-                stream.clear()
+        while True:
+            frame = frame_splitter.read()
+            if frame:
+                yield b'--FRAME\r\n'
+                yield b'Content-Type: image/jpeg\r\n\r\n'
+                yield frame
+                yield b'\r\n'
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=FRAME')
 
