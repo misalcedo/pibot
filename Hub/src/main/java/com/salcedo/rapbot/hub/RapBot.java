@@ -6,14 +6,16 @@ import akka.actor.Props;
 import akka.actor.Terminated;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.hub.driver.invoke.DriveRequest;
-import com.salcedo.rapbot.hub.driver.random.RandomDriver;
+import com.salcedo.rapbot.hub.driver.DriveRequest;
+import com.salcedo.rapbot.hub.driver.KeyboardDriver;
+import com.salcedo.rapbot.hub.driver.RandomDriver;
 import com.salcedo.rapbot.hub.services.Motors;
 import com.salcedo.rapbot.motor.MotorResponse;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
+import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
 public final class RapBot extends AbstractActor {
@@ -25,16 +27,21 @@ public final class RapBot extends AbstractActor {
     @Override
     public void preStart() {
         motors = getContext().actorOf(Props.create(Motors.class, MotorServiceFactory.http(getContext().getSystem())));
-        driver = getContext().actorOf(Props.create(RandomDriver.class, motors));
+        driver = getContext().actorOf(Props.create(KeyboardDriver.class, motors));
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(DriveRequest.class, this::forwardDriveRequest)
+                .match(KeyEvent.class, this::sendKeyEvent)
                 .match(MotorResponse.class, response -> logResponse())
                 .match(Terminated.class, this::shutdown)
                 .build();
+    }
+
+    private void sendKeyEvent(KeyEvent keyEvent) {
+        driver.tell(keyEvent, self());
     }
 
     private void shutdown(Terminated terminated) {

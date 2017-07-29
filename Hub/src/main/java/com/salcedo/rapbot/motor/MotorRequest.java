@@ -26,4 +26,11 @@ public final class MotorRequest {
             return this;
         }
     }
+
+    @Override
+    public String toString() {
+        return "MotorRequest{" +
+                "motors=" + motors +
+                '}';
+    }
 }

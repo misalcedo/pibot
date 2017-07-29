@@ -40,7 +40,6 @@ public final class HttpMotorService implements MotorService {
         final HttpEntity.Strict entity = HttpEntities.create(ContentTypes.APPLICATION_JSON, gson.toJson(request));
 
         return HttpRequest.create()
-                .addHeader(ContentType.create(ContentTypes.APPLICATION_JSON))
                 .withUri(destination)
                 .withEntity(entity)
                 .withMethod(HttpMethods.PUT);

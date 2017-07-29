@@ -16,12 +16,21 @@ public final class Motor {
         this.speed = speed;
     }
 
+    public static MotorBuilder builder() {
+        return new MotorBuilder();
+    }
+
     Location getLocation() {
         return location;
     }
 
-    public static MotorBuilder builder() {
-        return new MotorBuilder();
+    @Override
+    public String toString() {
+        return "Motor{" +
+                "location=" + location +
+                ", command=" + command +
+                ", speed=" + speed +
+                '}';
     }
 
     public static class MotorBuilder {
