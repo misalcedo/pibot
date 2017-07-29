@@ -17,6 +17,9 @@ public class KeyEventSource implements EventSource {
         frame.setContentPane(mediaPlayerComponent);
         frame.setVisible(true);
 
-        mediaPlayerComponent.getMediaPlayer().playMedia("http://192.168.1.41:3001/stream.mjpg");
+        mediaPlayerComponent.getMediaPlayer().playMedia(
+                "http://192.168.1.41:3001/stream.mjpg",
+                ":network-caching=0"
+        );
     }
 }
