@@ -2,12 +2,8 @@ package com.salcedo.rapbot.keyboard;
 
 import akka.actor.ActorRef;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
-import uk.co.caprica.vlcj.player.media.callback.seekable.RandomAccessFileMedia;
 
 import javax.swing.*;
-import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class KeyEventSource implements EventSource {
     @Override
@@ -17,7 +13,7 @@ public class KeyEventSource implements EventSource {
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.addKeyListener(new KeyEventForwarder(actor));
-        frame.setBounds(100, 100, 600, 400);
+        frame.setBounds(100, 100, 640, 480);
         frame.setContentPane(mediaPlayerComponent);
         frame.setVisible(true);
 
