@@ -23,3 +23,6 @@ class FrameSplitter:
             return self.queue.pop()
         except IndexError:
             return None
+
+    def truncate(self):
+        self.queue.clear()
