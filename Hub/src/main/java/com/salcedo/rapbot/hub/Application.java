@@ -7,13 +7,10 @@ import com.salcedo.rapbot.hub.driver.DriveRequest;
 import com.salcedo.rapbot.keyboard.EventSource;
 import com.salcedo.rapbot.keyboard.KeyEventSource;
 
-import javax.swing.*;
-
-import java.awt.event.KeyListener;
-
 import static akka.actor.ActorRef.noSender;
 import static javax.swing.SwingUtilities.invokeLater;
 import static javax.swing.UIManager.setLookAndFeel;
+
 
 public final class Application {
     private final ActorSystem system = ActorSystem.create("RapBot");
