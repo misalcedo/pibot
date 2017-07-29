@@ -2,6 +2,7 @@ package com.salcedo.rapbot.keyboard;
 
 import akka.actor.ActorRef;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+import uk.co.caprica.vlcj.player.media.callback.seekable.RandomAccessFileMedia;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +12,6 @@ import java.net.URL;
 public class KeyEventSource implements EventSource {
     @Override
     public void listen(ActorRef actor) {
-        //Create and set up the window.
         JFrame frame = new JFrame("RapBot");
         EmbeddedMediaPlayerComponent mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
 
