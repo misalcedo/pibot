@@ -9,10 +9,9 @@ public class KeyEventSource implements EventSource {
     @Override
     public void listen(ActorRef actor) {
         JFrame frame = new JFrame("RapBot");
-        EmbeddedMediaPlayerComponent mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
+        EmbeddedMediaPlayerComponent mediaPlayerComponent = new EventForwardingMediaPlayer(actor);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.addKeyListener(new KeyEventForwarder(actor));
         frame.setBounds(100, 100, 640, 480);
         frame.setContentPane(mediaPlayerComponent);
         frame.setVisible(true);

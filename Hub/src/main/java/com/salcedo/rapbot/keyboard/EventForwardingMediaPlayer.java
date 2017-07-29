@@ -1,16 +1,16 @@
 package com.salcedo.rapbot.keyboard;
 
 import akka.actor.ActorRef;
+import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 import static akka.actor.ActorRef.noSender;
 
-public final class KeyEventForwarder implements KeyListener {
+public final class EventForwardingMediaPlayer extends EmbeddedMediaPlayerComponent {
     private final ActorRef actor;
 
-    KeyEventForwarder(ActorRef actor) {
+    EventForwardingMediaPlayer(ActorRef actor) {
         this.actor = actor;
     }
 
