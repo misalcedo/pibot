@@ -30,7 +30,7 @@ if __name__ == '__main__':
         camera.vflip = True
         camera.start_preview()
         video_output = FrameSplitter()
-        camera.start_recording(video_output, format='mjpeg')
+        camera.start_recording(video_output, framerate=24, format='mjpeg')
 
         try:
             server = StreamingServer(('', 80), StreamingHandler)
