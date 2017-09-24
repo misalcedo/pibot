@@ -5,4 +5,4 @@ COPY ./src/main/python /usr/src/app
 ENV FLASK_APP service.py
 ENV FLASK_DEBUG 1
 
-ENTRYPOINT flask run --host=0.0.0.0 --port 80 --no-reload
+ENTRYPOINT flask run --host=0.0.0.0 --port 80 --with-threads
