@@ -1,3 +1,5 @@
+#docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v $XAUTHORITY:/root/.Xauthority -e DISPLAY=unix$DISPLAY --net=host --name hub misalcedo/rapbot:hub-1.0
+
 FROM openjdk:jdk-alpine
 
 RUN echo -e '@edgunity http://nl.alpinelinux.org/alpine/edge/community\n\
@@ -50,7 +52,7 @@ RUN mkdir -p /opt/opencv-${OPENCV_VERSION}/build && \
   make install
 
 # Install application-level libraries
-RUN apk add vlc
+RUN apk add vlc libx11
 COPY . /staging
 WORKDIR /staging
 RUN rm src/main/resources/opencv-330.jar && \
@@ -61,5 +63,4 @@ RUN rm src/main/resources/opencv-330.jar && \
 WORKDIR /usr/src/app
 RUN mv /staging/build/distributions/Hub-*.tar /usr/src/app.tar && tar -xf /usr/src/app.tar --strip-components 1 && rm /usr/src/app.tar
 ENV HUB_OPTS '-Djava.library.path=/opt/opencv-3.3.0/build/lib'
-ENTRYPOINT sh
-#ENTRYPOINT bin/Hub
+CMD ["bin/Hub"]

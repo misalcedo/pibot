@@ -5,7 +5,8 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
-mainClassName = 'com.salcedo.rapbot.object.ObjectDetector'//#'com.salcedo.rapbot.hub.Application'
+//mainClassName = 'com.salcedo.rapbot.hub.Application'
+mainClassName = 'com.salcedo.rapbot.object.ObjectDetector'
 
 repositories {
     mavenCentral()
