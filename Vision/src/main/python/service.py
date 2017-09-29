@@ -25,10 +25,10 @@ def root():
     return PAGE
 
 
-@app.route("/still.bmp")
+@app.route("/still.jpg")
 def still():
     def generate(buffer):
-        camera.capture(buffer, 'bmp', use_video_port=True)
+        camera.capture(buffer, 'jpg', use_video_port=True)
 
         buffer.seek(0)
 
