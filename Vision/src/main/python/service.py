@@ -34,7 +34,7 @@ def still():
 
         yield buffer.read()
 
-    return Response(generate(BytesIO()), mimetype='image/bmp')
+    return Response(generate(BytesIO()), mimetype='image/jpeg')
 
 
 @app.route("/stream.mjpg")
