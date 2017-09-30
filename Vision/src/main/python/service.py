@@ -28,7 +28,7 @@ def root():
 @app.route("/still.jpg")
 def still():
     def generate(buffer):
-        camera.capture(buffer, 'jpg', use_video_port=True)
+        camera.capture(buffer, format='jpeg', use_video_port=True)
 
         buffer.seek(0)
 
