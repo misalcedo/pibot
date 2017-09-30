@@ -1,11 +1,11 @@
-package com.salcedo.rapbot.keyboard;
+package com.salcedo.rapbot.userinterface;
 
 import akka.actor.ActorRef;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
 
-public class KeyEventSource implements EventSource {
+public class GraphicalUserInterface implements EventSource {
     @Override
     public void listen(ActorRef actor) {
         JFrame frame = new JFrame("RapBot");
@@ -17,7 +17,7 @@ public class KeyEventSource implements EventSource {
         frame.setVisible(true);
 
         mediaPlayerComponent.getMediaPlayer().playMedia(
-                "http://192.168.1.41:3001/stream.mjpg",
+                "http://192.168.1.23:3001/stream.mjpg",
                 ":network-caching=0"
         );
     }

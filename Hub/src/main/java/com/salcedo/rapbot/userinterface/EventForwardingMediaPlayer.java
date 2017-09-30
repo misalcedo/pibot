@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.keyboard;
+package com.salcedo.rapbot.userinterface;
 
 import akka.actor.ActorRef;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
