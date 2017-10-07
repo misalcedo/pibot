@@ -62,5 +62,3 @@ services:
       placement:
         constraints:
           - node.hostname == Fayt
-    depends_on:
-      - motor

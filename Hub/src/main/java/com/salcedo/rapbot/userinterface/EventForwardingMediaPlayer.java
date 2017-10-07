@@ -10,22 +10,23 @@ import static akka.actor.ActorRef.noSender;
 public final class EventForwardingMediaPlayer extends EmbeddedMediaPlayerComponent {
     private final ActorRef actor;
 
-    EventForwardingMediaPlayer(ActorRef actor) {
+    EventForwardingMediaPlayer(final ActorRef actor) {
+        super();
         this.actor = actor;
     }
 
     @Override
-    public void keyTyped(KeyEvent keyEvent) {
-        actor.tell(keyEvent, noSender());
+    public void keyTyped(final KeyEvent keyEvent) {
+        this.actor.tell(keyEvent, noSender());
     }
 
     @Override
-    public void keyPressed(KeyEvent keyEvent) {
-        actor.tell(keyEvent, noSender());
+    public void keyPressed(final KeyEvent keyEvent) {
+        this.actor.tell(keyEvent, noSender());
     }
 
     @Override
-    public void keyReleased(KeyEvent keyEvent) {
-        actor.tell(keyEvent, noSender());
+    public void keyReleased(final KeyEvent keyEvent) {
+        this.actor.tell(keyEvent, noSender());
     }
 }
