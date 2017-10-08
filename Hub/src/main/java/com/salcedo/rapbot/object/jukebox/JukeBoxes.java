@@ -1,5 +1,8 @@
 package com.salcedo.rapbot.object.jukebox;
 
+import akka.actor.ActorSystem;
+import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -14,7 +17,10 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toCollection;
 
 public final class JukeBoxes {
-    public static JukeBox list(final Path musicLibrary) {
+    public static JukeBox create(
+            final ActorSystem system,
+            final Path musicLibrary,
+            final EmbeddedMediaPlayerComponent playerComponent) {
         final List<Path> names = getSongPaths(musicLibrary)
                 .distinct()
                 .map(Path::toFile)
@@ -28,7 +34,7 @@ public final class JukeBoxes {
             throw new IllegalStateException("No songs in music library path: " + musicLibrary);
         }
 
-        return new ListJukeBox(names);
+        return new DefaultJukeBox(system, names, playerComponent);
     }
 
     private static Stream<Path> getSongPaths(final Path musicLibrary) {

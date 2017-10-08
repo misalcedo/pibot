@@ -1,9 +1,13 @@
 package com.salcedo.rapbot.object.jukebox;
 
-import java.nio.file.Path;
-
 public interface JukeBox {
-    Path next();
+    void playNextSong();
 
-    Path previous();
+    void pauseOrResume();
+
+    void playPreviousSong();
+
+    boolean isPlayingMusic();
+
+    void turnOff();
 }

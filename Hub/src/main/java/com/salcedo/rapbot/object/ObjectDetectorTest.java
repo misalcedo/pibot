@@ -9,13 +9,11 @@ import org.opencv.core.Core;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static javax.swing.SwingUtilities.invokeLater;
 import static javax.swing.UIManager.setLookAndFeel;
@@ -23,21 +21,17 @@ import static javax.swing.UIManager.setLookAndFeel;
 public final class ObjectDetectorTest extends WindowAdapter {
     private static final String APP_NAME = "FaceDetect";
     private final LoggingAdapter log;
-    private final AtomicBoolean isPlayingMusic;
     private final ObjectDetector objectDetector;
     private final JFrame frame;
-    private final EmbeddedMediaPlayerComponent playerComponent;
     private final JukeBox jukeBox;
 
     private ObjectDetectorTest(final Path musicLibrary) {
         final ActorSystem system = ActorSystem.create(APP_NAME);
 
-        this.isPlayingMusic = new AtomicBoolean(false);
-        this.playerComponent = new EmbeddedMediaPlayerComponent();
         this.objectDetector = ObjectDetectors.openCV(system);
         this.frame = new JFrame(APP_NAME);
         this.log = Logging.getLogger(system, this);
-        this.jukeBox = JukeBoxes.list(musicLibrary);
+        this.jukeBox = JukeBoxes.create(system, musicLibrary, new EmbeddedMediaPlayerComponent());
     }
 
     public static void main(final String[] args) throws Exception {
@@ -52,7 +46,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
     @Override
     public void windowClosing(final WindowEvent e) {
         this.log.info("Terminating application.");
-        this.playerComponent.release();
+        this.jukeBox.turnOff();
         System.exit(0);
     }
 
@@ -75,12 +69,12 @@ public final class ObjectDetectorTest extends WindowAdapter {
     }
 
     private void detectFaceAndPlayMusic() {
-        if (this.isPlayingMusic.get()) {
+        if (this.jukeBox.isPlayingMusic()) {
             sleep();
         } else {
             if (this.objectDetector.objectDetected()) {
                 this.log.info("Face detected.");
-                playMusic(this.jukeBox.next());
+                this.jukeBox.playNextSong();
             } else {
                 this.log.info("No face detected.");
             }
@@ -101,42 +95,19 @@ public final class ObjectDetectorTest extends WindowAdapter {
         this.frame.setVisible(true);
         this.frame.addWindowListener(this);
 
-        final JPanel contentPane = new JPanel();
-        contentPane.setLayout(new BorderLayout());
-        contentPane.add(this.playerComponent, BorderLayout.CENTER);
-
         final JPanel controlsPane = new JPanel();
         final JButton pauseButton = new JButton("Pause/Resume");
         final JButton previousButton = new JButton("Previous");
         final JButton nextButton = new JButton("Next");
 
-        pauseButton.addActionListener(event -> pauseMusic());
-        previousButton.addActionListener(event -> playMusic(this.jukeBox.previous()));
-        nextButton.addActionListener(event -> playMusic(this.jukeBox.next()));
+        pauseButton.addActionListener(event -> this.jukeBox.pauseOrResume());
+        previousButton.addActionListener(event -> this.jukeBox.playPreviousSong());
+        nextButton.addActionListener(event -> this.jukeBox.playNextSong());
 
         controlsPane.add(pauseButton);
         controlsPane.add(previousButton);
         controlsPane.add(nextButton);
-        contentPane.add(controlsPane, BorderLayout.SOUTH);
 
-        this.frame.setContentPane(contentPane);
-    }
-
-    private void pauseMusic() {
-        if (this.isPlayingMusic.get()) {
-            this.log.info("Paused music.");
-            this.playerComponent.getMediaPlayer().pause();
-            this.isPlayingMusic.set(false);
-        } else {
-            this.log.info("Resumed music.");
-            this.playerComponent.getMediaPlayer().play();
-            this.isPlayingMusic.set(true);
-        }
-    }
-
-    private void playMusic(final Path song) {
-        this.log.info("Playing song {}", song);
-        this.playerComponent.getMediaPlayer().playMedia(song.toString());
-        this.isPlayingMusic.set(true);
+        this.frame.setContentPane(controlsPane);
     }
 }
