@@ -1,122 +1,118 @@
 package com.salcedo.rapbot.object;
 
 import akka.actor.ActorSystem;
-import com.salcedo.rapbot.vision.VisionService;
-import com.salcedo.rapbot.vision.VisionServiceFactory;
-import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.core.Core;
+import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
-import java.nio.file.Files;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.StreamSupport.stream;
+import static javax.swing.SwingUtilities.invokeLater;
+import static javax.swing.UIManager.setLookAndFeel;
 
 public final class ObjectDetectorTest {
+    private static final String APP_NAME = "FaceDetect";
+    private final AtomicBoolean isPlayingMusic;
+    private final ObjectDetector objectDetector;
+    private final JFrame frame;
+    private final EmbeddedMediaPlayerComponent playerComponent;
+    private final Path musicLibrary;
+
+    private ObjectDetectorTest(final Path musicLibrary) {
+        this.musicLibrary = musicLibrary;
+        this.isPlayingMusic = new AtomicBoolean(false);
+        this.playerComponent = new EmbeddedMediaPlayerComponent();
+        this.objectDetector = ObjectDetectors.openCV(ActorSystem.create(APP_NAME));
+        this.frame = new JFrame(APP_NAME);
+    }
+
     public static void main(final String[] args) throws Exception {
+        setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        new ObjectDetectorTest().runV3();
+        final Path musicLibrary = Paths.get("/usr", "src", "app", "Music");
+        final ObjectDetectorTest objectDetectorTest = new ObjectDetectorTest(musicLibrary);
+        invokeLater(objectDetectorTest::run);
     }
 
     private void run() {
-        System.out.println("\nRunning Detect Demo");
-        // Create a detector from the cascade file in the resources directory.
-        detectWithClassifier("haarcascade_fullbody");
-        detectWithClassifier("haarcascade_lowerbody");
-        detectWithClassifier("haarcascade_upperbody");
+        System.out.println("\nRunning Face Detect Demo");
 
-        detectWithClassifier("haarcascade_frontalface_default");
-        detectWithClassifier("haarcascade_frontalface_alt");
-        detectWithClassifier("haarcascade_frontalface_alt2");
-        detectWithClassifier("haarcascade_frontalface_alt_tree");
+        initializeFrame();
+
+        detectLoop();
     }
 
-    private void runV2() throws Exception {
-        System.out.println("\nRunning Detect Demo v2");
-        // Create a detector from the cascade file in the resources directory.
-
-        final CascadeClassifier detector = new CascadeClassifier(getPath("haarcascade_frontalface_alt2.xml"));
-        final MatOfRect bodyDetections = new MatOfRect();
-        final VisionService visionService = VisionServiceFactory.url(ActorSystem.create("RapBot"));
-        final JFrame frame = new JFrame("RapBot");
-        final JLabel container = new JLabel();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setBounds(100, 100, 640, 480);
-        frame.setVisible(true);
-        frame.setContentPane(container);
-        container.setVisible(true);
-        container.setBounds(100, 100, 640, 480);
-
+    private void detectLoop() {
         while (true) {
-            final Path path = visionService.takePicture()
-                    .toCompletableFuture().get(5L, TimeUnit.SECONDS)
-                    .toAbsolutePath();
-            final Mat image = Imgcodecs.imread(path.toString());
-
-            // Detect faces in the image.
-            // MatOfRect is a special container class for Rect.
-            detector.detectMultiScale(image, bodyDetections);
-            System.out.println(String.format("Detected %s people", bodyDetections.toArray().length));
-
-            // Draw a bounding box around each person.
-            for (final Rect rect : bodyDetections.toArray()) {
-                Imgproc.rectangle(image, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+            try {
+                detectFaceAndPlayMusic();
+            } catch (final Exception e) {
+                e.printStackTrace();
             }
-            // Save the visualized detection.
-            final String filename = Files.createTempFile("face-detection", ".png").toAbsolutePath().toString();
-            System.out.println(String.format("Writing face detection results to %s", filename));
-            Imgcodecs.imwrite(filename, image);
-
-            container.setIcon(new ImageIcon(filename));
         }
     }
 
-    private void runV3() throws Exception {
-        System.out.println("\nRunning Detect Demo v2");
-        // Create a detector from the cascade file in the resources directory.
-
-        final ObjectDetector objectDetector = ObjectDetectors.openCV(ActorSystem.create("RapBot"));
-
-        while (true) {
-            System.out.println("object detected: " + objectDetector.objectDetected());
+    private void detectFaceAndPlayMusic() {
+        if (this.isPlayingMusic.get()) {
+            sleep();
+        } else {
+            if (this.objectDetector.objectDetected()) {
+                System.out.println("Face detected.");
+                playMusic();
+            } else {
+                System.out.println("No face detected.");
+            }
         }
     }
 
-    private void detectWithClassifier(final String classifier) {
-        final CascadeClassifier detector = new CascadeClassifier(getPath(classifier + ".xml"));
-        detectImages(detector, classifier, "centered");
-        detectImages(detector, classifier, "sideways");
-        detectImages(detector, classifier, "multiple");
-    }
-
-    private void detectImages(final CascadeClassifier detector, final String classifier, final String resource) {
-        final Mat image = Imgcodecs.imread(getPath(resource + ".JPG"));
-        // Detect faces in the image.
-        // MatOfRect is a special container class for Rect.
-        final MatOfRect bodyDetections = new MatOfRect();
-        detector.detectMultiScale(image, bodyDetections);
-        System.out.println(
-                String.format(
-                        "Detected %s people for classifier %s resource %s",
-                        bodyDetections.toArray().length,
-                        classifier,
-                        image
-                )
-        );
-        // Draw a bounding box around each person.
-        for (final Rect rect : bodyDetections.toArray()) {
-            Imgproc.rectangle(image, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 255, 0));
+    private void sleep() {
+        try {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(5L));
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
         }
-        // Save the visualized detection.
-        final String filename = classifier + "-" + resource + ".png";
-        System.out.println(String.format("Writing %s", filename));
-        Imgcodecs.imwrite(filename, image);
     }
 
-    private String getPath(final String resource) {
-        return Paths.get("/staging", "src", "main", "resources", resource).toString();
+    private void initializeFrame() {
+        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.frame.setBounds(100, 100, 640, 480);
+        this.frame.setVisible(true);
+        this.frame.setContentPane(this.playerComponent);
+    }
+
+    private void playMusic() {
+        this.playerComponent.getMediaPlayer().playMedia(getSong().toString());
+        this.isPlayingMusic.set(true);
+    }
+
+    private Path getSong() {
+        final Spliterator<Path> spliterator = spliteratorUnknownSize(this.musicLibrary.iterator(), ORDERED);
+        final List<String> paths = stream(spliterator, false)
+                .distinct()
+                .map(Path::toFile)
+                .map(File::getName)
+                .filter(name -> name.endsWith(".mp3") || name.endsWith(".mp4"))
+                .collect(toCollection(ArrayList::new));
+
+        Collections.shuffle(paths);
+
+        if (paths.isEmpty()) {
+            throw new IllegalStateException("No songs in music library path: ." + this.musicLibrary);
+        }
+
+        return this.musicLibrary.resolve(paths.iterator().next());
     }
 }

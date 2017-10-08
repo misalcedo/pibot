@@ -1,4 +1,4 @@
-#docker run -it --rm -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v $XAUTHORITY:/root/.Xauthority -e DISPLAY=unix$DISPLAY --net=host --name hub misalcedo/rapbot:hub-1.0
+#docker run -it --rm --privileged -v /home/miguel/Downloads:/usr/src/app/Music -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v $XAUTHORITY:/root/.Xauthority -e DISPLAY=unix$DISPLAY --net=host --name hub misalcedo/rapbot:hub-1.0
 
 FROM openjdk:jdk-alpine
 
