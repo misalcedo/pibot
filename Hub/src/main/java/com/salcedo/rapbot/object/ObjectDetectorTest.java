@@ -6,19 +6,19 @@ import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
-import static java.util.Spliterator.ORDERED;
-import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.StreamSupport.stream;
 import static javax.swing.SwingUtilities.invokeLater;
 import static javax.swing.UIManager.setLookAndFeel;
 
@@ -99,20 +99,27 @@ public final class ObjectDetectorTest {
     }
 
     private Path getSong() {
-        final Spliterator<Path> spliterator = spliteratorUnknownSize(this.musicLibrary.iterator(), ORDERED);
-        final List<String> paths = stream(spliterator, false)
+        final List<String> names = getSongPaths()
                 .distinct()
                 .map(Path::toFile)
                 .map(File::getName)
                 .filter(name -> name.endsWith(".mp3") || name.endsWith(".mp4"))
                 .collect(toCollection(ArrayList::new));
 
-        Collections.shuffle(paths);
+        Collections.shuffle(names);
 
-        if (paths.isEmpty()) {
-            throw new IllegalStateException("No songs in music library path: ." + this.musicLibrary);
+        if (names.isEmpty()) {
+            throw new IllegalStateException("No songs in music library path: " + this.musicLibrary);
         }
 
-        return this.musicLibrary.resolve(paths.iterator().next());
+        return this.musicLibrary.resolve(names.iterator().next());
+    }
+
+    private Stream<Path> getSongPaths() {
+        try {
+            return Files.list(this.musicLibrary);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
