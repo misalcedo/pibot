@@ -1,6 +1,8 @@
 from flask import Flask, Response
-from camera import create_camera
+from gevent.wsgi import WSGIServer
 from io import BytesIO
+
+from camera import create_camera
 from mjpeg import FrameSplitter
 
 PAGE = """\
@@ -51,3 +53,7 @@ def stream():
                 yield b'\r\n'
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=FRAME')
+
+
+if __name__ == '__main__':
+    WSGIServer(('0.0.0.0', 80), app).serve_forever()
