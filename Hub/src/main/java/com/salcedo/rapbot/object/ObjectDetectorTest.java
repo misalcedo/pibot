@@ -11,9 +11,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
@@ -29,21 +31,24 @@ public final class ObjectDetectorTest {
     private final JFrame frame;
     private final EmbeddedMediaPlayerComponent playerComponent;
     private final Path musicLibrary;
+    private final Random random;
 
-    private ObjectDetectorTest(final Path musicLibrary) {
+    private ObjectDetectorTest(final Path musicLibrary, final SecureRandom secureRandom) {
         this.musicLibrary = musicLibrary;
         this.isPlayingMusic = new AtomicBoolean(false);
         this.playerComponent = new EmbeddedMediaPlayerComponent();
         this.objectDetector = ObjectDetectors.openCV(ActorSystem.create(APP_NAME));
         this.frame = new JFrame(APP_NAME);
+        this.random = secureRandom;
     }
 
     public static void main(final String[] args) throws Exception {
         setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+        final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         final Path musicLibrary = Paths.get("/usr", "src", "app", "Music");
-        final ObjectDetectorTest objectDetectorTest = new ObjectDetectorTest(musicLibrary);
+        final ObjectDetectorTest objectDetectorTest = new ObjectDetectorTest(musicLibrary, secureRandom);
         invokeLater(objectDetectorTest::run);
     }
 
@@ -106,7 +111,7 @@ public final class ObjectDetectorTest {
                 .filter(name -> name.endsWith(".mp3") || name.endsWith(".mp4"))
                 .collect(toCollection(ArrayList::new));
 
-        Collections.shuffle(names);
+        Collections.shuffle(names, this.random);
 
         if (names.isEmpty()) {
             throw new IllegalStateException("No songs in music library path: " + this.musicLibrary);
