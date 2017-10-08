@@ -37,9 +37,10 @@ public final class DefaultJukeBox implements JukeBox {
         playSong(song);
     }
 
-    private boolean playSong(final Path song) {
+    private void playSong(final Path song) {
         this.log.info("Playing song {}. JukeBox: {}", song, this);
-        return this.mediaPlayerComponent.getMediaPlayer().playMedia(song.toString());
+        this.mediaPlayerComponent.getMediaPlayer().playMedia(song.toString());
+        this.playingMusic.set(true);
     }
 
     @Override
@@ -82,6 +83,7 @@ public final class DefaultJukeBox implements JukeBox {
     @Override
     public void turnOff() {
         this.mediaPlayerComponent.release();
+        this.playingMusic.set(false);
     }
 
     @Override
