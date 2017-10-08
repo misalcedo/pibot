@@ -1,7 +1,7 @@
 package com.salcedo.rapbot.object.jukebox;
 
 import akka.actor.ActorSystem;
-import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+import uk.co.caprica.vlcj.component.AudioMediaPlayerComponent;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,7 @@ public final class JukeBoxes {
     public static JukeBox create(
             final ActorSystem system,
             final Path musicLibrary,
-            final EmbeddedMediaPlayerComponent playerComponent) {
+            final AudioMediaPlayerComponent playerComponent) {
         final List<Path> names = getSongPaths(musicLibrary)
                 .map(Path::toFile)
                 .filter(file -> file.getName().endsWith(".mp3") || file.getName().endsWith(".mp4"))

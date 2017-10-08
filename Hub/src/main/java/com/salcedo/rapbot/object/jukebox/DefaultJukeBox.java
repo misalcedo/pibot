@@ -3,7 +3,7 @@ package com.salcedo.rapbot.object.jukebox;
 import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+import uk.co.caprica.vlcj.component.AudioMediaPlayerComponent;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -14,10 +14,10 @@ public final class DefaultJukeBox implements JukeBox {
     private final AtomicBoolean playingMusic;
     private final AtomicInteger index;
     private final List<Path> songNames;
-    private final EmbeddedMediaPlayerComponent mediaPlayerComponent;
+    private final AudioMediaPlayerComponent mediaPlayerComponent;
     private final LoggingAdapter log;
 
-    DefaultJukeBox(final ActorSystem system, final List<Path> songNames, final EmbeddedMediaPlayerComponent mediaPlayerComponent) {
+    DefaultJukeBox(final ActorSystem system, final List<Path> songNames, final AudioMediaPlayerComponent mediaPlayerComponent) {
         this.songNames = songNames;
         this.mediaPlayerComponent = mediaPlayerComponent;
         this.log = Logging.getLogger(system, this);

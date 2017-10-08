@@ -6,7 +6,7 @@ import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.object.jukebox.JukeBox;
 import com.salcedo.rapbot.object.jukebox.JukeBoxes;
 import org.opencv.core.Core;
-import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
+import uk.co.caprica.vlcj.component.AudioMediaPlayerComponent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,7 +28,6 @@ public final class ObjectDetectorTest extends WindowAdapter {
     private final ObjectDetector objectDetector;
     private final JFrame frame;
     private final JukeBox jukeBox;
-    private final EmbeddedMediaPlayerComponent playerComponent;
 
     private ObjectDetectorTest(final Path musicLibrary) {
         final ActorSystem system = ActorSystem.create(APP_NAME);
@@ -36,8 +35,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
         this.objectDetector = ObjectDetectors.openCV(system);
         this.frame = new JFrame(APP_NAME);
         this.log = Logging.getLogger(system, this);
-        this.playerComponent = new EmbeddedMediaPlayerComponent();
-        this.jukeBox = JukeBoxes.create(system, musicLibrary, this.playerComponent);
+        this.jukeBox = JukeBoxes.create(system, musicLibrary, new AudioMediaPlayerComponent());
     }
 
     public static void main(final String[] args) throws Exception {
@@ -99,7 +97,6 @@ public final class ObjectDetectorTest extends WindowAdapter {
 
         final JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
-        contentPane.add(this.playerComponent, BorderLayout.CENTER);
         contentPane.add(controlsPane, BorderLayout.SOUTH);
 
         pauseButton.addActionListener(event -> this.jukeBox.pauseOrResume());
