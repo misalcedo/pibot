@@ -105,8 +105,8 @@ public final class ObjectDetectorTest extends WindowAdapter {
 
         this.frame.setContentPane(contentPane);
         this.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.frame.setBounds(100, 100, 600, 400);
         this.frame.addWindowListener(this);
+        this.frame.pack();
         this.frame.setVisible(true);
     }
 }
