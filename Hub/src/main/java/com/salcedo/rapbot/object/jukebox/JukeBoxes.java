@@ -38,7 +38,11 @@ public final class JukeBoxes {
 
     private static Stream<Path> getSongPaths(final Path musicLibrary) {
         try {
-            return Files.list(musicLibrary);
+            return Files.find(
+                    musicLibrary,
+                    Integer.MAX_VALUE,
+                    (path, basicFileAttributes) -> basicFileAttributes.isRegularFile()
+            );
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }

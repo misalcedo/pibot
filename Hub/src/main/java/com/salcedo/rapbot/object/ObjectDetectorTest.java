@@ -9,6 +9,7 @@ import org.opencv.core.Core;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
@@ -24,6 +25,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
     private final ObjectDetector objectDetector;
     private final JFrame frame;
     private final JukeBox jukeBox;
+    private final EmbeddedMediaPlayerComponent playerComponent;
 
     private ObjectDetectorTest(final Path musicLibrary) {
         final ActorSystem system = ActorSystem.create(APP_NAME);
@@ -31,7 +33,8 @@ public final class ObjectDetectorTest extends WindowAdapter {
         this.objectDetector = ObjectDetectors.openCV(system);
         this.frame = new JFrame(APP_NAME);
         this.log = Logging.getLogger(system, this);
-        this.jukeBox = JukeBoxes.create(system, musicLibrary, new EmbeddedMediaPlayerComponent());
+        this.playerComponent = new EmbeddedMediaPlayerComponent();
+        this.jukeBox = JukeBoxes.create(system, musicLibrary, this.playerComponent);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -51,7 +54,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
     }
 
     private void run() {
-        this.log.info("Running Face Detect Demo");
+        this.log.info("Running Face Detect Demo. JukeBox: {}", this.jukeBox);
 
         initializeFrame();
 
@@ -76,7 +79,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
                 this.log.info("Face detected.");
                 this.jukeBox.playNextSong();
             } else {
-                this.log.info("No face detected.");
+                this.log.info("No face detected. JukeBox: {}", this.jukeBox);
             }
         }
     }
@@ -91,9 +94,13 @@ public final class ObjectDetectorTest extends WindowAdapter {
 
     private void initializeFrame() {
         this.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.frame.setBounds(100, 100, 640, 480);
+        this.frame.setBounds(100, 100, 600, 400);
         this.frame.setVisible(true);
         this.frame.addWindowListener(this);
+
+        final JPanel contentPane = new JPanel();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add(this.playerComponent, BorderLayout.CENTER);
 
         final JPanel controlsPane = new JPanel();
         final JButton pauseButton = new JButton("Pause/Resume");
@@ -107,7 +114,8 @@ public final class ObjectDetectorTest extends WindowAdapter {
         controlsPane.add(pauseButton);
         controlsPane.add(previousButton);
         controlsPane.add(nextButton);
+        contentPane.add(controlsPane);
 
-        this.frame.setContentPane(controlsPane);
+        this.frame.setContentPane(contentPane);
     }
 }

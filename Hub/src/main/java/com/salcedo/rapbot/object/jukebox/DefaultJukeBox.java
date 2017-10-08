@@ -27,7 +27,7 @@ public final class DefaultJukeBox implements JukeBox {
 
     @Override
     public void playNextSong() {
-        this.log.info("Play next song. JukeBox State: {}", this);
+        this.log.info("Play next song. JukeBox: {}", this);
 
 
         this.index.compareAndSet(this.songNames.size(), -1);
@@ -38,13 +38,13 @@ public final class DefaultJukeBox implements JukeBox {
     }
 
     private boolean playSong(final Path song) {
-        this.log.info("Playing song {}. JukeBox State: {}", song, this);
+        this.log.info("Playing song {}. JukeBox: {}", song, this);
         return this.mediaPlayerComponent.getMediaPlayer().playMedia(song.toString());
     }
 
     @Override
     public void playPreviousSong() {
-        this.log.info("Play previous song. JukeBox State: {}", this);
+        this.log.info("Play previous song. JukeBox: {}", this);
 
         this.index.compareAndSet(0, this.songNames.size());
 
@@ -68,13 +68,13 @@ public final class DefaultJukeBox implements JukeBox {
     }
 
     private void pause() {
-        this.log.info("Paused music. JukeBox State: {}", this);
+        this.log.info("Paused music. JukeBox: {}", this);
         this.mediaPlayerComponent.getMediaPlayer().pause();
         this.playingMusic.set(false);
     }
 
     private void resume() {
-        this.log.info("Resumed music. JukeBox State: {}", this);
+        this.log.info("Resumed music. JukeBox: {}", this);
         this.mediaPlayerComponent.getMediaPlayer().play();
         this.playingMusic.set(true);
     }
@@ -90,6 +90,7 @@ public final class DefaultJukeBox implements JukeBox {
                 "playingMusic=" + this.playingMusic.get() +
                 ", index=" + this.index.get() +
                 ", songNames=" + this.songNames.size() +
+                ", song=" + (this.index.get() < 0 ? "N/A" : this.songNames.get(this.index.get())) +
                 '}';
     }
 }
