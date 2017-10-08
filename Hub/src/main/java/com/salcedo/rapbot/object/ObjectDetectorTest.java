@@ -41,7 +41,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
         setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        final Path musicLibrary = Paths.get("/usr", "src", "app", "Music");
+        final Path musicLibrary = Paths.get("~", "Downloads");
         final ObjectDetectorTest objectDetectorTest = new ObjectDetectorTest(musicLibrary);
         invokeLater(objectDetectorTest::run);
     }
@@ -67,6 +67,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
                 detectFaceAndPlayMusic();
             } catch (final Exception e) {
                 e.printStackTrace();
+                sleep();
             }
         }
     }
@@ -80,6 +81,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
                 this.jukeBox.playNextSong();
             } else {
                 this.log.info("No face detected. JukeBox: {}", this.jukeBox);
+                sleep();
             }
         }
     }
@@ -93,29 +95,28 @@ public final class ObjectDetectorTest extends WindowAdapter {
     }
 
     private void initializeFrame() {
-        this.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.frame.setBounds(100, 100, 600, 400);
-        this.frame.setVisible(true);
-        this.frame.addWindowListener(this);
+        final JToggleButton pauseButton = new JToggleButton("Pause/Resume");
+        final JButton previousButton = new JButton("Previous");
+        final JButton nextButton = new JButton("Next");
+
+        final JPanel controlsPane = new JPanel();
+        controlsPane.add(pauseButton);
+        controlsPane.add(previousButton);
+        controlsPane.add(nextButton);
 
         final JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(this.playerComponent, BorderLayout.CENTER);
-
-        final JPanel controlsPane = new JPanel();
-        final JButton pauseButton = new JButton("Pause/Resume");
-        final JButton previousButton = new JButton("Previous");
-        final JButton nextButton = new JButton("Next");
+        contentPane.add(controlsPane, BorderLayout.SOUTH);
 
         pauseButton.addActionListener(event -> this.jukeBox.pauseOrResume());
         previousButton.addActionListener(event -> this.jukeBox.playPreviousSong());
         nextButton.addActionListener(event -> this.jukeBox.playNextSong());
 
-        controlsPane.add(pauseButton);
-        controlsPane.add(previousButton);
-        controlsPane.add(nextButton);
-        contentPane.add(controlsPane);
-
         this.frame.setContentPane(contentPane);
+        this.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.frame.setBounds(100, 100, 600, 400);
+        this.frame.addWindowListener(this);
+        this.frame.setVisible(true);
     }
 }
