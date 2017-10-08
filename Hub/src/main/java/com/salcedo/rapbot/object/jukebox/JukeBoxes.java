@@ -22,7 +22,6 @@ public final class JukeBoxes {
             final Path musicLibrary,
             final EmbeddedMediaPlayerComponent playerComponent) {
         final List<Path> names = getSongPaths(musicLibrary)
-                .distinct()
                 .map(Path::toFile)
                 .filter(file -> file.getName().endsWith(".mp3") || file.getName().endsWith(".mp4"))
                 .map(File::toPath)
