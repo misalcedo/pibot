@@ -14,6 +14,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static javax.swing.SwingUtilities.invokeLater;
@@ -21,6 +23,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public final class ObjectDetectorTest extends WindowAdapter {
     private static final String APP_NAME = "FaceDetect";
+    private final static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final LoggingAdapter log;
     private final ObjectDetector objectDetector;
     private final JFrame frame;
@@ -41,9 +44,12 @@ public final class ObjectDetectorTest extends WindowAdapter {
         setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        final Path musicLibrary = Paths.get("~", "Downloads");
+        final Path musicLibrary = Paths.get("/usr", "src", "app", "Music");
         final ObjectDetectorTest objectDetectorTest = new ObjectDetectorTest(musicLibrary);
-        invokeLater(objectDetectorTest::run);
+
+        invokeLater(objectDetectorTest::initializeFrame);
+
+        objectDetectorTest.run();
     }
 
     @Override
@@ -56,46 +62,33 @@ public final class ObjectDetectorTest extends WindowAdapter {
     private void run() {
         this.log.info("Running Face Detect Demo. JukeBox: {}", this.jukeBox);
 
-        initializeFrame();
-
-        detectLoop();
+        executorService.scheduleAtFixedRate(this::detectLoop, 0L, 5L, TimeUnit.SECONDS);
     }
 
     private void detectLoop() {
-        while (true) {
-            try {
-                detectFaceAndPlayMusic();
-            } catch (final Exception e) {
-                e.printStackTrace();
-                sleep();
-            }
+        try {
+            detectFaceAndPlayMusic();
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
     }
 
     private void detectFaceAndPlayMusic() {
         if (this.jukeBox.isPlayingMusic()) {
-            sleep();
-        } else {
-            if (this.objectDetector.objectDetected()) {
-                this.log.info("Face detected.");
-                this.jukeBox.playNextSong();
-            } else {
-                this.log.info("No face detected. JukeBox: {}", this.jukeBox);
-                sleep();
-            }
+            return;
         }
-    }
 
-    private void sleep() {
-        try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(5L));
-        } catch (final InterruptedException e) {
-            e.printStackTrace();
+        if (this.objectDetector.objectDetected()) {
+            this.log.info("Face detected.");
+            this.jukeBox.playNextSong();
+        } else {
+            this.log.info("No face detected. JukeBox: {}", this.jukeBox);
         }
+
     }
 
     private void initializeFrame() {
-        final JToggleButton pauseButton = new JToggleButton("Pause/Resume");
+        final JButton pauseButton = new JButton("Pause/Resume");
         final JButton previousButton = new JButton("Previous");
         final JButton nextButton = new JButton("Next");
 
