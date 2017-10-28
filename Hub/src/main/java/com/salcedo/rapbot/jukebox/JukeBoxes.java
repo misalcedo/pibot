@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.object.jukebox;
+package com.salcedo.rapbot.jukebox;
 
 import akka.actor.ActorSystem;
 import uk.co.caprica.vlcj.component.AudioMediaPlayerComponent;

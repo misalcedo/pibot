@@ -3,8 +3,9 @@ package com.salcedo.rapbot.object;
 import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.object.jukebox.JukeBox;
-import com.salcedo.rapbot.object.jukebox.JukeBoxes;
+import com.salcedo.rapbot.jukebox.JukeBox;
+import com.salcedo.rapbot.jukebox.JukeBoxes;
+import com.salcedo.rapbot.vision.VisionServiceFactory;
 import org.opencv.core.Core;
 import uk.co.caprica.vlcj.component.AudioMediaPlayerComponent;
 
@@ -12,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Executors;
@@ -29,10 +31,10 @@ public final class ObjectDetectorTest extends WindowAdapter {
     private final JFrame frame;
     private final JukeBox jukeBox;
 
-    private ObjectDetectorTest(final Path musicLibrary) {
+    private ObjectDetectorTest(final Path musicLibrary) throws Exception {
         final ActorSystem system = ActorSystem.create(APP_NAME);
 
-        this.objectDetector = ObjectDetectors.openCV(system);
+        this.objectDetector = ObjectDetectors.openCV(VisionServiceFactory.url(new URL("http://192.169.1.41:3001"), system), system);
         this.frame = new JFrame(APP_NAME);
         this.log = Logging.getLogger(system, this);
         this.jukeBox = JukeBoxes.create(system, musicLibrary, new AudioMediaPlayerComponent());

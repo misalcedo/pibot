@@ -18,13 +18,18 @@ public final class KeyboardDriver extends AbstractActor {
     }
 
     @Override
+    public void preStart() throws Exception {
+        context().system().eventStream().subscribe(self(), KeyEvent.class);
+    }
+
+    @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(KeyEvent.class, this::drive)
                 .build();
     }
 
-    private void drive(KeyEvent keyEvent) {
+    private void drive(final KeyEvent keyEvent) {
         if (keyEvent.getID() != KeyEvent.KEY_RELEASED) {
             return;
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_UP) {
@@ -43,12 +48,12 @@ public final class KeyboardDriver extends AbstractActor {
     }
 
     private MotorRequest createStopRequest() {
-        Motor backLeftMotor = Motor.builder()
+        final Motor backLeftMotor = Motor.builder()
                 .withReleaseCommand()
                 .withBackLeftLocation()
                 .withSpeed(0)
                 .build();
-        Motor backRightMotor = Motor.builder()
+        final Motor backRightMotor = Motor.builder()
                 .withReleaseCommand()
                 .withBackRightLocation()
                 .withSpeed(0)
@@ -57,20 +62,20 @@ public final class KeyboardDriver extends AbstractActor {
         return createMotorRequest(backLeftMotor, backRightMotor);
     }
 
-    private MotorRequest createMotorRequest(Motor backLeftMotor, Motor backRightMotor) {
+    private MotorRequest createMotorRequest(final Motor backLeftMotor, final Motor backRightMotor) {
         return MotorRequest.builder()
                 .addMotor(backLeftMotor)
                 .addMotor(backRightMotor)
                 .build();
     }
 
-    private MotorRequest createForwardRequest(int leftSpeed, int rightSpeed) {
-        Motor backLeftMotor = Motor.builder()
+    private MotorRequest createForwardRequest(final int leftSpeed, final int rightSpeed) {
+        final Motor backLeftMotor = Motor.builder()
                 .withForwardCommand()
                 .withBackLeftLocation()
                 .withSpeed(leftSpeed)
                 .build();
-        Motor backRightMotor = Motor.builder()
+        final Motor backRightMotor = Motor.builder()
                 .withForwardCommand()
                 .withBackRightLocation()
                 .withSpeed(rightSpeed)
@@ -80,12 +85,12 @@ public final class KeyboardDriver extends AbstractActor {
     }
 
     private MotorRequest createReverseRequest() {
-        Motor backLeftMotor = Motor.builder()
+        final Motor backLeftMotor = Motor.builder()
                 .withBackwardCommand()
                 .withBackLeftLocation()
                 .withSpeed(255)
                 .build();
-        Motor backRightMotor = Motor.builder()
+        final Motor backRightMotor = Motor.builder()
                 .withBackwardCommand()
                 .withBackRightLocation()
                 .withSpeed(255)

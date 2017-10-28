@@ -8,7 +8,6 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.hub.driver.DriveRequest;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
-import com.salcedo.rapbot.hub.driver.RandomDriver;
 import com.salcedo.rapbot.hub.services.Motors;
 import com.salcedo.rapbot.motor.MotorResponse;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
@@ -33,18 +32,17 @@ public final class RapBot extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(DriveRequest.class, this::forwardDriveRequest)
                 .match(KeyEvent.class, this::sendKeyEvent)
                 .match(MotorResponse.class, response -> logResponse())
                 .match(Terminated.class, this::shutdown)
                 .build();
     }
 
-    private void sendKeyEvent(KeyEvent keyEvent) {
+    private void sendKeyEvent(final KeyEvent keyEvent) {
         driver.tell(keyEvent, self());
     }
 
-    private void shutdown(Terminated terminated) {
+    private void shutdown(final Terminated terminated) {
         log.error("Driver terminated unexpectedly.", terminated.actor());
         getContext().stop(self());
     }
@@ -64,7 +62,7 @@ public final class RapBot extends AbstractActor {
         log.info("Driver responded to drive request");
     }
 
-    private void forwardDriveRequest(DriveRequest request) {
+    private void forwardDriveRequest(final DriveRequest request) {
         driver.tell(request, self());
     }
 }

@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.object.jukebox;
+package com.salcedo.rapbot.jukebox;
 
 public interface JukeBox {
     void playNextSong();
