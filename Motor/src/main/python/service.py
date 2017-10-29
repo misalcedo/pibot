@@ -43,7 +43,3 @@ def update_motor(key, value):
 def drive():
     for key, value in request.json["motors"].items():
         update_motor(key, value)
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
