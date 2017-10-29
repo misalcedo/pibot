@@ -44,6 +44,28 @@ services:
       placement:
         constraints:
           - node.id == cyq863hfnupn6rqi69l01yytm
+  sense:
+      build: ./Sense
+      image: misalcedo/rapbot:sense-1.0
+      volumes:
+        - ./Sense/src/main/python:/usr/src/app
+      ports:
+        - 3002:80
+      devices:
+        - /dev/vchiq
+      deploy:
+        replicas: 1
+        update_config:
+          parallelism: 1
+          delay: 10s
+        restart_policy:
+          condition: on-failure
+          delay: 5s
+          max_attempts: 3
+          window: 120s
+        placement:
+          constraints:
+            - node.id == cyq863hfnupn6rqi69l01yytm
   hub:
     build: ./Hub
     image: misalcedo/rapbot:hub-1.0
