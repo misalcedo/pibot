@@ -4,4 +4,4 @@ COPY ./src/main/python /usr/src/app
 
 ENV FLASK_APP=service.py FLASK_DEBUG=1
 
-ENTRYPOINT flask run --host=0.0.0.0 --port 80
+CMD flask run --host=0.0.0.0 --port 80

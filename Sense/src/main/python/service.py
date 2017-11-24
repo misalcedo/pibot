@@ -1,54 +1,48 @@
 from flask import Flask, Response
-from io import BytesIO
+from sense_hat import SenseHat
 
-from camera import create_camera
-from mjpeg import FrameSplitter
 
-PAGE = """\
-    <html>
-        <head>
-        <title>RapBot MJPEG Stream</title>
-        </head>
-        <body>
-            <h1>RapBot MJPEG Stream</h1>
-            <img src="stream.mjpg"/>
-        </body>
-    </html>
-    """.encode('utf-8')
-
+sense = SenseHat()
+sense.set_imu_config(True, True, True)
 app = Flask(__name__)
-video_output = FrameSplitter()
-camera = create_camera(video_output)
 
 
-@app.route("/")
-def root():
-    return PAGE
+@app.route('/')
+def all_sensors():
+    return "Hello, world!"
 
 
-@app.route("/still.jpg")
-def still():
-    def generate(buffer):
-        camera.capture(buffer, format='jpeg', use_video_port=True)
-
-        buffer.seek(0)
-
-        yield buffer.read()
-
-    return Response(generate(BytesIO()), mimetype='image/jpeg')
+@app.route('/humidity')
+def humidity():
+    return "Hello, world!"
 
 
-@app.route("/stream.mjpg")
-def stream():
-    def generate():
-        video_output.truncate()
+@app.route('/pressure')
+def pressure():
+    return "Hello, world!"
 
-        while True:
-            frame = video_output.read()
-            if frame:
-                yield b'--FRAME\r\n'
-                yield b'Content-Type: image/jpeg\r\n\r\n'
-                yield frame
-                yield b'\r\n'
 
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=FRAME')
+@app.route('/temperature')
+def temperature():
+    return "Hello, world!"
+
+
+@app.route('/orientation')
+def orientation():
+    orientation_degrees = sense.get_orientation_degrees()
+    return "p: {pitch}, r: {roll}, y: {yaw}".format(**orientation_degrees)
+
+
+@app.route('/accelerometer')
+def accelerometer():
+    return "Hello, world!"
+
+
+@app.route('/magnetometer')
+def magnetometer():
+    return "Hello, world!"
+
+
+@app.route('/gyroscope')
+def gyroscope():
+    return "Hello, world!"
