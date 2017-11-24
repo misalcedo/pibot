@@ -29,7 +29,7 @@ def temperature():
 
 @app.route('/orientation')
 def orientation():
-    return sense.orientation_degrees
+    return str(sense.orientation)
 
 
 @app.route('/accelerometer')

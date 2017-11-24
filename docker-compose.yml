@@ -45,10 +45,7 @@ services:
       - ./Sense/src/main/python:/usr/src/app
     ports:
       - 3002:80
-    devices:
-      - /dev/i2c-1
-      - /dev/urandom
-      - /dev/input/event0
+    privileged: True
     deploy:
       replicas: 1
       update_config:
