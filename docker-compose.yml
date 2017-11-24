@@ -19,9 +19,6 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-      placement:
-        constraints:
-          - node.id == cyq863hfnupn6rqi69l01yytm
   vision:
     build: ./Vision
     image: misalcedo/rapbot:vision-1.0
@@ -41,9 +38,6 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-      placement:
-        constraints:
-          - node.id == cyq863hfnupn6rqi69l01yytm
   sense:
       build: ./Sense
       image: misalcedo/rapbot:sense-1.0
@@ -63,9 +57,6 @@ services:
           delay: 5s
           max_attempts: 3
           window: 120s
-        placement:
-          constraints:
-            - node.id == cyq863hfnupn6rqi69l01yytm
   hub:
     build: ./Hub
     image: misalcedo/rapbot:hub-1.0
