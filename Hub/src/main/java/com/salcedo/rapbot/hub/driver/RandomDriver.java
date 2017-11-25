@@ -6,11 +6,16 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.motor.Motor;
 import com.salcedo.rapbot.motor.MotorRequest;
+import com.salcedo.rapbot.sense.OrientationRequest;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public final class RandomDriver extends AbstractActor {
+    private static final FiniteDuration DRIVE_DELAY = Duration.create(1L, TimeUnit.SECONDS);
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Random random;
     private final ActorRef motors;
@@ -18,6 +23,20 @@ public final class RandomDriver extends AbstractActor {
     private RandomDriver(final ActorRef motors) {
         this.motors = motors;
         this.random = new SecureRandom();
+    }
+
+    @Override
+    public void preStart() throws Exception {
+        getContext()
+                .getSystem()
+                .scheduler()
+                .scheduleOnce(
+                        DRIVE_DELAY,
+                        self(),
+                        new OrientationRequest(),
+                        getContext().dispatcher(),
+                        self()
+                );
     }
 
     @Override
@@ -36,7 +55,7 @@ public final class RandomDriver extends AbstractActor {
         motors.forward(createRequest(command, speed), getContext());
     }
 
-    private Motor withCommand(int command, Motor.MotorBuilder motorBuilder) {
+    private Motor withCommand(final int command, final Motor.MotorBuilder motorBuilder) {
         switch (command) {
             case 1:
                 return motorBuilder.withForwardCommand().build();
@@ -47,11 +66,11 @@ public final class RandomDriver extends AbstractActor {
         }
     }
 
-    private MotorRequest createRequest(int command, int speed) {
-        Motor backLeftMotor = withCommand(command, Motor.builder()
+    private MotorRequest createRequest(final int command, final int speed) {
+        final Motor backLeftMotor = withCommand(command, Motor.builder()
                 .withBackLeftLocation()
                 .withSpeed(speed));
-        Motor backRightMotor = withCommand(command, Motor.builder()
+        final Motor backRightMotor = withCommand(command, Motor.builder()
                 .withBackRightLocation()
                 .withSpeed(speed));
 

@@ -6,11 +6,11 @@ import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.motor.MotorRequest;
 import com.salcedo.rapbot.motor.MotorService;
 
-public final class Motors extends AbstractActor {
+public final class MotorActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final MotorService motorService;
 
-    public Motors(MotorService motorService) {
+    public MotorActor(final MotorService motorService) {
         this.motorService = motorService;
     }
 
@@ -21,7 +21,7 @@ public final class Motors extends AbstractActor {
                 .build();
     }
 
-    private void drive(MotorRequest request) {
+    private void drive(final MotorRequest request) {
         log.info("Received a motor request. Request: {}", request);
 
         motorService.drive(request);

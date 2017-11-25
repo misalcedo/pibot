@@ -3,14 +3,14 @@ package com.salcedo.rapbot.motor;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Motors are used to move the robot.
+ * MotorActor are used to move the robot.
  */
 public final class Motor {
     private final Location location;
     private final Command command;
     private final int speed;
 
-    private Motor(Location location, Command command, int speed) {
+    private Motor(final Location location, final Command command, final int speed) {
         this.location = location;
         this.command = command;
         this.speed = speed;
@@ -72,12 +72,12 @@ public final class Motor {
             return this;
         }
 
-        public MotorBuilder withSpeed(int speed) {
+        public MotorBuilder withSpeed(final int speed) {
             this.speed = validateSpeed(speed);
             return this;
         }
 
-        private int validateSpeed(int speed) {
+        private int validateSpeed(final int speed) {
             if (speed > 255 || speed < 0) {
                 throw new IllegalArgumentException(
                         String.format("Invalid speed. Speed must be 0 <= speed <= 255. (Speed = %s)", speed)

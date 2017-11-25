@@ -22,4 +22,13 @@ public class OrientationResponse {
     public double getRoll() {
         return roll;
     }
+
+    @Override
+    public String toString() {
+        return "OrientationResponse{" +
+                "yaw=" + yaw +
+                ", pitch=" + pitch +
+                ", roll=" + roll +
+                '}';
+    }
 }

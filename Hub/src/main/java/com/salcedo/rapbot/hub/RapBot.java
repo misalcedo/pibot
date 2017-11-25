@@ -7,21 +7,22 @@ import akka.actor.Terminated;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
-import com.salcedo.rapbot.hub.driver.DriveRequest;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
-import com.salcedo.rapbot.hub.services.Motors;
-import com.salcedo.rapbot.motor.MotorResponse;
+import com.salcedo.rapbot.hub.services.MotorActor;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
+import com.salcedo.rapbot.sense.OrientationRequest;
+import com.salcedo.rapbot.sense.OrientationResponse;
 import com.salcedo.rapbot.sense.SenseActor;
 import com.salcedo.rapbot.sense.SenseServiceFactory;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
+import static akka.actor.ActorRef.noSender;
+
 public final class RapBot extends AbstractActor {
-    private static final FiniteDuration DRIVE_DELAY = Duration.create(1L, TimeUnit.SECONDS);
+    private static final FiniteDuration SENSE_DELAY = Duration.create(1L, TimeUnit.SECONDS);
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Uri rpi2;
     private ActorRef driver;
@@ -35,7 +36,7 @@ public final class RapBot extends AbstractActor {
     @Override
     public void preStart() {
         motors = getContext().actorOf(Props.create(
-                Motors.class,
+                MotorActor.class,
                 MotorServiceFactory.http(getContext().getSystem(), rpi2.port(3000))
         ));
         driver = getContext().actorOf(Props.create(KeyboardDriver.class, motors));
@@ -43,12 +44,14 @@ public final class RapBot extends AbstractActor {
                 SenseActor.class,
                 SenseServiceFactory.http(getContext().getSystem(), rpi2.port(3002))
         ));
+
+        sensors.tell(new OrientationRequest(), self());
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(MotorResponse.class, response -> logResponse())
+                .match(OrientationResponse.class, this::logSenseResponse)
                 .match(Terminated.class, this::shutdown)
                 .build();
     }
@@ -58,18 +61,18 @@ public final class RapBot extends AbstractActor {
         getContext().stop(self());
     }
 
-    private void logResponse() {
+    private void logSenseResponse(final OrientationResponse response) {
         getContext()
                 .getSystem()
                 .scheduler()
                 .scheduleOnce(
-                        DRIVE_DELAY,
-                        driver,
-                        new DriveRequest(),
+                        SENSE_DELAY,
+                        sensors,
+                        new OrientationRequest(),
                         getContext().dispatcher(),
                         self()
                 );
 
-        log.info("Driver responded to drive request");
+        log.info("{}", response);
     }
 }
