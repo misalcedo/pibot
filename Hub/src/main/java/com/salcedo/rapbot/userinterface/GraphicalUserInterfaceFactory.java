@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.userinterface;
 
 import akka.actor.ActorSystem;
+import akka.http.javadsl.model.Uri;
 
 import java.net.URI;
 
@@ -9,9 +10,9 @@ public interface GraphicalUserInterfaceFactory {
         return new KeyboardControllerGUI(new EventStreamKeyListener(system.eventStream()));
     }
 
-    static GraphicalUserInterface video(final ActorSystem system) {
+    static GraphicalUserInterface video(final ActorSystem system, final Uri uri) {
         return new VideoFeedGUI(
-                URI.create("http://192.168.1.23:3001/stream.mjpg"),
+                uri,
                 new EventStreamKeyListener(system.eventStream())
         );
     }

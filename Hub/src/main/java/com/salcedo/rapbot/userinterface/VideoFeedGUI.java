@@ -1,5 +1,6 @@
 package com.salcedo.rapbot.userinterface;
 
+import akka.http.javadsl.model.Uri;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 
 import javax.swing.*;
@@ -9,9 +10,9 @@ import java.net.URI;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 
 public class VideoFeedGUI extends BaseGUI {
-    private final URI uri;
+    private final Uri uri;
 
-    VideoFeedGUI(final URI uri, final KeyListener keyListener) {
+    VideoFeedGUI(final Uri uri, final KeyListener keyListener) {
         super(keyListener);
         this.uri = uri;
     }

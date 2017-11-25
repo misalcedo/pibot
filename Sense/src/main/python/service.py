@@ -3,7 +3,7 @@ from sense_hat import SenseHat
 
 
 sense = SenseHat()
-sense.set_imu_config(False, False, True)
+sense.set_imu_config(True, True, True)
 app = Flask(__name__)
 
 

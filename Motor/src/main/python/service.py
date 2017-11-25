@@ -3,8 +3,6 @@ import atexit
 from Adafruit_MotorHAT import Adafruit_MotorHAT
 from flask import Flask, request
 
-# create a default object, no changes to I2C address or frequency
-LOCATION_TO_INDEX = {"BACK_RIGHT": 1, "BACK_LEFT": 2}
 COMMAND_MAP = {
     "FORWARD": Adafruit_MotorHAT.FORWARD,
     "BACKWARD": Adafruit_MotorHAT.BACKWARD,
@@ -27,12 +25,11 @@ def turn_off_motors():
 app = Flask(__name__)
 
 
-def update_motor(key, value):
-    index = LOCATION_TO_INDEX[key]
-    command = value["command"]
-    speed = value["speed"]
+def update_motor(index, fields):
+    command = fields["command"]
+    speed = fields["speed"]
 
-    app.logger.debug("Updating %s motor with index %d to speed: %d, command: %s", key, index, speed, command)
+    app.logger.debug("Updating %s motor with index %d to speed: %d, command: %s", index, speed, command)
 
     motor = motor_hat.getMotor(index)
     motor.run(COMMAND_MAP[command])
