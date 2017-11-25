@@ -14,6 +14,8 @@ import com.salcedo.rapbot.sense.OrientationRequest;
 import com.salcedo.rapbot.sense.OrientationResponse;
 import com.salcedo.rapbot.sense.SenseActor;
 import com.salcedo.rapbot.sense.SenseServiceFactory;
+import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
+import com.salcedo.rapbot.snapshot.SnapshotActor;
 import org.apache.spark.sql.SQLContext;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -30,6 +32,7 @@ public final class RapBot extends AbstractActor {
     private ActorRef motors;
     private ActorRef sensors;
     private ActorRef learner;
+    private ActorRef snapshot;
 
     public RapBot(final Uri rpi2, SQLContext sqlContext) {
         this.rpi2 = rpi2;
@@ -38,11 +41,7 @@ public final class RapBot extends AbstractActor {
 
     @Override
     public void preStart() {
-        motors = getContext().actorOf(Props.create(
-                MotorActor.class,
-                MotorServiceFactory.http(getContext().getSystem(), rpi2.port(3000))
-        ));
-        driver = getContext().actorOf(Props.create(KeyboardDriver.class, motors));
+        driver = getContext().actorOf(Props.create(KeyboardDriver.class, rpi2.port(3000)));
         sensors = getContext().actorOf(Props.create(
                 SenseActor.class,
                 SenseServiceFactory.http(getContext().getSystem(), rpi2.port(3002))
@@ -53,8 +52,13 @@ public final class RapBot extends AbstractActor {
                 Paths.get("~", "RapBot", "orientation.parquet"),
                 10
         ));
+        snapshot = getContext().actorOf(Props.create(SnapshotActor.class));
 
-        sensors.tell(new OrientationRequest(), self());
+        snapshot.tell(new RegisterSubSystemMessage(sensors), motors);
+    }
+
+    @Override
+    public void postStop() throws Exception {
     }
 
     @Override

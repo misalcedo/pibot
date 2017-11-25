@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class HttpSenseService implements SenseService {
     private static final long TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(1L);
@@ -16,33 +17,45 @@ public class HttpSenseService implements SenseService {
     private final Uri destination;
     private final Gson gson;
 
-    public HttpSenseService(final Http http, final Materializer materializer, final Uri destination, final Gson gson) {
+    HttpSenseService(final Http http, final Materializer materializer, final Uri destination, final Gson gson) {
         this.http = http;
         this.materializer = materializer;
         this.destination = destination;
         this.gson = gson;
     }
 
-    private HttpRequest createHttpRequest() {
+    private HttpRequest createHttpRequest(final String path) {
         return HttpRequest.create()
-                .withUri(destination.addPathSegment("/orientation"))
+                .withUri(destination.addPathSegment(path))
                 .withMethod(HttpMethods.GET);
     }
 
     @Override
     public CompletionStage<OrientationResponse> getOrientation() {
-        final HttpRequest httpRequest = createHttpRequest();
+        return getSensorReading("/orientation", responseFactory(OrientationResponse.class));
+    }
+
+    @Override
+    public CompletionStage<AccelerationResponse> getAcceleration() {
+        return getSensorReading("/acceleration", responseFactory(AccelerationResponse.class));
+    }
+
+    private <T> CompletionStage<T> getSensorReading(
+            final String path,
+            final Function<String, T> responseFactory
+    ) {
+        final HttpRequest httpRequest = createHttpRequest(path);
 
         return http.singleRequest(httpRequest, materializer)
                 .thenApply(HttpResponse::entity)
                 .thenCompose(this::getStrictEntity)
                 .thenApply(HttpEntity.Strict::getData)
                 .thenApply(ByteString::utf8String)
-                .thenApply(this::buildResponse);
+                .thenApply(responseFactory);
     }
 
-    private OrientationResponse buildResponse(final String response) {
-        return gson.fromJson(response, OrientationResponse.class);
+    private <T> Function<String, T> responseFactory(Class<? extends T> type) {
+        return data -> gson.fromJson(data, type);
     }
 
     private CompletionStage<HttpEntity.Strict> getStrictEntity(final ResponseEntity responseEntity) {

@@ -32,6 +32,7 @@ public class LearningDriverActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(OrientationResponse.class, this::writeOrientation)
+                .match(OrientationResponse.class, this::writeOrientation)
                 .build();
     }
 

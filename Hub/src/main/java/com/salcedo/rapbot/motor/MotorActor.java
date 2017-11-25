@@ -4,6 +4,9 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
+import com.salcedo.rapbot.snapshot.SnapshotMessage;
+import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
 public final class MotorActor extends AbstractActor {
     private static final Motor RELEASE_BACK_LEFT_MOTOR = Motor.builder()
@@ -31,6 +34,8 @@ public final class MotorActor extends AbstractActor {
     @Override
     public void preStart() throws Exception {
         release();
+        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
+        context().system().eventStream().subscribe(self(), TakeSnapshotMessage.class);
     }
 
     @Override
@@ -52,6 +57,7 @@ public final class MotorActor extends AbstractActor {
         return receiveBuilder()
                 .match(MotorRequest.class, this::drive)
                 .match(MotorResponse.class, this::respond)
+                .match(TakeSnapshotMessage.class, message -> sender().tell(new SnapshotMessage(lastResponse), self()))
                 .build();
     }
 

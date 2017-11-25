@@ -2,23 +2,33 @@ package com.salcedo.rapbot.hub.driver;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.motor.Motor;
+import com.salcedo.rapbot.motor.MotorActor;
 import com.salcedo.rapbot.motor.MotorRequest;
+import com.salcedo.rapbot.motor.MotorServiceFactory;
 
 import java.awt.event.KeyEvent;
 
 public final class KeyboardDriver extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final ActorRef motors;
+    private final Uri motorNode;
+    private ActorRef motors;
 
-    private KeyboardDriver(final ActorRef motors) {
-        this.motors = motors;
+    public KeyboardDriver(final Uri motorNode) {
+        this.motorNode = motorNode;
     }
 
     @Override
     public void preStart() throws Exception {
+        motors = getContext().actorOf(Props.create(
+                MotorActor.class,
+                MotorServiceFactory.http(getContext().getSystem(), motorNode)
+        ));
+
         context().system().eventStream().subscribe(self(), KeyEvent.class);
     }
 

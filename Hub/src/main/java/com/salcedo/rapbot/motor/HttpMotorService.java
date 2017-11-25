@@ -17,7 +17,7 @@ public final class HttpMotorService implements MotorService {
     private final Uri destination;
     private final Gson gson;
 
-    public HttpMotorService(final Http http, final Materializer materializer, final Uri destination, final Gson gson) {
+    HttpMotorService(final Http http, final Materializer materializer, final Uri destination, final Gson gson) {
         this.http = http;
         this.materializer = materializer;
         this.destination = destination;
@@ -50,6 +50,6 @@ public final class HttpMotorService implements MotorService {
     }
 
     private MotorResponse buildMotorResponse(final String response) {
-        return new MotorResponse();
+        return gson.fromJson(response, MotorResponse.class);
     }
 }
