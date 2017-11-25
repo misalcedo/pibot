@@ -3,6 +3,7 @@ package com.salcedo.rapbot.object;
 import akka.actor.ActorSystem;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.jukebox.JukeBox;
 import com.salcedo.rapbot.jukebox.JukeBoxes;
 import com.salcedo.rapbot.vision.VisionServiceFactory;
@@ -34,7 +35,7 @@ public final class ObjectDetectorTest extends WindowAdapter {
     private ObjectDetectorTest(final Path musicLibrary) throws Exception {
         final ActorSystem system = ActorSystem.create(APP_NAME);
 
-        this.objectDetector = ObjectDetectors.openCV(VisionServiceFactory.url(new URL("http://192.169.1.41:3001"), system), system);
+        this.objectDetector = ObjectDetectors.openCV(VisionServiceFactory.url(system, Uri.create("http://192.169.1.41:3001")), system);
         this.frame = new JFrame(APP_NAME);
         this.log = Logging.getLogger(system, this);
         this.jukeBox = JukeBoxes.create(system, musicLibrary, new AudioMediaPlayerComponent());
