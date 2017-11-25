@@ -9,6 +9,7 @@ import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
 import com.salcedo.rapbot.hub.services.MotorActor;
+import com.salcedo.rapbot.learner.LearningDriverActor;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
 import com.salcedo.rapbot.sense.OrientationRequest;
 import com.salcedo.rapbot.sense.OrientationResponse;
@@ -48,10 +49,10 @@ public final class RapBot extends AbstractActor {
                 SenseServiceFactory.http(getContext().getSystem(), rpi2.port(3002))
         ));
         learner = getContext().actorOf(Props.create(
-                SenseActor.class,
+                LearningDriverActor.class,
                 sqlContext,
                 Paths.get("~", "RapBot", "orientation.parquet"),
-                1000
+                10
         ));
 
         sensors.tell(new OrientationRequest(), self());
@@ -61,13 +62,7 @@ public final class RapBot extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(OrientationResponse.class, this::logSenseResponse)
-                .match(Terminated.class, this::shutdown)
                 .build();
-    }
-
-    private void shutdown(final Terminated terminated) {
-        log.error("Driver terminated unexpectedly. Driver: {}", terminated.actor());
-        getContext().stop(self());
     }
 
     private void logSenseResponse(final OrientationResponse response) {
@@ -84,6 +79,6 @@ public final class RapBot extends AbstractActor {
 
         log.info("{}", response);
 
-        learner.tell(response, self());
+        //learner.tell(response, self());
     }
 }
