@@ -54,12 +54,7 @@ public final class RapBot extends AbstractActor {
         return receiveBuilder()
                 .match(OrientationResponse.class, this::logSenseResponse)
                 .match(Terminated.class, this::shutdown)
-                .matchAny(this::notHandled)
                 .build();
-    }
-
-    private void notHandled(final Object object) {
-        log.debug("Unhandled message: {}", object);
     }
 
     private void shutdown(final Terminated terminated) {
