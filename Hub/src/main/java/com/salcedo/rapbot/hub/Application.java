@@ -7,6 +7,9 @@ import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.sense.OrientationRequest;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory;
+import org.apache.spark.SparkContext;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 
 import java.net.URI;
 
@@ -23,9 +26,16 @@ public final class Application {
         final Uri zero = Uri.create("http://192.168.1.23");
 
         system = ActorSystem.create("RapBot");
-        rapBot = system.actorOf(Props.create(RapBot.class, pi2));
+        rapBot = system.actorOf(Props.create(RapBot.class, pi2, sqlContext()));
         //gui = GraphicalUserInterfaceFactory.video(system, pi2.port(3001).addPathSegment("/stream.mjpg"));
         gui = GraphicalUserInterfaceFactory.keyboard(system);
+    }
+
+    private SQLContext sqlContext() {
+        final SparkContext sparkContext = new SparkContext("local[*]", "RapBot");
+        final SparkSession sparkSession = new SparkSession(sparkContext);
+
+        return new SQLContext(sparkSession);
     }
 
     public static void main(final String[] arguments) throws Exception {
