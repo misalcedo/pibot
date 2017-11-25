@@ -3,12 +3,11 @@ package com.salcedo.rapbot.hub;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.actor.Terminated;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
-import com.salcedo.rapbot.hub.services.MotorActor;
+import com.salcedo.rapbot.motor.MotorActor;
 import com.salcedo.rapbot.learner.LearningDriverActor;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
 import com.salcedo.rapbot.sense.OrientationRequest;
@@ -79,6 +78,6 @@ public final class RapBot extends AbstractActor {
 
         log.info("{}", response);
 
-        //learner.tell(response, self());
+        learner.tell(response, self());
     }
 }

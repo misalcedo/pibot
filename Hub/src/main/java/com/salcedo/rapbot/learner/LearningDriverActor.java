@@ -1,6 +1,8 @@
 package com.salcedo.rapbot.learner;
 
 import akka.actor.AbstractActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.sense.OrientationResponse;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -13,6 +15,7 @@ import java.util.List;
 import static org.apache.spark.sql.SaveMode.Append;
 
 public class LearningDriverActor extends AbstractActor {
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final SQLContext sqlContext;
     private final Path path;
     private final int bufferSize;
@@ -52,7 +55,9 @@ public class LearningDriverActor extends AbstractActor {
     }
 
     private void flush() {
+        log.info("Flushing learning orientation");
+
         final Dataset<Row> orientations = sqlContext.createDataFrame(buffer, OrientationResponse.class);
-        orientations.write().mode(Append).save();
+        orientations.write().mode(Append).save(path.toAbsolutePath().toString());
     }
 }

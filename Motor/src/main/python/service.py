@@ -40,3 +40,5 @@ def update_motor(index, fields):
 def drive():
     for key, value in request.json["motors"].items():
         update_motor(key, value)
+
+    return str(request.json)

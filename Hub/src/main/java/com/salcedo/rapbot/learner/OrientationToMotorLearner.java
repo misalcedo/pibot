@@ -13,6 +13,7 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
 
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class OrientationToMotorLearner {
@@ -21,7 +22,15 @@ public class OrientationToMotorLearner {
         final SparkSession sparkSession = new SparkSession(sparkContext);
         final SQLContext sqlContext = new SQLContext(sparkSession);
 
+        runReadExample(sqlContext);
         runExample(sqlContext);
+    }
+
+    private static void runReadExample(SQLContext spark) {
+        Dataset<Row> rapBot = spark.read().load(Paths.get("~", "RapBot", "orientation.parquet").toAbsolutePath().toString());
+        for (final Row r : rapBot.collectAsList()) {
+            System.out.println("(" + r.get(0) + ", " + r.get(1) + ", " + r.get(2) + " )");
+        }
     }
 
     private static void runExample(final SQLContext spark) {
