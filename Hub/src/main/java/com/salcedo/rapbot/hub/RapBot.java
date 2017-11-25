@@ -9,6 +9,7 @@ import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
 import com.salcedo.rapbot.hub.services.MotorActor;
+import com.salcedo.rapbot.motor.MotorRequest;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
 import com.salcedo.rapbot.sense.OrientationRequest;
 import com.salcedo.rapbot.sense.OrientationResponse;
@@ -53,11 +54,16 @@ public final class RapBot extends AbstractActor {
         return receiveBuilder()
                 .match(OrientationResponse.class, this::logSenseResponse)
                 .match(Terminated.class, this::shutdown)
+                .matchAny(this::notHandled)
                 .build();
     }
 
+    private void notHandled(final Object object) {
+        log.debug("Unhandled message: {}", object);
+    }
+
     private void shutdown(final Terminated terminated) {
-        log.error("Driver terminated unexpectedly.", terminated.actor());
+        log.error("Driver terminated unexpectedly. Driver: {}", terminated.actor());
         getContext().stop(self());
     }
 
