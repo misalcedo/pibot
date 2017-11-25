@@ -48,14 +48,9 @@ public final class RapBot extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(KeyEvent.class, this::sendKeyEvent)
                 .match(MotorResponse.class, response -> logResponse())
                 .match(Terminated.class, this::shutdown)
                 .build();
-    }
-
-    private void sendKeyEvent(final KeyEvent keyEvent) {
-        driver.tell(keyEvent, self());
     }
 
     private void shutdown(final Terminated terminated) {
