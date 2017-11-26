@@ -3,30 +3,29 @@ package com.salcedo.rapbot.snapshot;
 import akka.actor.ActorRef;
 
 import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class Snapshot {
     private final Instant start;
     private final UUID uuid;
     private final Set<ActorRef> subsystems;
-    private final List<SnapshotMessage> responses;
+    private final Map<ActorRef, SnapshotMessage> responses;
 
     public Snapshot(Instant start, UUID uuid, Set<ActorRef> subsystems) {
         this.start = start;
         this.uuid = uuid;
         this.subsystems = subsystems;
-        this.responses = new LinkedList<>();
+        this.responses = new LinkedHashMap<>();
     }
 
     public void addMessage(SnapshotMessage message, ActorRef sender) {
         if (message.getUuid() != uuid || !subsystems.contains(sender)) {
-            throw new IllegalArgumentException("Invalid UUID.");
+            throw new IllegalArgumentException("Invalid UUID or sender.");
+        } else if (responses.containsKey(sender)) {
+            throw new IllegalArgumentException("Subsystem already responded to this snapshot.");
         }
 
-        responses.add(message);
+        responses.put(sender, message);
     }
 
     public boolean isDone() {
