@@ -1,10 +1,18 @@
 package com.salcedo.rapbot.snapshot;
 
+import java.util.UUID;
+
 public class SnapshotMessage {
+    private final UUID uuid;
     private final Object object;
 
-    public SnapshotMessage(Object object) {
+    public SnapshotMessage(final UUID uuid, final Object object) {
+        this.uuid = uuid;
         this.object = object;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     public Object getObject() {
@@ -14,7 +22,8 @@ public class SnapshotMessage {
     @Override
     public String toString() {
         return "SnapshotMessage{" +
-                "object=" + object +
+                "uuid=" + uuid +
+                ", object=" + object +
                 '}';
     }
 }

@@ -10,6 +10,7 @@ import com.salcedo.rapbot.motor.Motor;
 import com.salcedo.rapbot.motor.MotorActor;
 import com.salcedo.rapbot.motor.MotorRequest;
 import com.salcedo.rapbot.motor.MotorServiceFactory;
+import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 
 import java.awt.event.KeyEvent;
 
@@ -52,9 +53,12 @@ public final class KeyboardDriver extends AbstractActor {
             motors.forward(createForwardRequest(127, 255), getContext());
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_SPACE) {
             motors.forward(createStopRequest(), getContext());
+        } else {
+            log.info("Received a key event. Event: {}", keyEvent);
+            return;
         }
 
-        log.info("Received a key event. Event: {}", keyEvent);
+        context().system().eventStream().publish(new StartSnapshotMessage());
     }
 
     private MotorRequest createStopRequest() {

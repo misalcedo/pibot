@@ -57,7 +57,7 @@ public final class MotorActor extends AbstractActor {
         return receiveBuilder()
                 .match(MotorRequest.class, this::drive)
                 .match(MotorResponse.class, this::respond)
-                .match(TakeSnapshotMessage.class, message -> sender().tell(new SnapshotMessage(lastResponse), self()))
+                .match(TakeSnapshotMessage.class, message -> sender().tell(new SnapshotMessage(message.getUuid(), lastResponse), self()))
                 .build();
     }
 

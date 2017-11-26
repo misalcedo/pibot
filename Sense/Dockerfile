@@ -9,6 +9,7 @@ RUN mkdir -p /staging/Flask && cd /staging/Flask \
     && cd /usr/src/app && rm -fr /staging/Flask
 
 COPY ./src/main/python /usr/src/app
+COPY ./RTIMULib.ini /etc/RTIMULib.ini
 
 ENV FLASK_APP=service.py FLASK_DEBUG=1
 

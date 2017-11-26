@@ -23,15 +23,15 @@ public final class SenseActor extends AbstractActor {
         return receiveBuilder()
                 .match(OrientationRequest.class, r -> readOrientation())
                 .match(AccelerationRequest.class, r -> readAcceleration())
-                .match(TakeSnapshotMessage.class, m -> snapshot())
+                .match(TakeSnapshotMessage.class, this::snapshot)
                 .build();
     }
 
-    private void snapshot() {
+    private void snapshot(final TakeSnapshotMessage message) {
         final ActorRef sender = sender();
 
         senseService.getOrientation()
-                .thenAccept(response -> sender.tell(new SnapshotMessage(response), self()));
+                .thenAccept(response -> sender.tell(new SnapshotMessage(message.getUuid(), response), self()));
     }
 
     private void readAcceleration() {
