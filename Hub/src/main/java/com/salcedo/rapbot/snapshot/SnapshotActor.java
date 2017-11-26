@@ -8,6 +8,8 @@ import akka.event.LoggingAdapter;
 import java.time.Instant;
 import java.util.*;
 
+import static java.util.Collections.unmodifiableSet;
+
 public class SnapshotActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Set<ActorRef> subSystems;
@@ -59,7 +61,7 @@ public class SnapshotActor extends AbstractActor {
             log.info("Snapshot already started. Subsystems: {}, UUID: {}", subSystems, uuid);
         }
 
-        snapshots.put(uuid, new Snapshot(Instant.now(), uuid, subSystems));
+        snapshots.put(uuid, new Snapshot(uuid, unmodifiableSet(subSystems)));
 
         log.info("Starting snapshot '{}'. Subsystems: {}", uuid, subSystems);
 

@@ -7,14 +7,15 @@ import java.util.*;
 
 public class Snapshot {
     private final Instant start;
+    private Instant end;
     private final UUID uuid;
     private final Set<ActorRef> subsystems;
     private final Map<ActorRef, SnapshotMessage> responses;
 
-    public Snapshot(Instant start, UUID uuid, Set<ActorRef> subsystems) {
-        this.start = start;
+    public Snapshot(UUID uuid, Set<ActorRef> subsystems) {
         this.uuid = uuid;
         this.subsystems = subsystems;
+        this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
     }
 
@@ -26,6 +27,10 @@ public class Snapshot {
         }
 
         responses.put(sender, message);
+
+        if (isDone()) {
+            end = Instant.now();
+        }
     }
 
     public boolean isDone() {
@@ -36,6 +41,7 @@ public class Snapshot {
     public String toString() {
         return "Snapshot{" +
                 "start=" + start +
+                ", end=" + end +
                 ", uuid=" + uuid +
                 ", subsystems=" + subsystems +
                 ", responses=" + responses +
