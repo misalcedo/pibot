@@ -50,7 +50,7 @@ def pressure():
 
 @app.route('/temperature')
 def temperature():
-    return str(sense.temperature * 9 / 5 + 32)
+    return str(sense.temperature)
 
 
 @app.route('/orientation')

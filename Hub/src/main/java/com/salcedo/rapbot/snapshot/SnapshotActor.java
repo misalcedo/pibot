@@ -2,10 +2,10 @@ package com.salcedo.rapbot.snapshot;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-import java.time.Instant;
 import java.util.*;
 
 import static java.util.Collections.unmodifiableSet;
@@ -20,6 +20,10 @@ public class SnapshotActor extends AbstractActor {
         this.snapshots = new HashMap<>();
     }
 
+    public static Props props() {
+        return Props.create(SnapshotActor.class);
+    }
+
     @Override
     public void preStart() throws Exception {
         subSystems.clear();
@@ -32,7 +36,7 @@ public class SnapshotActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(StartSnapshotMessage.class, this::startSnapshot)
+                .match(StartSnapshotMessage.class, m -> startSnapshot())
                 .match(RegisterSubSystemMessage.class, message -> subSystems.add(message.getSubSystem()))
                 .match(SnapshotMessage.class, this::aggregate)
                 .build();
@@ -41,7 +45,7 @@ public class SnapshotActor extends AbstractActor {
     private void aggregate(final SnapshotMessage message) {
         final Snapshot snapshot = snapshots.get(message.getUuid());
 
-        log.info("Received new snapshot message. Snapshot: {}, Message: {}", snapshot, message);
+        log.info("Received new snapshot message {}", message);
 
         if (snapshot == null || snapshot.isDone()) {
             log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
@@ -49,12 +53,14 @@ public class SnapshotActor extends AbstractActor {
             snapshot.addMessage(message, sender());
 
             if (snapshot.isDone()) {
-                log.info("Snapshot '{}' completed.", snapshot);
+                log.info("Completed snapshot '{}'.", snapshot.getUuid());
+            } else {
+                log.info("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
             }
         }
     }
 
-    private void startSnapshot(StartSnapshotMessage message) {
+    private void startSnapshot() {
         final UUID uuid = UUID.randomUUID();
 
         if (snapshots.containsKey(uuid)) {

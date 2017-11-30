@@ -1,5 +1,6 @@
 package com.salcedo.rapbot.motor;
 
+import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -31,6 +32,20 @@ public final class Motor {
                 ", command=" + command +
                 ", speed=" + speed +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        return object != null && (this == object || ((object instanceof Motor) && equals((Motor) object)));
+    }
+
+    private boolean equals(Motor motor) {
+        return location == motor.location && command == motor.command && speed == motor.speed;
+    }
+
+    @Override
+    public int hashCode() {
+        return hash(location, command, speed);
     }
 
     public static class MotorBuilder {

@@ -1,11 +1,11 @@
 package com.salcedo.rapbot.sense;
 
-public class OrientationResponse {
+public class Orientation {
     private final double yaw;
     private final double pitch;
     private final double roll;
 
-    public OrientationResponse(final double yaw, final double pitch, final double roll) {
+    public Orientation(final double yaw, final double pitch, final double roll) {
         this.yaw = yaw;
         this.pitch = pitch;
         this.roll = roll;
@@ -25,7 +25,7 @@ public class OrientationResponse {
 
     @Override
     public String toString() {
-        return "OrientationResponse{" +
+        return "Orientation{" +
                 "yaw=" + yaw +
                 ", pitch=" + pitch +
                 ", roll=" + roll +

@@ -1,11 +1,11 @@
 package com.salcedo.rapbot.sense;
 
-public class AccelerationResponse {
+public class ThreeDimensionalSensorReading {
     private final double x;
     private final double y;
     private final double z;
 
-    public AccelerationResponse(double x, double y, double z) {
+    public ThreeDimensionalSensorReading(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -21,5 +21,14 @@ public class AccelerationResponse {
 
     public double getZ() {
         return z;
+    }
+
+    @Override
+    public String toString() {
+        return "ThreeDimensionalSensorReading{" +
+                "x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                '}';
     }
 }

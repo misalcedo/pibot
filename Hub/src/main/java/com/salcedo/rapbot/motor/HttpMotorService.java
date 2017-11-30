@@ -2,7 +2,6 @@ package com.salcedo.rapbot.motor;
 
 import akka.http.javadsl.Http;
 import akka.http.javadsl.model.*;
-import akka.http.javadsl.model.headers.ContentType;
 import akka.stream.Materializer;
 import akka.util.ByteString;
 import com.google.gson.Gson;
@@ -28,6 +27,28 @@ public final class HttpMotorService implements MotorService {
     public CompletionStage<MotorResponse> drive(final MotorRequest request) {
         final HttpRequest httpRequest = createHttpRequest(request);
 
+        return makeMotorRequest(httpRequest);
+    }
+
+    @Override
+    public CompletionStage<MotorResponse> state() {
+        final HttpRequest httpRequest = HttpRequest.create()
+                .withUri(destination.addPathSegment("/motors"))
+                .withMethod(HttpMethods.GET);
+
+        return makeMotorRequest(httpRequest);
+    }
+
+    @Override
+    public CompletionStage<MotorResponse> release() {
+        final HttpRequest httpRequest = HttpRequest.create()
+                .withUri(destination.addPathSegment("/release"))
+                .withMethod(HttpMethods.PUT);
+
+        return makeMotorRequest(httpRequest);
+    }
+
+    private CompletionStage<MotorResponse> makeMotorRequest(HttpRequest httpRequest) {
         return http.singleRequest(httpRequest, materializer)
                 .thenApply(HttpResponse::entity)
                 .thenCompose(this::getStrictEntity)

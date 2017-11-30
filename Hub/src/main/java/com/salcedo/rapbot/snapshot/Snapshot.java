@@ -34,7 +34,15 @@ public class Snapshot {
     }
 
     public boolean isDone() {
-        return responses.size() >= subsystems.size();
+        return getResponsesRemaining() <= 0;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public int getResponsesRemaining() {
+        return subsystems.size() - responses.size();
     }
 
     @Override

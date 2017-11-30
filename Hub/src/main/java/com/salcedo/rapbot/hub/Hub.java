@@ -7,11 +7,9 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.driver.KeyboardDriver;
-import com.salcedo.rapbot.motor.MotorActor;
 import com.salcedo.rapbot.learner.LearningDriverActor;
-import com.salcedo.rapbot.motor.MotorServiceFactory;
+import com.salcedo.rapbot.sense.Orientation;
 import com.salcedo.rapbot.sense.OrientationRequest;
-import com.salcedo.rapbot.sense.OrientationResponse;
 import com.salcedo.rapbot.sense.SenseActor;
 import com.salcedo.rapbot.sense.SenseServiceFactory;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
@@ -23,7 +21,7 @@ import scala.concurrent.duration.FiniteDuration;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
-public final class RapBot extends AbstractActor {
+public final class Hub extends AbstractActor {
     private static final FiniteDuration SENSE_DELAY = Duration.create(1L, TimeUnit.SECONDS);
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Uri rpi2;
@@ -34,25 +32,29 @@ public final class RapBot extends AbstractActor {
     private ActorRef learner;
     private ActorRef snapshot;
 
-    public RapBot(final Uri rpi2, SQLContext sqlContext) {
+    public Hub(final Uri rpi2, final SQLContext sqlContext) {
         this.rpi2 = rpi2;
         this.sqlContext = sqlContext;
     }
 
+    static Props props(final Uri rpi2, final SQLContext sqlContext) {
+        return Props.create(Hub.class, rpi2, sqlContext);
+    }
+
     @Override
     public void preStart() {
-        driver = getContext().actorOf(Props.create(KeyboardDriver.class, rpi2.port(3000)));
-        sensors = getContext().actorOf(Props.create(
-                SenseActor.class,
-                SenseServiceFactory.http(getContext().getSystem(), rpi2.port(3002))
-        ));
+        driver = getContext().actorOf(KeyboardDriver.props(rpi2.port(3000)), "driver");
+        sensors = getContext().actorOf(
+                SenseActor.props(SenseServiceFactory.http(getContext().getSystem(), rpi2.port(3002))),
+                "sensors"
+        );
         learner = getContext().actorOf(Props.create(
                 LearningDriverActor.class,
                 sqlContext,
                 Paths.get("~", "RapBot", "orientation.parquet"),
                 10
         ));
-        snapshot = getContext().actorOf(Props.create(SnapshotActor.class));
+        snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
 
         snapshot.tell(new RegisterSubSystemMessage(sensors), motors);
     }
@@ -64,11 +66,11 @@ public final class RapBot extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(OrientationResponse.class, this::logSenseResponse)
+                .match(Orientation.class, this::logSenseResponse)
                 .build();
     }
 
-    private void logSenseResponse(final OrientationResponse response) {
+    private void logSenseResponse(final Orientation response) {
         getContext()
                 .getSystem()
                 .scheduler()

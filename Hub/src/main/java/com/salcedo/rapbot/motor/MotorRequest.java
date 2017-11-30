@@ -1,36 +1,27 @@
 package com.salcedo.rapbot.motor;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
-public final class MotorRequest {
-    private final Map<Location, Motor> motors;
+import static java.util.Collections.unmodifiableSet;
 
-    private MotorRequest(Map<Location, Motor> motors) {
-        this.motors = motors;
+public final class MotorRequest extends Motors {
+    MotorRequest(Set<Motor> motors) {
+        super(motors);
     }
 
     public static MotorRequestBuilder builder() {
         return new MotorRequestBuilder();
     }
 
-    public static class MotorRequestBuilder {
-        private final Map<Location, Motor> motors = new HashMap<>();
-
+    public final static class MotorRequestBuilder extends MotorsBuilder {
         public MotorRequest build() {
-            return new MotorRequest(motors);
+            return new MotorRequest(unmodifiableSet(getMotors()));
         }
 
+        @Override
         public MotorRequestBuilder addMotor(Motor motor) {
-            motors.put(motor.getLocation(), motor);
+            getMotors().add(motor);
             return this;
         }
-    }
-
-    @Override
-    public String toString() {
-        return "MotorRequest{" +
-                "motors=" + motors +
-                '}';
     }
 }

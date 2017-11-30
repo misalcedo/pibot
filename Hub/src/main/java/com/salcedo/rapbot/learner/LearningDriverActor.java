@@ -3,7 +3,7 @@ package com.salcedo.rapbot.learner;
 import akka.actor.AbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.sense.OrientationResponse;
+import com.salcedo.rapbot.sense.Orientation;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -19,7 +19,7 @@ public class LearningDriverActor extends AbstractActor {
     private final SQLContext sqlContext;
     private final Path path;
     private final int bufferSize;
-    private final List<OrientationResponse> buffer;
+    private final List<Orientation> buffer;
 
     public LearningDriverActor(final SQLContext sqlContext, final Path path, final int bufferSize) {
         this.sqlContext = sqlContext;
@@ -31,12 +31,12 @@ public class LearningDriverActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(OrientationResponse.class, this::writeOrientation)
-                .match(OrientationResponse.class, this::writeOrientation)
+                .match(Orientation.class, this::writeOrientation)
+                .match(Orientation.class, this::writeOrientation)
                 .build();
     }
 
-    private void writeOrientation(OrientationResponse response) {
+    private void writeOrientation(Orientation response) {
         buffer.add(response);
         if (buffer.size() >= bufferSize) {
             flush();
@@ -58,7 +58,7 @@ public class LearningDriverActor extends AbstractActor {
     private void flush() {
         log.info("Flushing learning orientation");
 
-        final Dataset<Row> orientations = sqlContext.createDataFrame(buffer, OrientationResponse.class);
+        final Dataset<Row> orientations = sqlContext.createDataFrame(buffer, Orientation.class);
         orientations.write().mode(Append).save(path.toAbsolutePath().toString());
     }
 }

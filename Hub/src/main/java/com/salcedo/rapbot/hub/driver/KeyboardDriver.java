@@ -23,12 +23,16 @@ public final class KeyboardDriver extends AbstractActor {
         this.motorNode = motorNode;
     }
 
+    public static Props props(final Uri motorNode) {
+        return Props.create(KeyboardDriver.class, motorNode);
+    }
+
     @Override
     public void preStart() throws Exception {
-        motors = getContext().actorOf(Props.create(
-                MotorActor.class,
-                MotorServiceFactory.http(getContext().getSystem(), motorNode)
-        ));
+        motors = getContext().actorOf(
+                MotorActor.props(MotorServiceFactory.http(getContext().getSystem(), motorNode)),
+                "motors"
+        );
 
         context().system().eventStream().subscribe(self(), KeyEvent.class);
     }

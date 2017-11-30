@@ -1,44 +1,34 @@
 import atexit
 
-from Adafruit_MotorHAT import Adafruit_MotorHAT
-from flask import Flask, request
-
-COMMAND_MAP = {
-    "FORWARD": Adafruit_MotorHAT.FORWARD,
-    "BACKWARD": Adafruit_MotorHAT.BACKWARD,
-    "BRAKE": Adafruit_MotorHAT.BRAKE,
-    "RELEASE": Adafruit_MotorHAT.RELEASE
-}
-
-motor_hat = Adafruit_MotorHAT()
+from flask import Flask, request, jsonify
+from vehicles import Vehicle
 
 
-# recommended for auto-disabling motors on shutdown!
-@atexit.register
-def turn_off_motors():
-    motor_hat.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
-    motor_hat.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
-
-
+vehicle = Vehicle()
 app = Flask(__name__)
 
 
-def update_motor(index, fields):
-    command = fields["command"]
-    speed = fields["speed"]
-
-    app.logger.debug("Updating %s motor with index %d to speed: %d, command: %s", index, speed, command)
-
-    motor = motor_hat.getMotor(index)
-    motor.run(COMMAND_MAP[command])
-    motor.setSpeed(speed)
+def update_motor(motor):
+    vehicle.update_motor(int(motor["location"]), int(motor["command"]), int(motor["speed"]))
 
 
 @app.route('/motors', methods=['PUT'])
 def drive():
-    for key, value in request.json["motors"].items():
-        update_motor(key, value)
+    app.logger.debug("Received request to update motors: %s", request.json)
 
-    return str(request.json)
+    for motor in request.json["motors"]:
+        update_motor(motor)
+
+    return jsonify(vehicle.__dict__)
+
+
+@app.route('/release', methods=['PUT'])
+@atexit.register
+def release():
+    vehicle.release()
+    return jsonify(vehicle.__dict__)
+
+
+@app.route('/motors', methods=['GET'])
+def state():
+    return jsonify(vehicle.__dict__)

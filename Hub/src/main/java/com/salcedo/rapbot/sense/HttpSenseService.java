@@ -31,13 +31,18 @@ public class HttpSenseService implements SenseService {
     }
 
     @Override
-    public CompletionStage<OrientationResponse> getOrientation() {
-        return getSensorReading("/orientation", responseFactory(OrientationResponse.class));
+    public CompletionStage<EnvironmentReading> senseEnvironment() {
+        return getSensorReading("/", responseFactory(EnvironmentReading.class));
     }
 
     @Override
-    public CompletionStage<AccelerationResponse> getAcceleration() {
-        return getSensorReading("/acceleration", responseFactory(AccelerationResponse.class));
+    public CompletionStage<Orientation> getOrientation() {
+        return getSensorReading("/orientation", responseFactory(Orientation.class));
+    }
+
+    @Override
+    public CompletionStage<ThreeDimensionalSensorReading> getAcceleration() {
+        return getSensorReading("/acceleration", responseFactory(ThreeDimensionalSensorReading.class));
     }
 
     private <T> CompletionStage<T> getSensorReading(

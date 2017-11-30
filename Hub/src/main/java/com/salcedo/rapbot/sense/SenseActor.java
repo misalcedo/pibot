@@ -2,6 +2,7 @@ package com.salcedo.rapbot.sense;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
+import akka.actor.Props;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
@@ -11,6 +12,10 @@ public final class SenseActor extends AbstractActor {
 
     public SenseActor(final SenseService senseService) {
         this.senseService = senseService;
+    }
+
+    public static Props props(final SenseService senseService) {
+        return Props.create(SenseActor.class, senseService);
     }
 
     @Override
@@ -30,7 +35,7 @@ public final class SenseActor extends AbstractActor {
     private void snapshot(final TakeSnapshotMessage message) {
         final ActorRef sender = sender();
 
-        senseService.getOrientation()
+        senseService.senseEnvironment()
                 .thenAccept(response -> sender.tell(new SnapshotMessage(message.getUuid(), response), self()));
     }
 
