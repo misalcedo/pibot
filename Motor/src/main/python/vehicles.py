@@ -2,7 +2,7 @@ from Adafruit_MotorHAT import Adafruit_MotorHAT
 
 
 class Vehicle:
-    def __init__(self, motor_hat=None):
+    def __init__(self, motor_hat=Adafruit_MotorHAT()):
         self.motor_hat = motor_hat
         self.motors = []
 
