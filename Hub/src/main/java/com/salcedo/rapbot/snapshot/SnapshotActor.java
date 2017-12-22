@@ -54,6 +54,7 @@ public class SnapshotActor extends AbstractActor {
 
             if (snapshot.isDone()) {
                 log.info("Completed snapshot '{}'.", snapshot.getUuid());
+                getContext().getSystem().eventStream().publish(snapshot);
             } else {
                 log.info("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
             }
