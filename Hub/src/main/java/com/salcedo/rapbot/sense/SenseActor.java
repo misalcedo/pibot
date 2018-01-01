@@ -3,8 +3,8 @@ package com.salcedo.rapbot.sense;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
-import com.salcedo.rapbot.snapshot.SnapshotMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
 public final class SenseActor extends AbstractActor {
@@ -36,7 +36,7 @@ public final class SenseActor extends AbstractActor {
         final ActorRef sender = sender();
 
         senseService.senseEnvironment()
-                .thenAccept(response -> sender.tell(new SnapshotMessage(message.getUuid(), response), self()));
+                .thenAccept(response -> sender.tell(new ObjectSnapshotMessage(message.getUuid(), response), self()));
     }
 
     private void readAcceleration() {

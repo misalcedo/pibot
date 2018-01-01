@@ -12,15 +12,15 @@ public class Snapshot {
     private final Set<ActorRef> subsystems;
     private final Map<ActorRef, SnapshotMessage> responses;
 
-    public Snapshot(UUID uuid, Set<ActorRef> subsystems) {
+    Snapshot(UUID uuid, Set<ActorRef> subsystems) {
         this.uuid = uuid;
         this.subsystems = subsystems;
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
     }
 
-    public void addMessage(SnapshotMessage message, ActorRef sender) {
-        if (message.getUuid() != uuid || !subsystems.contains(sender)) {
+    void addMessage(ObjectSnapshotMessage message, ActorRef sender) {
+        if (message.getId() != uuid || !subsystems.contains(sender)) {
             throw new IllegalArgumentException("Invalid UUID or sender.");
         } else if (responses.containsKey(sender)) {
             throw new IllegalArgumentException("Subsystem already responded to this snapshot.");
@@ -33,16 +33,22 @@ public class Snapshot {
         }
     }
 
-    public boolean isDone() {
+    boolean isDone() {
         return getResponsesRemaining() <= 0;
     }
 
-    public UUID getUuid() {
+    UUID getUuid() {
         return uuid;
     }
 
-    public int getResponsesRemaining() {
+    int getResponsesRemaining() {
         return subsystems.size() - responses.size();
+    }
+
+    public <T> T getSnapshot(final ActorRef subsystem, final Class<? extends T> snapshotType) {
+        SnapshotMessage snapshotMessage = responses.getOrDefault(subsystem, new NullObjectSnapshotMessage(uuid));
+
+        return snapshotMessage.getSnapshot(snapshotType);
     }
 
     @Override

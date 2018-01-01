@@ -38,11 +38,11 @@ public class SnapshotActor extends AbstractActor {
         return receiveBuilder()
                 .match(StartSnapshotMessage.class, m -> startSnapshot())
                 .match(RegisterSubSystemMessage.class, message -> subSystems.add(message.getSubSystem()))
-                .match(SnapshotMessage.class, this::aggregate)
+                .match(ObjectSnapshotMessage.class, this::aggregate)
                 .build();
     }
 
-    private void aggregate(final SnapshotMessage message) {
+    private void aggregate(final ObjectSnapshotMessage message) {
         final Snapshot snapshot = snapshots.get(message.getUuid());
 
         log.info("Received new snapshot message {}", message);
