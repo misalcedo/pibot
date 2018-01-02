@@ -1,12 +1,11 @@
-package com.salcedo.rapbot.hub.driver;
+package com.salcedo.rapbot.driver;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.motor.Motor;
-import com.salcedo.rapbot.motor.MotorRequest;
-import com.salcedo.rapbot.sense.OrientationRequest;
+import com.salcedo.rapbot.locomotion.Motor;
+import com.salcedo.rapbot.locomotion.MotorRequest;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -33,7 +32,7 @@ public final class RandomDriver extends AbstractActor {
                 .scheduleOnce(
                         DRIVE_DELAY,
                         self(),
-                        new OrientationRequest(),
+                        new DriveState(),
                         getContext().dispatcher(),
                         self()
                 );
@@ -42,7 +41,7 @@ public final class RandomDriver extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(DriveRequest.class, request -> drive())
+                .match(DriveState.class, request -> drive())
                 .build();
     }
 

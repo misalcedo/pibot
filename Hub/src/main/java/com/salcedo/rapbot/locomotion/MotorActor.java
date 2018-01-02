@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.motor;
+package com.salcedo.rapbot.locomotion;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;

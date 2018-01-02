@@ -3,11 +3,10 @@ package com.salcedo.rapbot.userinterface;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.model.Uri;
 
-import java.net.URI;
-
 public interface GraphicalUserInterfaceFactory {
-    static GraphicalUserInterface keyboard(final ActorSystem system) {
-        return new KeyboardControllerGUI(new EventStreamKeyListener(system.eventStream()));
+    static GraphicalUserInterface keyboard(final ActorSystem system, final Uri uri) {
+        final EventStreamKeyListener keyListener = new EventStreamKeyListener(system.eventStream());
+        return new SwingGraphicalUserInterface(uri, keyListener);
     }
 
     static GraphicalUserInterface video(final ActorSystem system, final Uri uri) {

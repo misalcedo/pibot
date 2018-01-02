@@ -11,4 +11,9 @@ public final class KeyboardControllerGUI extends BaseGUI {
     @Override
     protected void initializeFrame(final JFrame frame) {
     }
+
+    @Override
+    public void update(SystemState state) {
+
+    }
 }

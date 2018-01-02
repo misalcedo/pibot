@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.hub.driver;
+package com.salcedo.rapbot.driver;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -6,10 +6,10 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
-import com.salcedo.rapbot.motor.Motor;
-import com.salcedo.rapbot.motor.MotorActor;
-import com.salcedo.rapbot.motor.MotorRequest;
-import com.salcedo.rapbot.motor.MotorServiceFactory;
+import com.salcedo.rapbot.locomotion.Motor;
+import com.salcedo.rapbot.locomotion.MotorActor;
+import com.salcedo.rapbot.locomotion.MotorRequest;
+import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 
 import java.awt.event.KeyEvent;

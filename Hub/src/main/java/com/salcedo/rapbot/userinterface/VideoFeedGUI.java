@@ -28,4 +28,9 @@ public class VideoFeedGUI extends BaseGUI {
         mediaPlayerComponent.getMediaPlayer()
                 .playMedia(uri.toString(), ":network-caching=0");
     }
+
+    @Override
+    public void update(SystemState state) {
+
+    }
 }

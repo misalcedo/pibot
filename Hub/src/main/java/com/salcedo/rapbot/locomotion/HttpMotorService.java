@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.motor;
+package com.salcedo.rapbot.locomotion;
 
 import akka.http.javadsl.Http;
 import akka.http.javadsl.model.*;

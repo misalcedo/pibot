@@ -43,7 +43,7 @@ public class SnapshotActor extends AbstractActor {
     }
 
     private void aggregate(final ObjectSnapshotMessage message) {
-        final Snapshot snapshot = snapshots.get(message.getUuid());
+        final Snapshot snapshot = snapshots.get(message.getId());
 
         log.info("Received new snapshot message {}", message);
 

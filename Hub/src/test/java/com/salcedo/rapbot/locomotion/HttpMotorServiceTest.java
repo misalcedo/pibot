@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.motor;
+package com.salcedo.rapbot.locomotion;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.Http;
@@ -11,7 +11,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class HttpMotorServiceTest {
     private MotorService service;

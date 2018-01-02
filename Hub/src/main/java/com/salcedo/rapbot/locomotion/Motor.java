@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.motor;
+package com.salcedo.rapbot.locomotion;
 
 import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
