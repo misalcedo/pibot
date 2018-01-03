@@ -25,6 +25,15 @@ public class SnapshotBackedSystemState implements SystemState {
     }
 
     @Override
+    public int targetOrientation() {
+        return getDriveState().getOrientation();
+    }
+
+    @Override
+    public int throttle() {
+        return getDriveState().getThrottle();
+    }
+
     public DriveState getDriveState() {
         final ActorPath driver = getActorPath("/user/hub/driver");
         return snapshot.getSnapshot(driver, DriveState.class);

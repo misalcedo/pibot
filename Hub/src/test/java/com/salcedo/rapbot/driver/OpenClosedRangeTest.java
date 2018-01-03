@@ -11,12 +11,13 @@ public class OpenClosedRangeTest {
     private Range range;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         range = new OpenClosedRange(true, true, 1, 100);
     }
 
     @Test
     public void modulo() {
+        Range r = new OpenClosedRange(true, false, 0, 360)
         assertThat(range.modulo(-10), is(equalTo(90)));
     }
 

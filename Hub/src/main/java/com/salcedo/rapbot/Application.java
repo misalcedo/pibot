@@ -23,7 +23,7 @@ public final class Application {
         final Uri zero = Uri.create("http://192.168.1.23");
 
         system = ActorSystem.create("RapBot");
-        gui = GraphicalUserInterfaceFactory.keyboard(system, Uri.create("http://www.rmp-streaming.com/media/bbb-360p.mp4"));
+        gui = GraphicalUserInterfaceFactory.awt(system, Uri.create("http://www.rmp-streaming.com/media/bbb-360p.mp4"));
         hub = system.actorOf(Hub.props(pi2, zero, gui, new KeyboardDriverStrategy()), "hub");
         //gui = GraphicalUserInterfaceFactory.video(system, pi2.port(3001).addPathSegment("/stream.mjpg"));
     }

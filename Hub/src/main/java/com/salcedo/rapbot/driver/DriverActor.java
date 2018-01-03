@@ -27,7 +27,7 @@ public final class DriverActor extends AbstractActor {
         this.driverStrategy = driverStrategy;
         this.currentState = new DriveState(
                 new OpenClosedRange(true, true, 0, 100),
-                new OpenClosedRange(true, false, 0, 360),
+                new OpenClosedRange(true, true, 0, 360),
                 0,
                 0
         );
