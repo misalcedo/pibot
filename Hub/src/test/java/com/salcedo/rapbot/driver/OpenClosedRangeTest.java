@@ -17,7 +17,6 @@ public class OpenClosedRangeTest {
 
     @Test
     public void modulo() {
-        Range r = new OpenClosedRange(true, false, 0, 360)
         assertThat(range.modulo(-10), is(equalTo(90)));
     }
 
