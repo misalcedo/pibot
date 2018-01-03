@@ -1,19 +1,16 @@
 package com.salcedo.rapbot.snapshot;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorPath;
-import akka.actor.ActorRef;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 import java.util.*;
 
-import static java.util.Collections.unmodifiableSet;
+import static java.util.stream.Collectors.toSet;
 
 public class SnapshotActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final Set<ActorPath> subSystems;
+    private final Set<ActorRef> subSystems;
     private final Map<UUID, Snapshot> snapshots;
 
     public SnapshotActor() {
@@ -38,9 +35,21 @@ public class SnapshotActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(StartSnapshotMessage.class, m -> startSnapshot())
-                .match(RegisterSubSystemMessage.class, message -> subSystems.add(message.getSubSystem().path()))
+                .match(RegisterSubSystemMessage.class, this::register)
                 .match(ObjectSnapshotMessage.class, this::aggregate)
+                .match(Terminated.class, this::unregister)
                 .build();
+    }
+
+    private void unregister(Terminated message) {
+        subSystems.remove(message.actor());
+
+        log.info("Removed {} from subsystems due to termination.", message.actor());
+    }
+
+    private void register(RegisterSubSystemMessage message) {
+        subSystems.add(message.getSubSystem());
+        context().watch(message.getSubSystem());
     }
 
     private void aggregate(final ObjectSnapshotMessage message) {
@@ -64,15 +73,16 @@ public class SnapshotActor extends AbstractActor {
 
     private void startSnapshot() {
         final UUID uuid = UUID.randomUUID();
+        final Set<ActorPath> paths = subSystems.stream().map(ActorRef::path).collect(toSet());
 
         if (snapshots.containsKey(uuid)) {
             log.info("Snapshot already started. Subsystems: {}, UUID: {}", subSystems, uuid);
         }
 
-        snapshots.put(uuid, new Snapshot(uuid, unmodifiableSet(subSystems)));
+        snapshots.put(uuid, new Snapshot(uuid, paths));
 
-        log.info("Starting snapshot '{}'. Subsystems: {}", uuid, subSystems);
+        log.info("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
 
-        subSystems.forEach(subSystem -> context().actorSelection(subSystem).tell(new TakeSnapshotMessage(uuid), self()));
+        subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), self()));
     }
 }
