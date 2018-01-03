@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorPath;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -12,7 +13,7 @@ import static java.util.Collections.unmodifiableSet;
 
 public class SnapshotActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final Set<ActorRef> subSystems;
+    private final Set<ActorPath> subSystems;
     private final Map<UUID, Snapshot> snapshots;
 
     public SnapshotActor() {
@@ -25,7 +26,7 @@ public class SnapshotActor extends AbstractActor {
     }
 
     @Override
-    public void preStart() throws Exception {
+    public void preStart() {
         subSystems.clear();
         snapshots.clear();
 
@@ -37,7 +38,7 @@ public class SnapshotActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(StartSnapshotMessage.class, m -> startSnapshot())
-                .match(RegisterSubSystemMessage.class, message -> subSystems.add(message.getSubSystem()))
+                .match(RegisterSubSystemMessage.class, message -> subSystems.add(message.getSubSystem().path()))
                 .match(ObjectSnapshotMessage.class, this::aggregate)
                 .build();
     }
@@ -50,7 +51,7 @@ public class SnapshotActor extends AbstractActor {
         if (snapshot == null || snapshot.isDone()) {
             log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
         } else {
-            snapshot.addMessage(message, sender());
+            snapshot.addMessage(message, sender().path());
 
             if (snapshot.isDone()) {
                 log.info("Completed snapshot '{}'.", snapshot.getUuid());
@@ -72,6 +73,6 @@ public class SnapshotActor extends AbstractActor {
 
         log.info("Starting snapshot '{}'. Subsystems: {}", uuid, subSystems);
 
-        subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), self()));
+        subSystems.forEach(subSystem -> context().actorSelection(subSystem).tell(new TakeSnapshotMessage(uuid), self()));
     }
 }

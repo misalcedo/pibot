@@ -3,6 +3,7 @@ package com.salcedo.rapbot;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.model.Uri;
+import com.salcedo.rapbot.driver.KeyboardDriverStrategy;
 import com.salcedo.rapbot.hub.Hub;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory;
@@ -23,7 +24,7 @@ public final class Application {
 
         system = ActorSystem.create("RapBot");
         gui = GraphicalUserInterfaceFactory.keyboard(system, Uri.create("http://www.rmp-streaming.com/media/bbb-360p.mp4"));
-        hub = system.actorOf(Hub.props(pi2, zero, gui, null), "hub");
+        hub = system.actorOf(Hub.props(pi2, zero, gui, new KeyboardDriverStrategy()), "hub");
         //gui = GraphicalUserInterfaceFactory.video(system, pi2.port(3001).addPathSegment("/stream.mjpg"));
     }
 

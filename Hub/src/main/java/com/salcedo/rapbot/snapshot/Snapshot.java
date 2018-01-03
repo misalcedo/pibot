@@ -1,6 +1,6 @@
 package com.salcedo.rapbot.snapshot;
 
-import akka.actor.ActorRef;
+import akka.actor.ActorPath;
 
 import java.time.Instant;
 import java.util.*;
@@ -9,17 +9,17 @@ public class Snapshot {
     private final Instant start;
     private Instant end;
     private final UUID uuid;
-    private final Set<ActorRef> subsystems;
-    private final Map<ActorRef, SnapshotMessage> responses;
+    private final Set<ActorPath> subsystems;
+    private final Map<ActorPath, SnapshotMessage> responses;
 
-    Snapshot(UUID uuid, Set<ActorRef> subsystems) {
+    Snapshot(UUID uuid, Set<ActorPath> subsystems) {
         this.uuid = uuid;
         this.subsystems = subsystems;
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
     }
 
-    void addMessage(ObjectSnapshotMessage message, ActorRef sender) {
+    void addMessage(ObjectSnapshotMessage message, ActorPath sender) {
         if (message.getId() != uuid || !subsystems.contains(sender)) {
             throw new IllegalArgumentException("Invalid UUID or sender.");
         } else if (responses.containsKey(sender)) {
@@ -45,7 +45,7 @@ public class Snapshot {
         return subsystems.size() - responses.size();
     }
 
-    public <T> T getSnapshot(final ActorRef subsystem, final Class<? extends T> snapshotType) {
+    public <T> T getSnapshot(final ActorPath subsystem, final Class<? extends T> snapshotType) {
         SnapshotMessage snapshotMessage = responses.getOrDefault(subsystem, new NullObjectSnapshotMessage(uuid));
 
         return snapshotMessage.getSnapshot(snapshotType);

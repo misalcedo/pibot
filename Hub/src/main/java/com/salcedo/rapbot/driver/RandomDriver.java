@@ -32,7 +32,7 @@ public final class RandomDriver extends AbstractActor {
                 .scheduleOnce(
                         DRIVE_DELAY,
                         self(),
-                        new DriveState(),
+                        null,
                         getContext().dispatcher(),
                         self()
                 );

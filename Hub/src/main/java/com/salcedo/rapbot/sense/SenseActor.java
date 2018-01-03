@@ -20,7 +20,7 @@ public final class SenseActor extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
-        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
+        //context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
     }
 
     @Override

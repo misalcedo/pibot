@@ -1,5 +1,5 @@
 package com.salcedo.rapbot.driver;
 
 public interface DriverStrategy<T> {
-    DriveState drive(T request);
+    DriveState drive(T request, DriveState current);
 }

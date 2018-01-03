@@ -61,6 +61,38 @@ public class EnvironmentReading {
         this.accelerometer = accelerometer;
     }
 
+    public double getPressure() {
+        return pressure;
+    }
+
+    public double getHumidity() {
+        return humidity;
+    }
+
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public Orientation getOrientation() {
+        return orientation;
+    }
+
+    public double getCompass() {
+        return compass;
+    }
+
+    public ThreeDimensionalSensorReading getMagnetometer() {
+        return magnetometer;
+    }
+
+    public ThreeDimensionalSensorReading getGyroscope() {
+        return gyroscope;
+    }
+
+    public ThreeDimensionalSensorReading getAccelerometer() {
+        return accelerometer;
+    }
+
     @Override
     public String toString() {
         return "EnvironmentReading{" +

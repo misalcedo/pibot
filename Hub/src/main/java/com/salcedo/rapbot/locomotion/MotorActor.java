@@ -24,8 +24,7 @@ public final class MotorActor extends AbstractActor {
     @Override
     public void preStart() throws Exception {
         release();
-        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
-        context().system().eventStream().subscribe(self(), TakeSnapshotMessage.class);
+        //context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
     }
 
     @Override
