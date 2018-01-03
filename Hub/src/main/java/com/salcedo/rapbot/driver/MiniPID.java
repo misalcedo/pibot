@@ -1,6 +1,16 @@
-package com.salcedo.rapbot.controller;
+package com.salcedo.rapbot.driver;
 
-public class SimplePIDController {
+/**
+ * Small, easy to use PID implementation with advanced controller capability.<br>
+ * Minimal usage:<br>
+ * MiniPID pid = new MiniPID(p,i,d); <br>
+ * ...looping code...{ <br>
+ *   output= pid.getOutput(sensorvalue,target); <br>
+ * }
+ *
+ * @see http://brettbeauregard.com/blog/2011/04/improving-the-beginners-pid-direction/improving-the-beginners-pid-introduction
+ */
+public class MiniPID implements PIDController {
     //**********************************
     // Class private variables
     //**********************************
@@ -42,7 +52,7 @@ public class SimplePIDController {
      * @param i Integral gain.  Becomes large if setpoint cannot reach target quickly.
      * @param d Derivative gain. Responds quickly to large changes in error. Small values prevents P and I terms from causing overshoot.
      */
-    public SimplePIDController(final double p, final double i, final double d){
+    public MiniPID(double p, double i, double d){
         P=p; I=i; D=d;
         checkSigns();
     }
@@ -55,7 +65,7 @@ public class SimplePIDController {
      * @param d Derivative gain. Responds quickly to large changes in error. Small values prevents P and I terms from causing overshoot.
      * @param f Feed-forward gain. Open loop "best guess" for the output should be. Only useful if setpoint represents a rate.
      */
-    public SimplePIDController(final double p, final double i, final double d, final double f){
+    public MiniPID(double p, double i, double d, double f){
         P=p; I=i; D=d; F=f;
         checkSigns();
     }
@@ -73,7 +83,7 @@ public class SimplePIDController {
      *
      * @param p Proportional gain. Affects output according to <b>output+=P*(setpoint-current_value)</b>
      */
-    public void setP(final double p){
+    public void setP(double p){
         P=p;
         checkSigns();
     }
@@ -88,7 +98,7 @@ public class SimplePIDController {
      *
      * @param i New gain value for the Integral term
      */
-    public void setI(final double i){
+    public void setI(double i){
         if(I!=0){
             errorSum=errorSum*I/i;
         }
@@ -118,7 +128,7 @@ public class SimplePIDController {
      *
      * @param d New gain value for the Derivative term
      */
-    public void setD(final double d){
+    public void setD(double d){
         D=d;
         checkSigns();
     }
@@ -132,7 +142,7 @@ public class SimplePIDController {
      *
      * @param f Feed forward gain.
      */
-    public void setF(final double f){
+    public void setF(double f){
         F=f;
         checkSigns();
     }
@@ -144,7 +154,7 @@ public class SimplePIDController {
      * @param i Integral gain.  Becomes large if setpoint cannot reach target quickly.
      * @param d Derivative gain. Responds quickly to large changes in error. Small values prevents P and I terms from causing overshoot.
      */
-    public void setPID(final double p, final double i, final double d){
+    public void setPID(double p, double i, double d){
         P=p;D=d;
         //Note: the I term has additional calculations, so we need to use it's
         //specific method for setting it.
@@ -160,7 +170,7 @@ public class SimplePIDController {
      * @param d Derivative gain. Responds quickly to large changes in error. Small values prevents P and I terms from causing overshoot.
      * @param f Feed-forward gain. Open loop "best guess" for the output should be. Only useful if setpoint represents a rate.
      */
-    public void setPID(final double p, final double i, final double d, final double f){
+    public void setPID(double p, double i, double d,double f){
         P=p;D=d;F=f;
         //Note: the I term has additional calculations, so we need to use it's
         //specific method for setting it.
@@ -173,7 +183,7 @@ public class SimplePIDController {
      * This can be used to prevent large windup issues and make tuning simpler
      * @param maximum. Units are the same as the expected output value
      */
-    public void setMaxIOutput(final double maximum){
+    public void setMaxIOutput(double maximum){
         // Internally maxError and Izone are similar, but scaled for different purposes.
         // The maxError is generated for simplifying math, since calculations against
         // the max error are far more common than changing the I term or Izone.
@@ -189,7 +199,7 @@ public class SimplePIDController {
      * <b>[-output, output]</b>
      * @param output
      */
-    public void setOutputLimits(final double output){
+    public void setOutputLimits(double output){
         setOutputLimits(-output,output);
     }
 
@@ -200,10 +210,8 @@ public class SimplePIDController {
      * @param minimum possible output value
      * @param maximum possible output value
      */
-    public void setOutputLimits(final double minimum, final double maximum){
-        if(maximum<minimum) {
-            return;
-        }
+    public void setOutputLimits(double minimum,double maximum){
+        if(maximum<minimum)return;
         maxOutput=maximum;
         minOutput=minimum;
 
@@ -217,7 +225,7 @@ public class SimplePIDController {
      * Set the operating direction of the PID controller
      * @param reversed Set true to reverse PID output
      */
-    public void  setDirection(final boolean reversed){
+    public void  setDirection(boolean reversed){
         this.reversed=reversed;
     }
 
@@ -232,7 +240,7 @@ public class SimplePIDController {
      * @see MiniPID#getOutput(actual) <br>
      * @param setpoint
      */
-    public void setSetpoint(final double setpoint){
+    public void setSetpoint(double setpoint){
         this.setpoint=setpoint;
     }
 
@@ -242,12 +250,12 @@ public class SimplePIDController {
      * @param setpoint The target value for the system
      * @return calculated output value for driving the system
      */
-    public double getOutput(final double actual, double setpoint){
+    public double getOutput(double actual, double setpoint){
         double output;
-        final double Poutput;
+        double Poutput;
         double Ioutput;
-        final double Doutput;
-        final double Foutput;
+        double Doutput;
+        double Foutput;
 
         this.setpoint=setpoint;
 
@@ -257,7 +265,7 @@ public class SimplePIDController {
         }
 
         // Do the simple parts of the calculations
-        final double error=setpoint-actual;
+        double error=setpoint-actual;
 
         // Calculate F output. Notice, this depends only on the setpoint, and not the error.
         Foutput=F*setpoint;
@@ -297,7 +305,7 @@ public class SimplePIDController {
             errorSum=error;
             // reset the error sum to a sane level
             // Setting to current error ensures a smooth transition when the P term
-            // decreases enough for the I term to first acting upon the controller
+            // decreases enough for the I term to start acting upon the controller
             // From that point the I term will build up as would be expected
         }
         else if(outputRampRate!=0 && !bounded(output, lastOutput-outputRampRate,lastOutput+outputRampRate) ){
@@ -351,7 +359,7 @@ public class SimplePIDController {
      * @param setpoint The target value for the system
      * @return calculated output value for driving the system
      */
-    public double getOutput(final double actual){
+    public double getOutput(double actual){
         return getOutput(actual,setpoint);
     }
 
@@ -377,7 +385,7 @@ public class SimplePIDController {
      *
      * @param rate, with units being the same as the output
      */
-    public void setOutputRampRate(final double rate){
+    public void setOutputRampRate(double rate){
         outputRampRate=rate;
     }
 
@@ -388,7 +396,7 @@ public class SimplePIDController {
      * during large setpoint adjustments. Increases lag and I term if range is too small.
      * @param range, with units being the same as the expected sensor range.
      */
-    public void setSetpointRange(final double range){
+    public void setSetpointRange(double range){
         setpointRange=range;
     }
 
@@ -403,7 +411,7 @@ public class SimplePIDController {
      * <pre>output*(1-strength)*sum(0..n){output*strength^n}</pre> algorithm.
      * @param output valid between [0..1), meaning [current output only.. historical output only)
      */
-    public void setOutputFilter(final double strength){
+    public void setOutputFilter(double strength){
         if(strength==0 || bounded(strength,0,1)){
             outputFilter=strength;
         }
@@ -420,7 +428,7 @@ public class SimplePIDController {
      * @param max minimum value in range
      * @return Value if it's within provided range, min or max otherwise
      */
-    private double constrain(final double value, final double min, final double max){
+    private double constrain(double value, double min, double max){
         if(value > max){ return max;}
         if(value < min){ return min;}
         return value;
@@ -433,7 +441,7 @@ public class SimplePIDController {
      * @param max Maximum value of range
      * @return true if value is within range, false otherwise
      */
-    private boolean bounded(final double value, final double min, final double max){
+    private boolean bounded(double value, double min, double max){
         // Note, this is an inclusive range. This is so tests like
         // `bounded(constrain(0,0,1),0,1)` will return false.
         // This is more helpful for determining edge-case behaviour
@@ -447,32 +455,26 @@ public class SimplePIDController {
      */
     private void checkSigns(){
         if(reversed){  // all values should be below zero
-            if(P>0) {
-                P *= -1;
-            }
-            if(I>0) {
-                I *= -1;
-            }
-            if(D>0) {
-                D *= -1;
-            }
-            if(F>0) {
-                F *= -1;
-            }
+            if(P>0) P*=-1;
+            if(I>0) I*=-1;
+            if(D>0) D*=-1;
+            if(F>0) F*=-1;
         }
         else{  // all values should be above zero
-            if(P<0) {
-                P *= -1;
-            }
-            if(I<0) {
-                I *= -1;
-            }
-            if(D<0) {
-                D *= -1;
-            }
-            if(F<0) {
-                F *= -1;
-            }
+            if(P<0) P*=-1;
+            if(I<0) I*=-1;
+            if(D<0) D*=-1;
+            if(F<0) F*=-1;
         }
+    }
+
+    @Override
+    public PIDResult step(double actual, double target) {
+        return new PIDResult(actual, getOutput(actual, target), errorSum);
+    }
+
+    @Override
+    public PIDResult step(double actual, double target, PIDResult previousStep) {
+        return step(actual, target);
     }
 }
