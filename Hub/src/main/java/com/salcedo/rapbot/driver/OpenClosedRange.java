@@ -17,29 +17,31 @@ public class OpenClosedRange implements Range {
     }
 
     @Override
-    public int start() {
+    public int first() {
         return isStartInclusive() ? start : start - 1;
     }
 
     @Override
-    public int end() {
+    public int last() {
         return isEndInclusive() ? end : end - 1;
     }
 
     @Override
     public int modulo(final int value) {
-        // TODO: fix modulo operator to actually work as a modulo.
-        return start + (value % getDistance());
+        int remainder = value % distance();
+        int negativeAdjustment = remainder + distance();
+
+        return first() + (negativeAdjustment % distance());
     }
 
     @Override
     public int bounded(int value) {
-        int endBounded = min(value, end());
-        return max(endBounded, start());
+        int endBounded = min(value, last());
+        return max(endBounded, first());
     }
 
-    private int getDistance() {
-        return end - start;
+    private int distance() {
+        return last() - first();
     }
 
     @Override
@@ -50,12 +52,5 @@ public class OpenClosedRange implements Range {
     @Override
     public boolean isEndInclusive() {
         return endInclusive;
-    }
-
-    @Override
-    public boolean isInRange(int value) {
-        final boolean greaterThanStart = isStartInclusive() ? value >= start : value > start;
-        final boolean lessThanEnd = isEndInclusive() ? value <= end : value < end;
-        return greaterThanStart && lessThanEnd;
     }
 }

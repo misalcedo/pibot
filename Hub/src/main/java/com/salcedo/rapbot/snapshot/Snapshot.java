@@ -54,8 +54,8 @@ public class Snapshot {
     @Override
     public String toString() {
         return "Snapshot{" +
-                "start=" + start +
-                ", end=" + end +
+                "first=" + start +
+                ", last=" + end +
                 ", uuid=" + uuid +
                 ", subsystems=" + subsystems +
                 ", responses=" + responses +

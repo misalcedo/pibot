@@ -17,7 +17,7 @@ public class OpenClosedRangeTest {
 
     @Test
     public void modulo() {
-        assertThat(range.modulo(-10), is(equalTo(91)));
+        assertThat(range.modulo(-10), is(equalTo(90)));
     }
 
     @Test

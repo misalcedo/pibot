@@ -297,7 +297,7 @@ public class SimplePIDController {
             errorSum=error;
             // reset the error sum to a sane level
             // Setting to current error ensures a smooth transition when the P term
-            // decreases enough for the I term to start acting upon the controller
+            // decreases enough for the I term to first acting upon the controller
             // From that point the I term will build up as would be expected
         }
         else if(outputRampRate!=0 && !bounded(output, lastOutput-outputRampRate,lastOutput+outputRampRate) ){
