@@ -8,7 +8,7 @@ public final class KeyboardDriverStrategy implements DriverStrategy<KeyEvent> {
 
     @Override
     public DriveState drive(final KeyEvent keyEvent, final DriveState current) {
-        if (keyEvent.getID() != KeyEvent.KEY_RELEASED) {
+        if (keyEvent.getID() != KeyEvent.KEY_PRESSED) {
             return current;
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_UP) {
             return current.updateThrottle(THROTTLE_STEP);

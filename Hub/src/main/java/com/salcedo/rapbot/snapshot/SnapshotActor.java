@@ -26,9 +26,6 @@ public class SnapshotActor extends AbstractActor {
     public void preStart() {
         subSystems.clear();
         snapshots.clear();
-
-        context().system().eventStream().subscribe(self(), RegisterSubSystemMessage.class);
-        context().system().eventStream().subscribe(self(), StartSnapshotMessage.class);
     }
 
     @Override

@@ -37,8 +37,16 @@ public class Snapshot {
         return getResponsesRemaining() <= 0;
     }
 
-    UUID getUuid() {
+    public UUID getUuid() {
         return uuid;
+    }
+
+    public Instant getStart() {
+        return start;
+    }
+
+    public Instant getEnd() {
+        return end;
     }
 
     int getResponsesRemaining() {

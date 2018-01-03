@@ -13,6 +13,7 @@ import com.salcedo.rapbot.driver.KeyboardDriver;
 import com.salcedo.rapbot.sense.*;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotActor;
+import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import org.apache.spark.sql.SQLContext;
@@ -56,6 +57,10 @@ public final class Hub extends AbstractActor {
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
         snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
+
+        context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
+        context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
+
         driver = getContext().actorOf(DriverActor.props(pi2.port(3000), manualDriver), "driver");
         sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
