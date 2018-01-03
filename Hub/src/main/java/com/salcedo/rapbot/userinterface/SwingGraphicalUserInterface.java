@@ -134,6 +134,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
 
     @Override
     public void update(SystemState state) {
+        snapshotId.setText(state.getSnapshotId());
         snapshotStart.setText(state.getSnapshotStart());
         snapshotEnd.setText(state.getSnapshotEnd());
         throttle.setValue(state.throttle());
