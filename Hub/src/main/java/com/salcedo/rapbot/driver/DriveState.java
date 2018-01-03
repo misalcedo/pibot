@@ -17,6 +17,14 @@ public final class DriveState {
         return new DriveState(throttleRange, orientationRange, throttle + delta, orientation);
     }
 
+    public DriveState maxThrottle() {
+        return new DriveState(throttleRange, orientationRange, throttleRange.last(), orientation);
+    }
+
+    public DriveState minThrottle() {
+        return new DriveState(throttleRange, orientationRange, throttleRange.first(), orientation);
+    }
+
     public DriveState updateOrientation(int delta) {
         return new DriveState(throttleRange, orientationRange, throttle, orientation + delta);
     }
@@ -24,6 +32,7 @@ public final class DriveState {
     public int getThrottle() {
         return throttle;
     }
+
 
     public int getOrientation() {
         return orientation;

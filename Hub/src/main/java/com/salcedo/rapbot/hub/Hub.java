@@ -55,9 +55,9 @@ public final class Hub extends AbstractActor {
     public void preStart() {
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
+        snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
         driver = getContext().actorOf(DriverActor.props(pi2.port(3000), manualDriver), "driver");
         sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
-        snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
     }
 

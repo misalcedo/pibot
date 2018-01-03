@@ -56,6 +56,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         final Canvas canvas = new Canvas();
         final CanvasVideoSurface videoSurface = mediaPlayerFactory.newVideoSurface(canvas);
 
+        canvas.setFocusable(false);
         canvas.setBackground(Color.BLACK);
         canvas.setSize(640, 480);
         canvas.setVisible(true);
@@ -71,6 +72,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         final JLabel valueLabel = new JLabel();
         orientation = new JProgressBar(0, 360);
 
+        orientation.setBorderPainted(false);
         orientation.setUI(new CircularProgressBarUI());
         orientation.addChangeListener(changeEvent -> valueLabel.setText(String.valueOf(orientation.getValue())));
         orientation.setValue(0);
