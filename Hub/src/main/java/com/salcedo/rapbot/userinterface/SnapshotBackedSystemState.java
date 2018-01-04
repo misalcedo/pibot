@@ -4,6 +4,7 @@ import akka.actor.ActorContext;
 import akka.actor.ActorPath;
 import akka.actor.ActorPaths;
 import com.salcedo.rapbot.driver.DriveState;
+import com.salcedo.rapbot.sense.EnvironmentReading;
 import com.salcedo.rapbot.snapshot.Snapshot;
 
 import java.time.ZoneId;
@@ -23,6 +24,16 @@ public class SnapshotBackedSystemState implements SystemState {
         this.dateTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)
                 .withLocale(Locale.US)
                 .withZone(ZoneId.systemDefault());
+    }
+
+    @Override
+    public int actualOrientation() {
+        return (int) getEnvironmentReading().getOrientation().getYaw();
+    }
+
+    private EnvironmentReading getEnvironmentReading() {
+        final ActorPath driver = getActorPath("/user/hub/sensors");
+        return snapshot.getSnapshot(driver, EnvironmentReading.class);
     }
 
     @Override

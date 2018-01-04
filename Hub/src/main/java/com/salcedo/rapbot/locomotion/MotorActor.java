@@ -22,13 +22,13 @@ public final class MotorActor extends AbstractActor {
     }
 
     @Override
-    public void preStart() throws Exception {
+    public void preStart() {
         release();
-        //context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
     }
 
     @Override
-    public void postStop() throws Exception {
+    public void postStop() {
         release();
     }
 

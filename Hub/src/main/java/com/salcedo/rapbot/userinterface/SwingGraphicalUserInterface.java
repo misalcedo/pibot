@@ -10,6 +10,8 @@ import java.awt.*;
 import java.awt.event.KeyListener;
 
 import static java.awt.BorderLayout.*;
+import static java.awt.Color.GREEN;
+import static java.awt.Color.RED;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import static javax.swing.SwingConstants.VERTICAL;
 
@@ -18,7 +20,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JFrame frame;
     private final KeyListener keyListener;
     private final JProgressBar throttle;
-    private final JProgressBar orientation;
+    private final JProgressBar targetOrientation;
+    private final JProgressBar actualOrientation;
     private final JLabel snapshotId;
     private final JLabel snapshotStart;
     private final JLabel snapshotEnd;
@@ -27,7 +30,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.videoFeed = videoFeed;
         this.keyListener = keyListener;
         this.frame = new JFrame("RapBot");
-        this.orientation = new JProgressBar();
+        this.targetOrientation = new JProgressBar();
+        this.actualOrientation = new JProgressBar();
         this.throttle = new JProgressBar();
         this.snapshotId = new JLabel();
         this.snapshotStart = new JLabel();
@@ -55,9 +59,10 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         final Canvas videoSurface = createVideoFeed(embeddedMediaPlayer, mediaPlayerFactory);
 
         frame.add(videoSurface, PAGE_START);
-        frame.add(createSnapshotInfo(), LINE_START);
-        frame.add(createOrientation(), CENTER);
+        frame.add(createActualOrientation(), LINE_START);
+        frame.add(createTargetOrientation(), CENTER);
         frame.add(createThrottle(), LINE_END);
+        frame.add(createSnapshotInfo(), PAGE_END);
 
         return embeddedMediaPlayer;
     }
@@ -89,20 +94,29 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         return canvas;
     }
 
-    private Component createOrientation() {
+    private Component createTargetOrientation() {
+        return createOrientation(targetOrientation, RED);
+    }
+
+    private Component createActualOrientation() {
+        return createOrientation(actualOrientation, GREEN);
+    }
+
+    private Component createOrientation(final JProgressBar progressBar, final Color color) {
         final JPanel panel = new JPanel(new GridLayout(0, 1));
         final JPanel label = new JPanel();
-        final JLabel value = new JLabel();
+        final JLabel value = new JLabel("0");
         label.add(new JLabel("Orientation: "));
         label.add(value);
 
-        orientation.setMaximum(360);
-        orientation.setBorderPainted(false);
-        orientation.setUI(new CircularProgressBarUI());
-        orientation.addChangeListener(changeEvent -> value.setText(String.valueOf(orientation.getValue())));
-        orientation.setValue(0);
+        progressBar.setForeground(color);
+        progressBar.setMaximum(360);
+        progressBar.setBorderPainted(false);
+        progressBar.setUI(new CircularProgressBarUI());
+        progressBar.addChangeListener(changeEvent -> value.setText(String.valueOf(progressBar.getValue())));
+        progressBar.setValue(0);
 
-        panel.add(orientation);
+        panel.add(progressBar);
         panel.add(label);
 
         return panel;
@@ -115,6 +129,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         label.add(new JLabel("Throttle: "));
         label.add(value);
 
+        throttle.setForeground(RED);
         throttle.setMaximum(255);
         throttle.setOrientation(VERTICAL);
         throttle.addChangeListener(changeEvent -> value.setText(String.valueOf(throttle.getValue())));
@@ -139,6 +154,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         snapshotStart.setText(state.getSnapshotStart());
         snapshotEnd.setText(state.getSnapshotEnd());
         throttle.setValue(state.throttle());
-        orientation.setValue(state.targetOrientation());
+        targetOrientation.setValue(state.targetOrientation());
+        actualOrientation.setValue(state.actualOrientation());
     }
 }

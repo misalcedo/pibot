@@ -19,8 +19,8 @@ public final class SenseActor extends AbstractActor {
     }
 
     @Override
-    public void preStart() throws Exception {
-        //context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
+    public void preStart() {
+        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
     }
 
     @Override
@@ -30,13 +30,6 @@ public final class SenseActor extends AbstractActor {
                 .match(AccelerationRequest.class, r -> readAcceleration())
                 .match(TakeSnapshotMessage.class, this::snapshot)
                 .build();
-    }
-
-    private void snapshot(final TakeSnapshotMessage message) {
-        final ActorRef sender = sender();
-
-        senseService.senseEnvironment()
-                .thenAccept(response -> sender.tell(new ObjectSnapshotMessage(message.getUuid(), response), self()));
     }
 
     private void readAcceleration() {
@@ -51,5 +44,12 @@ public final class SenseActor extends AbstractActor {
 
         senseService.getOrientation()
                 .thenAccept(response -> sender.tell(response, self()));
+    }
+
+    private void snapshot(final TakeSnapshotMessage message) {
+        final ActorRef sender = sender();
+
+        senseService.senseEnvironment()
+                .thenAccept(response -> sender.tell(new ObjectSnapshotMessage(message.getUuid(), response), self()));
     }
 }

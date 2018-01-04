@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.userinterface;
 
 public interface SystemState {
+    int actualOrientation();
     int targetOrientation();
     int throttle();
 
