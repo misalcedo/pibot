@@ -115,6 +115,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         label.add(new JLabel("Throttle: "));
         label.add(value);
 
+        throttle.setMaximum(255);
         throttle.setOrientation(VERTICAL);
         throttle.addChangeListener(changeEvent -> value.setText(String.valueOf(throttle.getValue())));
 

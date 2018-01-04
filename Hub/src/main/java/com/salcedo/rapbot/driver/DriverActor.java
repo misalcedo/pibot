@@ -3,49 +3,69 @@ package com.salcedo.rapbot.driver;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.event.EventStream;
+import akka.actor.Terminated;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.http.javadsl.model.Uri;
-import com.salcedo.rapbot.locomotion.*;
+import com.salcedo.rapbot.locomotion.Motor;
+import com.salcedo.rapbot.locomotion.MotorRequest;
+import com.salcedo.rapbot.sense.Orientation;
+import com.salcedo.rapbot.sense.OrientationRequest;
 import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
 import java.awt.event.KeyEvent;
+import java.util.function.ToIntBiFunction;
+
+import static com.salcedo.rapbot.locomotion.Command.FORWARD;
+import static java.lang.Math.PI;
+import static java.lang.Math.toRadians;
 
 public final class DriverActor extends AbstractActor {
+    private static final double EPSILON = 0.0001;
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final Uri motorNode;
     private final DriverStrategy<KeyEvent> driverStrategy;
-    private ActorRef motors;
-    private DriveState currentState;
+    private final ActorRef motors;
+    private final ActorRef sensors;
+    private final PIDController pid;
+    private DriveState desiredState;
+    private PIDResult pidResult;
 
-    public DriverActor(final Uri motorNode, final DriverStrategy<KeyEvent> driverStrategy) {
-        this.motorNode = motorNode;
+    public DriverActor(
+            final ActorRef motors,
+            final ActorRef sensors,
+            final DriverStrategy<KeyEvent> driverStrategy
+    ) {
+        this.motors = motors;
+        this.sensors = sensors;
         this.driverStrategy = driverStrategy;
-        this.currentState = new DriveState(
-                new OpenClosedRange(true, true, 0, 100),
+        this.pid = new SimplePIDController(0.25, 0.01, 0.4);
+        this.pidResult = new PIDResult(0.0);
+        this.desiredState = new DriveState(
+                new OpenClosedRange(true, true, 0, 255),
                 new OpenClosedRange(true, true, 0, 360),
                 0,
-                0
+                0,
+                FORWARD
         );
     }
 
-    public static Props props(final Uri motorNode, final DriverStrategy<KeyEvent> driverStrategy) {
-        return Props.create(DriverActor.class, motorNode, driverStrategy);
+    public static Props props(
+            final ActorRef motors,
+            final ActorRef sensors,
+            final DriverStrategy<KeyEvent> driverStrategy
+    ) {
+        return Props.create(DriverActor.class, motors, sensors, driverStrategy);
     }
 
     @Override
     public void preStart() {
-        final EventStream eventStream = context().system().eventStream();
-        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), motorNode);
+        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
+        context().system().eventStream().subscribe(self(), KeyEvent.class);
 
-        motors = getContext().actorOf(MotorActor.props(motorService), "motors");
-
-        eventStream.publish(new RegisterSubSystemMessage(self()));
-        eventStream.subscribe(self(), KeyEvent.class);
+        context().watch(motors);
+        context().watch(sensors);
     }
 
     @Override
@@ -53,70 +73,83 @@ public final class DriverActor extends AbstractActor {
         return receiveBuilder()
                 .match(KeyEvent.class, this::drive)
                 .match(TakeSnapshotMessage.class, this::snapshot)
+                .match(Orientation.class, this::control)
+                .match(Terminated.class, message -> terminate())
                 .build();
     }
 
-    private void snapshot(TakeSnapshotMessage message) {
-        sender().tell(new ObjectSnapshotMessage(message.getUuid(), currentState), self());
+    private void terminate() {
+        context().stop(self());
     }
 
-    private void drive(final KeyEvent keyEvent) {
-        currentState = driverStrategy.drive(keyEvent, currentState);
+    private void control(final Orientation orientation) {
+        final double actual = toRadians(orientation.getYaw());
+        final double target = toRadians(desiredState.getOrientation());
+        final double adjustedActual = adjustRadians(actual, target);
+        final double adjustedTarget = adjustRadians(target, actual);
 
-        log.info("{}", currentState);
+        final PIDResult result = pid.step(adjustedActual, adjustedTarget, pidResult);
 
-        context().system().eventStream().publish(new StartSnapshotMessage());
+        if (isCloseToPi(adjustedTarget - adjustedActual)) {
+            desiredState = desiredState.toggleCommand();
+        }
+
+        // TODO: Need to figure out if I have left and right swapped.
+        controlMotors(result.getOutput() / (2 * PI));
     }
 
-    private MotorRequest createStopRequest() {
+    private void controlMotors(final double leftToRightRatio) {
+        final int throttleAdjustment = (int) (leftToRightRatio * desiredState.getThrottleRange().last());
+        final int adjustedLeftThrottle = getAdjustedBoundedThrottle(throttleAdjustment, Integer::sum);
+        final int adjustedRightThrottle = getAdjustedBoundedThrottle(throttleAdjustment, (a, b) -> a - b);
+        final MotorRequest motorRequest = createMotorRequest(adjustedLeftThrottle, adjustedRightThrottle);
+
+        motors.tell(motorRequest, self());
+
+    }
+
+    private int getAdjustedBoundedThrottle(final int throttleAdjustment, final ToIntBiFunction<Integer, Integer> function) {
+        return desiredState.getThrottleRange()
+                .bounded(function.applyAsInt(desiredState.getThrottle(), throttleAdjustment));
+    }
+
+    private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed) {
         final Motor backLeftMotor = Motor.builder()
-                .withReleaseCommand()
+                .withCommand(desiredState.getCommand())
                 .withBackLeftLocation()
-                .withSpeed(0)
+                .withSpeed(leftSpeed)
                 .build();
         final Motor backRightMotor = Motor.builder()
-                .withReleaseCommand()
+                .withCommand(desiredState.getCommand())
                 .withBackRightLocation()
-                .withSpeed(0)
+                .withSpeed(rightSpeed)
                 .build();
 
-        return createMotorRequest(backLeftMotor, backRightMotor);
-    }
-
-    private MotorRequest createMotorRequest(final Motor backLeftMotor, final Motor backRightMotor) {
         return MotorRequest.builder()
                 .addMotor(backLeftMotor)
                 .addMotor(backRightMotor)
                 .build();
     }
 
-    private MotorRequest createForwardRequest(final int leftSpeed, final int rightSpeed) {
-        final Motor backLeftMotor = Motor.builder()
-                .withForwardCommand()
-                .withBackLeftLocation()
-                .withSpeed(leftSpeed)
-                .build();
-        final Motor backRightMotor = Motor.builder()
-                .withForwardCommand()
-                .withBackRightLocation()
-                .withSpeed(rightSpeed)
-                .build();
-
-        return createMotorRequest(backLeftMotor, backRightMotor);
+    private double adjustRadians(double x, double y) {
+        return isCloseToPi(y - x) ? x + (2 * PI) : x;
     }
 
-    private MotorRequest createReverseRequest() {
-        final Motor backLeftMotor = Motor.builder()
-                .withBackwardCommand()
-                .withBackLeftLocation()
-                .withSpeed(255)
-                .build();
-        final Motor backRightMotor = Motor.builder()
-                .withBackwardCommand()
-                .withBackRightLocation()
-                .withSpeed(255)
-                .build();
+    private boolean isCloseToPi(double delta) {
+        return delta >= PI + EPSILON || delta >= PI - EPSILON;
+    }
 
-        return createMotorRequest(backLeftMotor, backRightMotor);
+    private void snapshot(TakeSnapshotMessage message) {
+        sender().tell(new ObjectSnapshotMessage(message.getUuid(), desiredState), self());
+    }
+
+    private void drive(final KeyEvent keyEvent) {
+        desiredState = driverStrategy.drive(keyEvent, desiredState);
+
+        log.info("Changed desired drive state to {}", desiredState);
+
+        sensors.tell(new OrientationRequest(), self());
+
+        context().system().eventStream().publish(new StartSnapshotMessage());
     }
 }

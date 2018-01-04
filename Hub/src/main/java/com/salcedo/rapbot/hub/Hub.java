@@ -3,6 +3,7 @@ package com.salcedo.rapbot.hub;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import akka.actor.Terminated;
 import akka.event.EventStream;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -10,6 +11,9 @@ import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
 import com.salcedo.rapbot.driver.KeyboardDriver;
+import com.salcedo.rapbot.locomotion.MotorActor;
+import com.salcedo.rapbot.locomotion.MotorService;
+import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.sense.*;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotActor;
@@ -30,6 +34,7 @@ public final class Hub extends AbstractActor {
     private final GraphicalUserInterface gui;
     private final DriverStrategy<KeyEvent> manualDriver;
     private ActorRef driver;
+    private ActorRef motors;
     private ActorRef sensors;
     private ActorRef snapshot;
     private ActorRef guiUpdator;
@@ -55,15 +60,21 @@ public final class Hub extends AbstractActor {
     @Override
     public void preStart() {
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
+        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), pi2.port(3000));
 
+        createSnapshot();
+
+        motors = getContext().actorOf(MotorActor.props(motorService), "motors");
+        sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
+        driver = getContext().actorOf(DriverActor.props(motors, sensors, manualDriver), "driver");
+        guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
+    }
+
+    private void createSnapshot() {
         snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
 
         context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
         context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
-
-        driver = getContext().actorOf(DriverActor.props(pi2.port(3000), manualDriver), "driver");
-        sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
-        guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
     }
 
     @Override
@@ -73,6 +84,11 @@ public final class Hub extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(Terminated.class, this::terminate)
                 .build();
+    }
+
+    private void terminate(Terminated message) {
+        log.error("Actor terminated: {}. Shutting down system.", message.actor());
     }
 }

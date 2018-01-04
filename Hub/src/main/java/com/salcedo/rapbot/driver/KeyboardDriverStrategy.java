@@ -3,7 +3,7 @@ package com.salcedo.rapbot.driver;
 import java.awt.event.KeyEvent;
 
 public final class KeyboardDriverStrategy implements DriverStrategy<KeyEvent> {
-    private static final int THROTTLE_STEP = 10;
+    private static final int THROTTLE_STEP = 5;
     private static final int ORIENTATION_STEP = 15;
 
     @Override

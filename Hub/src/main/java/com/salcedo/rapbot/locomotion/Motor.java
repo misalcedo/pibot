@@ -21,10 +21,6 @@ public final class Motor {
         return new MotorBuilder();
     }
 
-    Location getLocation() {
-        return location;
-    }
-
     @Override
     public String toString() {
         return "Motor{" +
@@ -54,7 +50,7 @@ public final class Motor {
         private int speed;
 
         public Motor build() {
-            return new Motor(requireNonNull(location), requireNonNull(command), requireNonNull(speed));
+            return new Motor(requireNonNull(location), requireNonNull(command), speed);
         }
 
         public MotorBuilder withBackLeftLocation() {
@@ -82,8 +78,8 @@ public final class Motor {
             return this;
         }
 
-        public MotorBuilder withBrakeCommand() {
-            command = Command.BRAKE;
+        public MotorBuilder withCommand(final Command command) {
+            this.command = command;
             return this;
         }
 

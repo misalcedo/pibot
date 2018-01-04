@@ -40,7 +40,8 @@ public class OpenClosedRange implements Range {
         return max(endBounded, first());
     }
 
-    private int distance() {
+    @Override
+    public int distance() {
         return last() - first();
     }
 

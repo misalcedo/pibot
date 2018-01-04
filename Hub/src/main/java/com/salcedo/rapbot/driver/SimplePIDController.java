@@ -19,7 +19,7 @@ public class SimplePIDController implements PIDController {
             final double integralGain,
             final double derivativeGain,
             final double feedForwardGain
-    ){
+    ) {
         if (proportionalGain < 0 || integralGain < 0 || derivativeGain < 0 || feedForwardGain < 0) {
             throw new IllegalArgumentException(
                     String.format(
@@ -38,8 +38,16 @@ public class SimplePIDController implements PIDController {
         this.feedForwardGain = feedForwardGain;
     }
 
+    public SimplePIDController(
+            final double proportionalGain,
+            final double integralGain,
+            final double derivativeGain
+    ) {
+        this(proportionalGain, integralGain, derivativeGain, 0.0);
+    }
+
     @Override
-    public PIDResult step(double actual, double target, PIDResult previousStep) {
+    public PIDResult step(final double actual, final double target, final PIDResult previousStep) {
         final double error = target - actual;
 
         final double feedForwardOutput = feedForwardGain * target;
