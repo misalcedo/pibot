@@ -1,6 +1,5 @@
-from flask import Flask, Response, request
+from flask import Flask, request
 from sense_hat import SenseHat
-
 
 sense = SenseHat()
 sense.set_imu_config(True, True, True)
@@ -9,14 +8,17 @@ app = Flask(__name__)
 
 initial_orientation = sense.orientation
 
+
 @app.route('/')
 def all_sensors():
+    current_orientation = sense.orientation
+
     return str({
         "humidity": sense.humidity,
         "pressure": sense.pressure,
         "temperature": sense.temperature,
-        "orientation": sense.orientation,
-        "relative_orientation": relative_orientation,
+        "orientation": current_orientation,
+        "relative_orientation": relative_orientation_dict(current_orientation),
         "compass": sense.compass,
         "magnetometer": sense.compass_raw,
         "gyroscope": sense.gyroscope_raw,
@@ -62,7 +64,19 @@ def orientation():
 
 @app.route('/relative_orientation')
 def relative_orientation():
-    return "{yaw: %s, pitch: %s, roll: %s}" % (initial_orientation["yaw"] - sense.orientation["yaw"], initial_orientation["pitch"] - sense.orientation["pitch"], initial_orientation["roll"] - sense.orientation["roll"])
+    return str(relative_orientation_dict(sense.orientation))
+
+
+def relative_orientation_dict(current_orientation):
+    return {
+        'yaw': relative_dimension("yaw", current_orientation),
+        'pitch': relative_dimension("pitch", current_orientation),
+        'roll': relative_dimension("roll", current_orientation)
+    }
+
+
+def relative_dimension(dimension, current_orientation):
+    return initial_orientation[dimension] - current_orientation[dimension]
 
 
 @app.route('/accelerometer')

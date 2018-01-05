@@ -17,7 +17,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
-import java.util.Optional;
 
 
 public class SnapshotBackedSystemState implements SystemState {
@@ -35,7 +34,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public int actualOrientation() {
-        return (int) getEnvironmentReading().getRelativeOrientation().getYaw();
+        return (int) getEnvironmentReading().getRelative_orientation().getYaw();
     }
 
     private EnvironmentReading getEnvironmentReading() {

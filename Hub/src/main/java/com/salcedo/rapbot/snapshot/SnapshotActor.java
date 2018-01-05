@@ -10,6 +10,7 @@ import java.util.*;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class SnapshotActor extends AbstractActor {
@@ -52,8 +53,9 @@ public class SnapshotActor extends AbstractActor {
 
     private void receiveTimeout() {
         if (snapshotInProgress()) {
-            log.info("Timed out waiting for snapshot to complete. ID: {}", snapshots.keySet());
+            log.info("Timed out waiting for snapshot to complete. IDs: {}", snapshots.keySet());
             snapshots.clear();
+            setTimeout();
         } else {
             startSnapshot();
         }
