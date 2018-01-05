@@ -7,7 +7,6 @@ import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -61,42 +60,6 @@ public class SnapshotActor extends AbstractActor {
         }
     }
 
-    private boolean snapshotInProgress() {
-        return !snapshots.isEmpty();
-    }
-
-    private void unregister(Terminated message) {
-        subSystems.remove(message.actor());
-
-        log.info("Removed {} from subsystems due to termination.", message.actor());
-    }
-
-    private void register(RegisterSubSystemMessage message) {
-        subSystems.add(message.getSubSystem());
-        context().watch(message.getSubSystem());
-    }
-
-    private void aggregate(final ObjectSnapshotMessage message) {
-        final Snapshot snapshot = snapshots.get(message.getId());
-
-        log.debug("Received new snapshot message {}", message);
-
-        if (snapshot == null || snapshot.isDone()) {
-            log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
-        } else {
-            snapshot.addMessage(message, sender().path());
-
-            if (snapshot.isDone()) {
-                log.info("Completed snapshot '{}'.", snapshot.getUuid());
-                getContext().getSystem().eventStream().publish(snapshot);
-                snapshots.remove(snapshot.getUuid());
-                setTimeout();
-            } else {
-                log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
-            }
-        }
-    }
-
     private void startSnapshot() {
         if (snapshotInProgress()) {
             final Snapshot snapshot = snapshots.values().iterator().next();
@@ -119,10 +82,46 @@ public class SnapshotActor extends AbstractActor {
 
         snapshots.put(uuid, new Snapshot(uuid, paths));
 
-        log.debug("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
+        log.info("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
 
         context().setReceiveTimeout(Duration.create(1L, SECONDS));
 
         subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), self()));
+    }
+
+    private boolean snapshotInProgress() {
+        return !snapshots.isEmpty();
+    }
+
+    private void unregister(Terminated message) {
+        subSystems.remove(message.actor());
+
+        log.info("Removed {} from subsystems due to termination.", message.actor());
+    }
+
+    private void register(RegisterSubSystemMessage message) {
+        subSystems.add(message.getSubSystem());
+        context().watch(message.getSubSystem());
+    }
+
+    private void aggregate(final ObjectSnapshotMessage message) {
+        final Snapshot snapshot = snapshots.get(message.getId());
+
+        log.info("Received new snapshot message {}", message);
+
+        if (snapshot == null || snapshot.isDone()) {
+            log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
+        } else {
+            snapshot.addMessage(message, sender().path());
+
+            if (snapshot.isDone()) {
+                log.info("Completed snapshot '{}'.", snapshot.getUuid());
+                getContext().getSystem().eventStream().publish(snapshot);
+                snapshots.remove(snapshot.getUuid());
+                setTimeout();
+            } else {
+                log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
+            }
+        }
     }
 }

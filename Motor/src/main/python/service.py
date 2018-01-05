@@ -14,7 +14,7 @@ def update_motor(motor):
 
 @app.route('/motors', methods=['PUT'])
 def drive():
-    app.logger.debug("Received request to update motors: %s", request.json)
+    app.logger.info("Received request to update motors: %s", request.json)
 
     for motor in request.json["motors"]:
         update_motor(motor)
