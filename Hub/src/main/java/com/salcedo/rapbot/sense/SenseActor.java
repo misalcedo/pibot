@@ -7,6 +7,8 @@ import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
+import java.util.concurrent.CompletionStage;
+
 public final class SenseActor extends AbstractActor {
     private final SenseService senseService;
 
@@ -26,7 +28,7 @@ public final class SenseActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(OrientationRequest.class, r -> readOrientation())
+                .match(OrientationRequest.class, this::readOrientation)
                 .match(AccelerationRequest.class, r -> readAcceleration())
                 .match(TakeSnapshotMessage.class, this::snapshot)
                 .build();
@@ -39,11 +41,12 @@ public final class SenseActor extends AbstractActor {
                 .thenAccept(response -> sender.tell(response, self()));
     }
 
-    private void readOrientation() {
+    private void readOrientation(final OrientationRequest request) {
         final ActorRef sender = sender();
+        final CompletionStage<Orientation> orientation = request.isRelative() ?
+                senseService.getRelativeOrientation() : senseService.getOrientation();
 
-        senseService.getOrientation()
-                .thenAccept(response -> sender.tell(response, self()));
+        orientation.thenAccept(response -> sender.tell(response, self()));
     }
 
     private void snapshot(final TakeSnapshotMessage message) {

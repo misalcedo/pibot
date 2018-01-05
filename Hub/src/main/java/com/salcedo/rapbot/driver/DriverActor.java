@@ -16,7 +16,6 @@ import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
 import java.awt.event.KeyEvent;
-import java.util.function.ToIntBiFunction;
 
 import static com.salcedo.rapbot.locomotion.Command.FORWARD;
 import static java.lang.Math.PI;
@@ -99,18 +98,17 @@ public final class DriverActor extends AbstractActor {
     }
 
     private void controlMotors(final double leftToRightRatio) {
-        final int throttleAdjustment = (int) (leftToRightRatio * desiredState.getThrottleRange().last());
-        final int adjustedLeftThrottle = getAdjustedBoundedThrottle(throttleAdjustment, Integer::sum);
-        final int adjustedRightThrottle = getAdjustedBoundedThrottle(throttleAdjustment, (a, b) -> a - b);
+        final int adjustedLeftThrottle = getAdjustedBoundedThrottle(leftToRightRatio);
+        final int adjustedRightThrottle = getAdjustedBoundedThrottle(leftToRightRatio);
         final MotorRequest motorRequest = createMotorRequest(adjustedLeftThrottle, adjustedRightThrottle);
 
         motors.tell(motorRequest, self());
 
     }
 
-    private int getAdjustedBoundedThrottle(final int throttleAdjustment, final ToIntBiFunction<Integer, Integer> function) {
+    private int getAdjustedBoundedThrottle(final double leftToRightRatio) {
         return desiredState.getThrottleRange()
-                .bounded(function.applyAsInt(desiredState.getThrottle(), throttleAdjustment));
+                .bounded((int) (desiredState.getThrottle() * leftToRightRatio));
     }
 
     private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed) {
@@ -150,7 +148,7 @@ public final class DriverActor extends AbstractActor {
 
         log.debug("Changed desired drive state to {}", desiredState);
 
-        sensors.tell(new OrientationRequest(), self());
+        sensors.tell(new OrientationRequest(true), self());
 
         context().system().eventStream().publish(new StartSnapshotMessage());
     }

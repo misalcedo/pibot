@@ -41,6 +41,11 @@ public class HttpSenseService implements SenseService {
     }
 
     @Override
+    public CompletionStage<Orientation> getRelativeOrientation() {
+        return getSensorReading("/relative_orientation", responseFactory(Orientation.class));
+    }
+
+    @Override
     public CompletionStage<ThreeDimensionalSensorReading> getAcceleration() {
         return getSensorReading("/acceleration", responseFactory(ThreeDimensionalSensorReading.class));
     }

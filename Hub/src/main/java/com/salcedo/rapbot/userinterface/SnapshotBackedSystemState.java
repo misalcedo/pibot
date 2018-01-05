@@ -35,7 +35,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public int actualOrientation() {
-        return (int) getEnvironmentReading().getOrientation().getYaw();
+        return (int) getEnvironmentReading().getRelativeOrientation().getYaw();
     }
 
     private EnvironmentReading getEnvironmentReading() {
