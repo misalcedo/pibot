@@ -19,16 +19,16 @@ def drive():
     for motor in request.json["motors"]:
         update_motor(motor)
 
-    return jsonify(vehicle.__dict__)
+    return jsonify(vehicle.dict())
 
 
 @app.route('/release', methods=['PUT'])
 @atexit.register
 def release():
     vehicle.release()
-    return jsonify(vehicle.__dict__)
+    return jsonify(vehicle.dict())
 
 
 @app.route('/motors', methods=['GET'])
 def state():
-    return jsonify(vehicle.__dict__)
+    return jsonify(vehicle.dict())

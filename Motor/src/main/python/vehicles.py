@@ -13,16 +13,19 @@ class Vehicle:
         self.motor_hat.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
     def update_motor(self, index, command, speed):
-        with self.motor_hat.getMotor(index) as motor:
-            motor.run(command)
-            motor.setSpeed(speed)
+        motor = self.motor_hat.getMotor(index + 1)
+        motor.run(command)
+        motor.setSpeed(speed)
 
-        motor = {"location": index, "command": command, "speed": speed}
+        motor_state = {"location": index, "command": command, "speed": speed}
         n = len(self.motors)
 
         if index < n:
-            self.motors[index] = motor
+            self.motors[index] = motor_state
         elif index == n:
-            self.motors.append(motor)
+            self.motors.append(motor_state)
         else:
             raise IndexError()
+
+    def dict(self):
+        return {"motors": self.motors}

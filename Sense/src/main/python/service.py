@@ -7,6 +7,7 @@ sense.set_imu_config(True, True, True)
 sense.clear()
 app = Flask(__name__)
 
+initial_orientation = sense.orientation
 
 @app.route('/')
 def all_sensors():
@@ -15,6 +16,7 @@ def all_sensors():
         "pressure": sense.pressure,
         "temperature": sense.temperature,
         "orientation": sense.orientation,
+        "relative_orientation": relative_orientation,
         "compass": sense.compass,
         "magnetometer": sense.compass_raw,
         "gyroscope": sense.gyroscope_raw,
@@ -56,6 +58,11 @@ def temperature():
 @app.route('/orientation')
 def orientation():
     return str(sense.orientation)
+
+
+@app.route('/relative_orientation')
+def relative_orientation():
+    return "{yaw: %s, pitch: %s, roll: %s}" % (initial_orientation["yaw"] - sense.orientation["yaw"], initial_orientation["pitch"] - sense.orientation["pitch"], initial_orientation["roll"] - sense.orientation["roll"])
 
 
 @app.route('/accelerometer')

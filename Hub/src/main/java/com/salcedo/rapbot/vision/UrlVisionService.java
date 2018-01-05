@@ -43,7 +43,7 @@ public final class UrlVisionService implements VisionService {
             final Path path = createPath();
             final long bytesCopied = Files.copy(new BufferedInputStream(inputStream), path, REPLACE_EXISTING);
 
-            this.log.info("Copied {} bytes to {}", bytesCopied, path.toAbsolutePath());
+            this.log.debug("Copied {} bytes to {}", bytesCopied, path.toAbsolutePath());
 
             return path;
         }

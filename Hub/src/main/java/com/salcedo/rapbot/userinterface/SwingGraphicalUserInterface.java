@@ -23,8 +23,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JProgressBar targetOrientation;
     private final JProgressBar actualOrientation;
     private final JLabel snapshotId;
-    private final JLabel snapshotStart;
-    private final JLabel snapshotEnd;
+    private final JLabel snapshotDuration;
+    private final JLabel snapshotSensorOrientation;
 
     SwingGraphicalUserInterface(final Uri videoFeed, final KeyListener keyListener) {
         this.videoFeed = videoFeed;
@@ -34,8 +34,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.actualOrientation = new JProgressBar();
         this.throttle = new JProgressBar();
         this.snapshotId = new JLabel();
-        this.snapshotStart = new JLabel();
-        this.snapshotEnd = new JLabel();
+        this.snapshotDuration = new JLabel();
+        this.snapshotSensorOrientation = new JLabel();
     }
 
     @Override
@@ -68,14 +68,14 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     }
 
     private Component createSnapshotInfo() {
-        final JPanel panel = new JPanel(new GridLayout(0, 2));
+        final JPanel panel = new JPanel(new GridLayout(3, 2));
 
         panel.add(new JLabel("Snapshot ID: "));
         panel.add(snapshotId);
-        panel.add(new JLabel("Start Time: "));
-        panel.add(snapshotStart);
-        panel.add(new JLabel("End Time: "));
-        panel.add(snapshotEnd);
+        panel.add(new JLabel("Duration (milliseconds): "));
+        panel.add(snapshotDuration);
+        panel.add(new JLabel("Sensor Orientation: "));
+        panel.add(snapshotSensorOrientation);
 
         return panel;
     }
@@ -151,8 +151,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     @Override
     public void update(SystemState state) {
         snapshotId.setText(state.getSnapshotId());
-        snapshotStart.setText(state.getSnapshotStart());
-        snapshotEnd.setText(state.getSnapshotEnd());
+        snapshotDuration.setText(state.getSnapshotDuration());
+        snapshotSensorOrientation.setText(state.get3DOrientation());
         throttle.setValue(state.throttle());
         targetOrientation.setValue(state.targetOrientation());
         actualOrientation.setValue(state.actualOrientation());

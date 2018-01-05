@@ -114,6 +114,8 @@ public final class DriverActor extends AbstractActor {
     }
 
     private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed) {
+        log.info("Moving motors with speed left: {}, right: {}.", leftSpeed, rightSpeed);
+
         final Motor backLeftMotor = Motor.builder()
                 .withCommand(desiredState.getCommand())
                 .withBackLeftLocation()
@@ -146,7 +148,7 @@ public final class DriverActor extends AbstractActor {
     private void drive(final KeyEvent keyEvent) {
         desiredState = driverStrategy.drive(keyEvent, desiredState);
 
-        log.info("Changed desired drive state to {}", desiredState);
+        log.debug("Changed desired drive state to {}", desiredState);
 
         sensors.tell(new OrientationRequest(), self());
 

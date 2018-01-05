@@ -20,6 +20,9 @@ import com.salcedo.rapbot.snapshot.SnapshotActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
+import com.salcedo.rapbot.vision.VisionActor;
+import com.salcedo.rapbot.vision.VisionService;
+import com.salcedo.rapbot.vision.VisionServiceFactory;
 import org.apache.spark.sql.SQLContext;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -36,6 +39,7 @@ public final class Hub extends AbstractActor {
     private ActorRef driver;
     private ActorRef motors;
     private ActorRef sensors;
+    private ActorRef vision;
     private ActorRef snapshot;
     private ActorRef guiUpdator;
 
@@ -59,12 +63,14 @@ public final class Hub extends AbstractActor {
 
     @Override
     public void preStart() {
+        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), zero.port(3000));
+        final VisionService visionService = VisionServiceFactory.url(getContext().getSystem(), pi2.port(3001));
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
-        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), pi2.port(3000));
 
         createSnapshot();
 
         motors = getContext().actorOf(MotorActor.props(motorService), "motors");
+        vision = getContext().actorOf(VisionActor.props(visionService),"vision");
         sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
         driver = getContext().actorOf(DriverActor.props(motors, sensors, manualDriver), "driver");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");

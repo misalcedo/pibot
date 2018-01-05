@@ -21,6 +21,18 @@ public final class Motor {
         return new MotorBuilder();
     }
 
+    public Location getLocation() {
+        return location;
+    }
+
+    public Command getCommand() {
+        return command;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
     @Override
     public String toString() {
         return "Motor{" +

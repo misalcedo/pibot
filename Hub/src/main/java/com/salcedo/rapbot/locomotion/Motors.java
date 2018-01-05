@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.locomotion;
 
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 abstract class Motors {
@@ -15,6 +16,12 @@ abstract class Motors {
         return "Motors{" +
                 "motors=" + motors +
                 '}';
+    }
+
+    public Optional<Motor> getMotor(final Location location) {
+        return motors.stream()
+                .filter(motor -> motor.getLocation().equals(location))
+                .findFirst();
     }
 
     public static abstract class MotorsBuilder {
