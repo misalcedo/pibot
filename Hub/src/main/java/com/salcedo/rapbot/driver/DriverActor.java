@@ -108,7 +108,7 @@ public final class DriverActor extends AbstractActor {
 
     private int getAdjustedBoundedThrottle(final double leftToRightRatio) {
         return desiredState.getThrottleRange()
-                .bounded((int) (desiredState.getThrottle() * leftToRightRatio));
+                .bounded((int) (desiredState.getThrottle() * (1 - leftToRightRatio)));
     }
 
     private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed) {

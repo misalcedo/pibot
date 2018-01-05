@@ -56,7 +56,6 @@ public class SnapshotActor extends AbstractActor {
             snapshots.clear();
         } else {
             startSnapshot();
-            context().setReceiveTimeout(Duration.Undefined());
         }
     }
 
