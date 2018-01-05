@@ -98,21 +98,18 @@ public final class DriverActor extends AbstractActor {
     }
 
     private void controlMotors(final double leftToRightRatio) {
-        final int adjustedLeftThrottle = getAdjustedBoundedThrottle(leftToRightRatio);
-        final int adjustedRightThrottle = getAdjustedBoundedThrottle(leftToRightRatio);
+        final int adjustedLeftThrottle = desiredState.getThrottleRange()
+                .bounded((int) (desiredState.getThrottle() * (1 - leftToRightRatio)));
+        final int adjustedRightThrottle = desiredState.getThrottleRange()
+                .bounded((int) (desiredState.getThrottle() * leftToRightRatio));
         final MotorRequest motorRequest = createMotorRequest(adjustedLeftThrottle, adjustedRightThrottle);
 
         motors.tell(motorRequest, self());
 
     }
 
-    private int getAdjustedBoundedThrottle(final double leftToRightRatio) {
-        return desiredState.getThrottleRange()
-                .bounded((int) (desiredState.getThrottle() * (1 - leftToRightRatio)));
-    }
-
     private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed) {
-        log.info("Moving motors with speed left: {}, right: {}.", leftSpeed, rightSpeed);
+        log.info("Moving motors with command: {}, and speed left: {}, right: {}.", desiredState.getCommand(), leftSpeed, rightSpeed);
 
         final Motor backLeftMotor = Motor.builder()
                 .withCommand(desiredState.getCommand())
