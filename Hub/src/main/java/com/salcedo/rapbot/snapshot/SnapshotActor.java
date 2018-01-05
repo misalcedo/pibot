@@ -77,12 +77,13 @@ public class SnapshotActor extends AbstractActor {
         final Set<ActorPath> paths = subSystems.stream().map(ActorRef::path).collect(toSet());
 
         if (snapshots.containsKey(uuid)) {
-            log.debug("Snapshot already started. Subsystems: {}, UUID: {}", subSystems, uuid);
+            log.warning("Snapshot already started. Subsystems: {}, UUID: {}", subSystems, uuid);
+            return;
         }
 
         snapshots.put(uuid, new Snapshot(uuid, paths));
 
-        log.info("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
+        log.debug("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
 
         context().setReceiveTimeout(Duration.create(1L, SECONDS));
 
@@ -96,7 +97,7 @@ public class SnapshotActor extends AbstractActor {
     private void unregister(Terminated message) {
         subSystems.remove(message.actor());
 
-        log.info("Removed {} from subsystems due to termination.", message.actor());
+        log.warning("Removed {} from subsystems due to termination.", message.actor());
     }
 
     private void register(RegisterSubSystemMessage message) {
@@ -107,7 +108,7 @@ public class SnapshotActor extends AbstractActor {
     private void aggregate(final ObjectSnapshotMessage message) {
         final Snapshot snapshot = snapshots.get(message.getId());
 
-        log.info("Received new snapshot message {}", message);
+        log.debug("Received new snapshot message {}", message);
 
         if (snapshot == null || snapshot.isDone()) {
             log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
@@ -115,7 +116,7 @@ public class SnapshotActor extends AbstractActor {
             snapshot.addMessage(message, sender().path());
 
             if (snapshot.isDone()) {
-                log.info("Completed snapshot '{}'.", snapshot.getUuid());
+                log.debug("Completed snapshot '{}'.", snapshot.getUuid());
                 getContext().getSystem().eventStream().publish(snapshot);
                 snapshots.remove(snapshot.getUuid());
                 setTimeout();
