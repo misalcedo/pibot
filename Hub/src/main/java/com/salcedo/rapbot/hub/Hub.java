@@ -67,24 +67,25 @@ public final class Hub extends AbstractActor {
         final VisionService visionService = VisionServiceFactory.url(getContext().getSystem(), pi2.port(3001));
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
-        createSnapshot();
-
         motors = getContext().actorOf(MotorActor.props(motorService), "motors");
         vision = getContext().actorOf(VisionActor.props(visionService),"vision");
         sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
         driver = getContext().actorOf(DriverActor.props(motors, sensors, manualDriver), "driver");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
+
+        createSnapshot();
     }
 
     private void createSnapshot() {
         snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
 
-        context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
         context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
-    }
+        context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
 
-    @Override
-    public void postStop() {
+        //context().system().eventStream().publish(new RegisterSubSystemMessage(vision));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
     }
 
     @Override

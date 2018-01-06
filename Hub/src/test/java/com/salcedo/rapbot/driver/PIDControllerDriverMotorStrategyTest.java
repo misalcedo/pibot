@@ -51,6 +51,6 @@ public class PIDControllerDriverMotorStrategyTest {
 
         assertThat(leftMotor.getCommand(), is(equalTo(rightMotor.getCommand())));
         assertThat(driveState.getCommand(), is(equalTo(rightMotor.getCommand())));
-        assertThat(leftMotor.getSpeed(), is(greaterThan(rightMotor.getSpeed())));
+        assertThat(rightMotor.getSpeed(), is(greaterThan(leftMotor.getSpeed())));
     }
 }

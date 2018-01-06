@@ -21,11 +21,6 @@ public final class SenseActor extends AbstractActor {
     }
 
     @Override
-    public void preStart() {
-        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
-    }
-
-    @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(OrientationRequest.class, this::readOrientation)

@@ -13,23 +13,16 @@ import com.salcedo.rapbot.sense.Orientation;
 import com.salcedo.rapbot.snapshot.Snapshot;
 
 import java.time.Duration;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import java.util.Optional;
 
 
 public class SnapshotBackedSystemState implements SystemState {
     private final Snapshot snapshot;
     private final ActorContext context;
-    private final DateTimeFormatter dateTimeFormatter;
 
-    public SnapshotBackedSystemState(final Snapshot snapshot, final ActorContext context) {
+    SnapshotBackedSystemState(final Snapshot snapshot, final ActorContext context) {
         this.snapshot = snapshot;
         this.context = context;
-        this.dateTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM)
-                .withLocale(Locale.US)
-                .withZone(ZoneId.systemDefault());
     }
 
     @Override
@@ -60,7 +53,7 @@ public class SnapshotBackedSystemState implements SystemState {
     public String get3DOrientation() {
         final Orientation orientation = getEnvironmentReading().getOrientation();
         return String.format(
-                "{ yaw: %3.2f, pitch: %3.2f, roll: %3.2f}",
+                "{ yaw: %3.2f, pitch: %3.2f, roll: %3.2f }",
                 orientation.getYaw(),
                 orientation.getPitch(),
                 orientation.getRoll()
@@ -68,43 +61,34 @@ public class SnapshotBackedSystemState implements SystemState {
     }
 
     @Override
-    public int throttle() {
-        return getDriveState().getThrottle();
+    public String getLeftMotorState() {
+        return getMotorState(Location.BACK_LEFT);
+    }
+
+    private String getMotorState(final Location location) {
+        final MotorResponse motorResponse = getMotorResponse();
+        final Optional<Motor> motor = motorResponse.getMotor(location);
+
+        return String.format(
+                "{ command: %s, speed: %d }",
+                motor.map(Motor::getCommand).orElse(Command.RELEASE).name(),
+                motor.map(Motor::getSpeed).orElse(0)
+        );
     }
 
     @Override
-    public int leftSpeed() {
-        return getMotorState().getMotor(Location.BACK_LEFT)
-            .map(Motor::getSpeed)
-            .orElse(0);
+    public String getRightMotorState() {
+        return getMotorState(Location.BACK_RIGHT);
     }
 
-    private MotorResponse getMotorState() {
+    private MotorResponse getMotorResponse() {
         final ActorPath motor = getActorPath("/user/hub/motors");
         return snapshot.getSnapshot(motor, MotorResponse.class);
     }
 
     @Override
-    public int rightSpeed() {
-        return getMotorState().getMotor(Location.BACK_RIGHT)
-                .map(Motor::getSpeed)
-                .orElse(0);
-    }
-
-    @Override
-    public String leftCommand() {
-        return getMotorState().getMotor(Location.BACK_LEFT)
-                .map(Motor::getCommand)
-                .orElse(Command.RELEASE)
-                .name();
-    }
-
-    @Override
-    public String rightCommand() {
-        return getMotorState().getMotor(Location.BACK_RIGHT)
-                .map(Motor::getCommand)
-                .orElse(Command.RELEASE)
-                .name();
+    public int throttle() {
+        return getDriveState().getThrottle();
     }
 
     @Override

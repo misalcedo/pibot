@@ -25,6 +25,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JLabel snapshotId;
     private final JLabel snapshotDuration;
     private final JLabel snapshotSensorOrientation;
+    private final JLabel snapshotLeftMotor;
+    private final JLabel snapshotRightMotor;
 
     SwingGraphicalUserInterface(final Uri videoFeed, final KeyListener keyListener) {
         this.videoFeed = videoFeed;
@@ -36,6 +38,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.snapshotId = new JLabel();
         this.snapshotDuration = new JLabel();
         this.snapshotSensorOrientation = new JLabel();
+        this.snapshotLeftMotor = new JLabel();
+        this.snapshotRightMotor = new JLabel();
     }
 
     @Override
@@ -68,7 +72,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     }
 
     private Component createSnapshotInfo() {
-        final JPanel panel = new JPanel(new GridLayout(3, 2));
+        final JPanel panel = new JPanel(new GridLayout(0, 2));
 
         panel.add(new JLabel("Snapshot ID: "));
         panel.add(snapshotId);
@@ -76,6 +80,10 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         panel.add(snapshotDuration);
         panel.add(new JLabel("Sensor Orientation: "));
         panel.add(snapshotSensorOrientation);
+        panel.add(new JLabel("Left Motor: "));
+        panel.add(snapshotLeftMotor);
+        panel.add(new JLabel("Right Motor: "));
+        panel.add(snapshotRightMotor);
 
         return panel;
     }
@@ -153,6 +161,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         snapshotId.setText(state.getSnapshotId());
         snapshotDuration.setText(state.getSnapshotDuration());
         snapshotSensorOrientation.setText(state.get3DOrientation());
+        snapshotLeftMotor.setText(state.getLeftMotorState());
+        snapshotRightMotor.setText(state.getRightMotorState());
         throttle.setValue(state.throttle());
         targetOrientation.setValue(state.targetOrientation());
         actualOrientation.setValue(state.actualOrientation());

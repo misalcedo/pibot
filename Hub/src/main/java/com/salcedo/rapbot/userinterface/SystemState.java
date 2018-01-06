@@ -6,11 +6,9 @@ public interface SystemState {
     String get3DOrientation();
     int throttle();
 
-    int leftSpeed();
-    int rightSpeed();
-    String  leftCommand();
-    String rightCommand();
-
     String getSnapshotId();
     String getSnapshotDuration();
+
+    String getLeftMotorState();
+    String getRightMotorState();
 }

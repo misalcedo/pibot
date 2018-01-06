@@ -56,7 +56,6 @@ public final class DriverActor extends AbstractActor {
 
     @Override
     public void preStart() {
-        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
         context().system().eventStream().subscribe(self(), KeyEvent.class);
 
         context().watch(motors);

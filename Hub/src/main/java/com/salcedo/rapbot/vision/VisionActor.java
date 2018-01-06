@@ -19,11 +19,6 @@ public final class VisionActor extends AbstractActor {
     }
 
     @Override
-    public void preStart() {
-        context().system().eventStream().publish(new RegisterSubSystemMessage(self()));
-    }
-
-    @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(ImageRequest.class, r -> takePicture())

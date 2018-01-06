@@ -33,7 +33,6 @@ public class PIDControllerDriverMotorStrategy implements DriverMotorStrategy {
 
         pidResult = pid.step(adjustedActual, adjustedTarget, pidResult);
 
-        // TODO: Need to figure out if I have left and right swapped.
         return controlMotors(pidResult.getOutput(), driveState);
     }
 
@@ -47,17 +46,17 @@ public class PIDControllerDriverMotorStrategy implements DriverMotorStrategy {
     }
 
     private MotorRequest controlMotors(final double pidOutput, final DriveState driveState) {
-        final double leftToRightRatio = ((pidOutput / toDegrees(2 * PI)) + 1.0) / 2.0;
+        final double rightToLeftRatio = ((pidOutput / toDegrees(2 * PI)) + 1.0) / 2.0;
         final int adjustedLeftThrottle = driveState.getThrottleRange()
-                .bounded((int) (driveState.getThrottle() * leftToRightRatio));
+                .bounded((int) (driveState.getThrottle() * (1.0 - rightToLeftRatio)));
         final int adjustedRightThrottle = driveState.getThrottleRange()
-                .bounded((int) (driveState.getThrottle() * (1.0 - leftToRightRatio)));
+                .bounded((int) (driveState.getThrottle() * rightToLeftRatio));
 
         return createMotorRequest(adjustedLeftThrottle, adjustedRightThrottle, driveState.getCommand());
     }
 
     private MotorRequest createMotorRequest(final int leftSpeed, final int rightSpeed, final Command command) {
-        log.info("Moving motors with command: {}, and speed left: {}, right: {}.", command, leftSpeed, rightSpeed);
+        log.debug("Moving motors with command: {}, and speed left: {}, right: {}.", command, leftSpeed, rightSpeed);
 
         final Motor backLeftMotor = Motor.builder()
                 .withCommand(command)

@@ -14,7 +14,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class SnapshotActor extends AbstractActor {
-    private static final FiniteDuration RECEIVE_TIMEOUT = Duration.create(150L, MILLISECONDS);
+    private static final FiniteDuration RECEIVE_TIMEOUT = Duration.create(250L, MILLISECONDS);
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Set<ActorRef> subSystems;
     private final Map<UUID, Snapshot> snapshots;
