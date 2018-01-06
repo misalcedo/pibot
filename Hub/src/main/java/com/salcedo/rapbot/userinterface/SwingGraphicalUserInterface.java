@@ -160,11 +160,24 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     public void update(SystemState state) {
         snapshotId.setText(state.getSnapshotId());
         snapshotDuration.setText(state.getSnapshotDuration());
+
+        updateSensors(state);
+        updateMotors(state);
+        updateDriver(state);
+    }
+
+    private void updateSensors(SystemState state) {
         snapshotSensorOrientation.setText(state.get3DOrientation());
-        snapshotLeftMotor.setText(state.getLeftMotorState());
-        snapshotRightMotor.setText(state.getRightMotorState());
+        actualOrientation.setValue(state.actualOrientation());
+    }
+
+    private void updateDriver(SystemState state) {
         throttle.setValue(state.throttle());
         targetOrientation.setValue(state.targetOrientation());
-        actualOrientation.setValue(state.actualOrientation());
+    }
+
+    private void updateMotors(SystemState state) {
+        snapshotLeftMotor.setText(state.getLeftMotorState());
+        snapshotRightMotor.setText(state.getRightMotorState());
     }
 }

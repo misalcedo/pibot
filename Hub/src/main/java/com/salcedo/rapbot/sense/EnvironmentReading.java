@@ -26,7 +26,7 @@ public class EnvironmentReading {
      * Current orientation in degrees using the aircraft principal axes of pitch, roll and yaw.
      * Adjusted relative to the first orientation reading when the service started.
      */
-    private final Orientation relative_orientation;
+    private final Orientation relativeOrientation;
 
 
     /**
@@ -67,7 +67,7 @@ public class EnvironmentReading {
         this.magnetometer = magnetometer;
         this.gyroscope = gyroscope;
         this.accelerometer = accelerometer;
-        this.relative_orientation = relativeOrientation;
+        this.relativeOrientation = relativeOrientation;
     }
 
     public double getPressure() {
@@ -87,7 +87,7 @@ public class EnvironmentReading {
     }
 
     public Orientation getRelativeOrientation() {
-        return relative_orientation;
+        return relativeOrientation;
     }
 
     public double getCompass() {
