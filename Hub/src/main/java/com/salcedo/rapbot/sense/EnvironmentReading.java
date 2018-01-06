@@ -86,7 +86,7 @@ public class EnvironmentReading {
         return orientation;
     }
 
-    public Orientation getRelative_orientation() {
+    public Orientation getRelativeOrientation() {
         return relative_orientation;
     }
 

@@ -3,6 +3,8 @@ package com.salcedo.rapbot.userinterface;
 import akka.actor.ActorContext;
 import akka.actor.ActorPath;
 import akka.actor.ActorPaths;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.driver.DriveState;
 import com.salcedo.rapbot.locomotion.Command;
 import com.salcedo.rapbot.locomotion.Location;
@@ -27,7 +29,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public int actualOrientation() {
-        return (int) getEnvironmentReading().getRelative_orientation().getYaw();
+        return (int) getEnvironmentReading().getRelativeOrientation().getYaw();
     }
 
     private EnvironmentReading getEnvironmentReading() {
@@ -52,6 +54,16 @@ public class SnapshotBackedSystemState implements SystemState {
     @Override
     public String get3DOrientation() {
         final Orientation orientation = getEnvironmentReading().getOrientation();
+        final LoggingAdapter log = Logging.getLogger(context.system(), this);
+
+        log.info("========================================");
+        log.info("Gyroscope: {}", getEnvironmentReading().getGyroscope());
+        log.info("Orientation: {}", getEnvironmentReading().getOrientation());
+        log.info("Relative Orientation: {}", getEnvironmentReading().getRelativeOrientation());
+        log.info("Acceleration: {}", getEnvironmentReading().getAccelerometer());
+        log.info("Compass: {}", getEnvironmentReading().getCompass());
+        log.info("Magnetometer: {}", getEnvironmentReading().getMagnetometer());
+
         return String.format(
                 "{ yaw: %3.2f, pitch: %3.2f, roll: %3.2f }",
                 orientation.getYaw(),
