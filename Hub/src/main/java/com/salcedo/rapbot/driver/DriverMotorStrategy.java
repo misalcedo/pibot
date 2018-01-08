@@ -4,5 +4,5 @@ import com.salcedo.rapbot.locomotion.MotorRequest;
 import com.salcedo.rapbot.sense.Orientation;
 
 public interface DriverMotorStrategy {
-    MotorRequest drive(Orientation orientation, DriveState driveState);
+    MotorRequest drive(DriveState driveState);
 }
