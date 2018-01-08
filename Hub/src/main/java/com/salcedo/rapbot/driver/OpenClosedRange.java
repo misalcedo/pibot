@@ -4,26 +4,22 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public class OpenClosedRange implements Range {
-    private final boolean startInclusive;
-    private final boolean endInclusive;
     private final int start;
     private final int end;
 
-    public OpenClosedRange(boolean startInclusive, boolean endInclusive, int start, int end) {
-        this.startInclusive = startInclusive;
-        this.endInclusive = endInclusive;
+    public OpenClosedRange(int start, int end) {
         this.start = start;
         this.end = end;
     }
 
     @Override
     public int first() {
-        return isStartInclusive() ? start : start - 1;
+        return start;
     }
 
     @Override
     public int last() {
-        return isEndInclusive() ? end : end - 1;
+        return end;
     }
 
     @Override
@@ -43,15 +39,5 @@ public class OpenClosedRange implements Range {
     @Override
     public int distance() {
         return last() - first();
-    }
-
-    @Override
-    public boolean isStartInclusive() {
-        return startInclusive;
-    }
-
-    @Override
-    public boolean isEndInclusive() {
-        return endInclusive;
     }
 }

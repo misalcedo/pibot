@@ -27,8 +27,8 @@ public final class DriverActor extends AbstractActor {
         this.driverStrategy = driverStrategy;
         this.motorStrategy = new CosineDriverMotorStrategy();
         this.desiredState = new DriveState(
-                new OpenClosedRange(true, true, 0, 255),
-                new OpenClosedRange(true, true, 0, 360),
+                new OpenClosedRange(0, 255),
+                new OpenClosedRange(0, 360),
                 0,
                 0
         );

@@ -27,8 +27,8 @@ public class CosineDriverMotorStrategyTest {
     @Test
     public void drive() {
         final DriveState driveState = new DriveState(
-                new OpenClosedRange(true, true, 0, 255),
-                new OpenClosedRange(true, true, 0, 360),
+                new OpenClosedRange(0, 255),
+                new OpenClosedRange(0, 360),
                 255,
                 15
         );
@@ -64,8 +64,8 @@ public class CosineDriverMotorStrategyTest {
 
     private DriveState createDriveState(final int orientation) {
         return new DriveState(
-                new OpenClosedRange(true, true, 0, 255),
-                new OpenClosedRange(true, true, 0, 360),
+                new OpenClosedRange(0, 255),
+                new OpenClosedRange(0, 360),
                 255,
                 orientation
         );

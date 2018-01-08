@@ -6,6 +6,4 @@ public interface Range {
     int distance();
     int modulo(int value);
     int bounded(int value);
-    boolean isStartInclusive();
-    boolean isEndInclusive();
 }

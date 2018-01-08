@@ -12,7 +12,7 @@ public class OpenClosedRangeTest {
 
     @Before
     public void setUp() {
-        range = new OpenClosedRange(true, true, 1, 100);
+        range = new OpenClosedRange(1, 100);
     }
 
     @Test
