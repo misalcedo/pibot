@@ -14,7 +14,7 @@ class Vehicle:
 
     def update_motor(self, index, command, speed):
         motor = self.motor_hat.getMotor(index + 1)
-        motor.run(command + 1)
+        motor.run(command)
         motor.setSpeed(speed)
 
         motor_state = {"location": index, "command": command, "speed": speed}
