@@ -161,7 +161,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         snapshotId.setText(state.getSnapshotId());
         snapshotDuration.setText(state.getSnapshotDuration());
 
-        updateSensors(state);
+        //updateSensors(state);
         updateMotors(state);
         updateDriver(state);
     }

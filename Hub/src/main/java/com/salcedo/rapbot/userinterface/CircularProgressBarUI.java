@@ -72,13 +72,12 @@ final class CircularProgressBarUI extends BasicProgressBarUI {
 
     private Arc2D.Double createArc(double degree, double centerX, double centerY, double radius) {
         final double diameter = radius * 2;
-        final double invertedDegree = DEGREES - degree;
         return new Arc2D.Double(
                 centerX - radius,
                 centerY - radius,
                 diameter,
                 diameter,
-                90 + invertedDegree - DEGREE_BUFFER,
+                degree - DEGREE_BUFFER,
                 DEGREE_BUFFER * 2,
                 Arc2D.PIE
         );

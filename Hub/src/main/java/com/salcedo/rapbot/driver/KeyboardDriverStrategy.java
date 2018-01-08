@@ -15,9 +15,9 @@ public final class KeyboardDriverStrategy implements DriverStrategy<KeyEvent> {
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_DOWN) {
             return current.updateThrottle(THROTTLE_STEP * -1);
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_RIGHT) {
-            return current.updateOrientation(ORIENTATION_STEP);
-        } else if (keyEvent.getKeyCode() == KeyEvent.VK_LEFT) {
             return current.updateOrientation(ORIENTATION_STEP * -1);
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_LEFT) {
+            return current.updateOrientation(ORIENTATION_STEP);
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_SPACE) {
             return current.updateOrientation(180);
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_B) {

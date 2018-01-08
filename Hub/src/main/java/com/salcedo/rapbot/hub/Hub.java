@@ -4,13 +4,11 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
-import akka.event.EventStream;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
-import com.salcedo.rapbot.driver.KeyboardDriver;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
@@ -23,12 +21,8 @@ import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import com.salcedo.rapbot.vision.VisionActor;
 import com.salcedo.rapbot.vision.VisionService;
 import com.salcedo.rapbot.vision.VisionServiceFactory;
-import org.apache.spark.sql.SQLContext;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
 import java.awt.event.KeyEvent;
-import java.util.concurrent.TimeUnit;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
@@ -63,7 +57,7 @@ public final class Hub extends AbstractActor {
 
     @Override
     public void preStart() {
-        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), zero.port(3000));
+        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), pi2.port(3000));
         final VisionService visionService = VisionServiceFactory.url(getContext().getSystem(), pi2.port(3001));
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
@@ -82,10 +76,10 @@ public final class Hub extends AbstractActor {
         context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
         context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
 
-        //context().system().eventStream().publish(new RegisterSubSystemMessage(vision));
-        context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(vision));
+        //context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
         context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
-        //context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
     }
 
     @Override
