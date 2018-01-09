@@ -34,16 +34,16 @@ public final class DriveState {
         return new DriveState(throttleRange, orientationRange, throttle, orientation + delta);
     }
 
+    public DriveState withOrientation(int newOrientation) {
+        return new DriveState(throttleRange, orientationRange, throttle, newOrientation);
+    }
+
     public int getThrottle() {
         return throttle;
     }
 
     public int getOrientation() {
         return orientation;
-    }
-
-    public Range getThrottleRange() {
-        return throttleRange;
     }
 
     @Override

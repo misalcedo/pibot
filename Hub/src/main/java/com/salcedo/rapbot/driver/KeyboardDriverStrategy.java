@@ -24,6 +24,8 @@ public final class KeyboardDriverStrategy implements DriverStrategy<KeyEvent> {
             return current.minThrottle();
         } else if (keyEvent.getKeyCode() == KeyEvent.VK_F) {
             return current.maxThrottle();
+        } else if (keyEvent.getKeyCode() == KeyEvent.VK_C) {
+            return current.withOrientation(90);
         } else {
             return current;
         }
