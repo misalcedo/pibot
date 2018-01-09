@@ -6,22 +6,23 @@ import akka.event.LoggingAdapter;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class SnapshotActor extends AbstractActor {
     private static final FiniteDuration RECEIVE_TIMEOUT = Duration.create(250L, MILLISECONDS);
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private final Set<ActorRef> subSystems;
-    private final Map<UUID, Snapshot> snapshots;
+    private Snapshot snapshot;
 
     public SnapshotActor() {
         this.subSystems = new LinkedHashSet<>();
-        this.snapshots = new HashMap<>();
+        this.snapshot = null;
     }
 
     public static Props props() {
@@ -31,13 +32,16 @@ public class SnapshotActor extends AbstractActor {
     @Override
     public void preStart() {
         subSystems.clear();
-        snapshots.clear();
-
+        clearSnapshot();
         setTimeout();
     }
 
     private void setTimeout() {
         context().setReceiveTimeout(RECEIVE_TIMEOUT);
+    }
+
+    private void clearSnapshot() {
+        this.snapshot = null;
     }
 
     @Override
@@ -53,9 +57,13 @@ public class SnapshotActor extends AbstractActor {
 
     private void receiveTimeout() {
         if (snapshotInProgress()) {
-            log.info("Timed out waiting for snapshot to complete. IDs: {}", snapshots.keySet());
-            snapshots.clear();
-            setTimeout();
+            log.info(
+                    "Timed out waiting for snapshot to complete. ID: {}, Responses Remaining: {}",
+                    snapshot.getUuid(),
+                    snapshot.getResponsesRemaining()
+            );
+
+            publishSnapshot();
         } else {
             startSnapshot();
         }
@@ -63,8 +71,6 @@ public class SnapshotActor extends AbstractActor {
 
     private void startSnapshot() {
         if (snapshotInProgress()) {
-            final Snapshot snapshot = snapshots.values().iterator().next();
-
             log.debug(
                     "Snapshot already in progress. ID: {}, Remaining subsystems: {}",
                     snapshot.getUuid(),
@@ -77,12 +83,7 @@ public class SnapshotActor extends AbstractActor {
         final UUID uuid = UUID.randomUUID();
         final Set<ActorPath> paths = subSystems.stream().map(ActorRef::path).collect(toSet());
 
-        if (snapshots.containsKey(uuid)) {
-            log.warning("Snapshot already started. Subsystems: {}, UUID: {}", subSystems, uuid);
-            return;
-        }
-
-        snapshots.put(uuid, new Snapshot(uuid, paths));
+        snapshot = new Snapshot(uuid, paths);
 
         log.debug("Starting snapshot '{}'. Subsystems: {}", uuid, paths);
 
@@ -92,7 +93,7 @@ public class SnapshotActor extends AbstractActor {
     }
 
     private boolean snapshotInProgress() {
-        return !snapshots.isEmpty();
+        return snapshot != null;
     }
 
     private void unregister(Terminated message) {
@@ -107,23 +108,23 @@ public class SnapshotActor extends AbstractActor {
     }
 
     private void aggregate(final ObjectSnapshotMessage message) {
-        final Snapshot snapshot = snapshots.get(message.getId());
-
-        log.debug("Received new snapshot message {}", message);
-
-        if (snapshot == null || snapshot.isDone()) {
+        if (!snapshotInProgress() || snapshot.isDone()) {
             log.error("Received snapshot message for an invalid snapshot. Message: {}, Snapshot: {}", message, snapshot);
-        } else {
-            snapshot.addMessage(message, sender().path());
-
-            if (snapshot.isDone()) {
-                log.debug("Completed snapshot '{}'.", snapshot.getUuid());
-                getContext().getSystem().eventStream().publish(snapshot);
-                snapshots.remove(snapshot.getUuid());
-                setTimeout();
-            } else {
-                log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
-            }
+            return;
         }
+
+        snapshot.addMessage(message, sender().path());
+        log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
+
+        if (snapshot.isDone()) {
+            log.debug("Completed snapshot '{}'.", snapshot.getUuid());
+            publishSnapshot();
+        }
+    }
+
+    private void publishSnapshot() {
+        getContext().getSystem().eventStream().publish(snapshot);
+        clearSnapshot();
+        setTimeout();
     }
 }

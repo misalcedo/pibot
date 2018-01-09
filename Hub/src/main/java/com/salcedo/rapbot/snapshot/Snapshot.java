@@ -7,10 +7,10 @@ import java.util.*;
 
 public class Snapshot {
     private final Instant start;
-    private Instant end;
     private final UUID uuid;
     private final Set<ActorPath> subsystems;
     private final Map<ActorPath, SnapshotMessage> responses;
+    private Instant end;
 
     Snapshot(UUID uuid, Set<ActorPath> subsystems) {
         this.uuid = uuid;
@@ -37,6 +37,10 @@ public class Snapshot {
         return getResponsesRemaining() <= 0;
     }
 
+    int getResponsesRemaining() {
+        return subsystems.size() - responses.size();
+    }
+
     public UUID getUuid() {
         return uuid;
     }
@@ -45,18 +49,21 @@ public class Snapshot {
         return start;
     }
 
-    public Instant getEnd() {
-        return end;
+    public Optional<Instant> getEnd() {
+        return Optional.ofNullable(end);
     }
 
-    int getResponsesRemaining() {
-        return subsystems.size() - responses.size();
+    public <T> Optional<T> getSnapshot(final ActorPath subsystem, final Class<? extends T> snapshotType) {
+        return Optional.ofNullable(responses.get(subsystem))
+                .map(message -> message.getSnapshot(snapshotType));
     }
 
-    public <T> T getSnapshot(final ActorPath subsystem, final Class<? extends T> snapshotType) {
-        SnapshotMessage snapshotMessage = responses.getOrDefault(subsystem, new NullObjectSnapshotMessage(uuid));
+    public Set<ActorPath> getSubsystems() {
+        return subsystems;
+    }
 
-        return snapshotMessage.getSnapshot(snapshotType);
+    public Set<ActorPath> getCompletedSubsystems() {
+        return responses.keySet();
     }
 
     @Override

@@ -11,4 +11,7 @@ public interface SystemState {
 
     String getLeftMotorState();
     String getRightMotorState();
+
+    String getSnapshotSubsystems();
+    String getCompletedSnapshotSubsystems();
 }

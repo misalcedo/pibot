@@ -77,7 +77,7 @@ public final class Hub extends AbstractActor {
         context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
 
         context().system().eventStream().publish(new RegisterSubSystemMessage(vision));
-        //context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
+        context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
         context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
         context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
     }

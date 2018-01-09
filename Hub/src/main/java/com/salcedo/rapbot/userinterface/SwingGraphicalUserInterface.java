@@ -24,7 +24,9 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JProgressBar actualOrientation;
     private final JLabel snapshotId;
     private final JLabel snapshotDuration;
-    private final JLabel snapshotSensorOrientation;
+    private final JLabel snapshotSubsystems;
+    private final JLabel snapshotCompletedSubsystems;
+    private final JLabel fullSensorOrientation;
     private final JLabel snapshotLeftMotor;
     private final JLabel snapshotRightMotor;
 
@@ -37,7 +39,9 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.throttle = new JProgressBar();
         this.snapshotId = new JLabel();
         this.snapshotDuration = new JLabel();
-        this.snapshotSensorOrientation = new JLabel();
+        this.snapshotSubsystems = new JLabel();
+        this.snapshotCompletedSubsystems = new JLabel();
+        this.fullSensorOrientation = new JLabel();
         this.snapshotLeftMotor = new JLabel();
         this.snapshotRightMotor = new JLabel();
     }
@@ -78,8 +82,12 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         panel.add(snapshotId);
         panel.add(new JLabel("Duration (milliseconds): "));
         panel.add(snapshotDuration);
+        panel.add(new JLabel("Subsystems: "));
+        panel.add(snapshotSubsystems);
+        panel.add(new JLabel("Completed Subsystems: "));
+        panel.add(snapshotCompletedSubsystems);
         panel.add(new JLabel("Sensor Orientation: "));
-        panel.add(snapshotSensorOrientation);
+        panel.add(fullSensorOrientation);
         panel.add(new JLabel("Left Motor: "));
         panel.add(snapshotLeftMotor);
         panel.add(new JLabel("Right Motor: "));
@@ -158,16 +166,21 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
 
     @Override
     public void update(SystemState state) {
-        snapshotId.setText(state.getSnapshotId());
-        snapshotDuration.setText(state.getSnapshotDuration());
-
-        //updateSensors(state);
+        updateSnapshot(state);
+        updateSensors(state);
         updateMotors(state);
         updateDriver(state);
     }
 
+    private void updateSnapshot(SystemState state) {
+        snapshotId.setText(state.getSnapshotId());
+        snapshotDuration.setText(state.getSnapshotDuration());
+        snapshotSubsystems.setText(state.getSnapshotSubsystems());
+        snapshotCompletedSubsystems.setText(state.getCompletedSnapshotSubsystems());
+    }
+
     private void updateSensors(SystemState state) {
-        snapshotSensorOrientation.setText(state.get3DOrientation());
+        fullSensorOrientation.setText(state.get3DOrientation());
         actualOrientation.setValue(state.actualOrientation());
     }
 

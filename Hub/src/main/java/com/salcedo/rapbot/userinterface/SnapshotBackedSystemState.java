@@ -3,8 +3,6 @@ package com.salcedo.rapbot.userinterface;
 import akka.actor.ActorContext;
 import akka.actor.ActorPath;
 import akka.actor.ActorPaths;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.driver.DriveState;
 import com.salcedo.rapbot.locomotion.Command;
 import com.salcedo.rapbot.locomotion.Location;
@@ -15,7 +13,10 @@ import com.salcedo.rapbot.sense.Orientation;
 import com.salcedo.rapbot.snapshot.Snapshot;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.joining;
 
 
 public class SnapshotBackedSystemState implements SystemState {
@@ -29,12 +30,16 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public int actualOrientation() {
-        return (int) getEnvironmentReading().getRelativeOrientation().getYaw();
+        return getEnvironmentReading()
+                .map(EnvironmentReading::getOrientation)
+                .map(Orientation::getYaw)
+                .map(Integer.class::cast)
+                .orElse(90);
     }
 
-    private EnvironmentReading getEnvironmentReading() {
-        final ActorPath driver = getActorPath("/user/hub/sensors");
-        return snapshot.getSnapshot(driver, EnvironmentReading.class);
+    private Optional<EnvironmentReading> getEnvironmentReading() {
+        final ActorPath sensors = getActorPath("/user/hub/sensors");
+        return snapshot.getSnapshot(sensors, EnvironmentReading.class);
     }
 
     private ActorPath getActorPath(final String relativePath) {
@@ -43,32 +48,23 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public int targetOrientation() {
-        return getDriveState().getOrientation();
+        return getDriveState().map(DriveState::getOrientation).orElse(90);
     }
 
-    private DriveState getDriveState() {
+    private Optional<DriveState> getDriveState() {
         final ActorPath driver = getActorPath("/user/hub/driver");
         return snapshot.getSnapshot(driver, DriveState.class);
     }
 
     @Override
     public String get3DOrientation() {
-        final Orientation orientation = getEnvironmentReading().getOrientation();
-        final LoggingAdapter log = Logging.getLogger(context.system(), this);
-
-        log.info("========================================");
-        log.info("Gyroscope: {}", getEnvironmentReading().getGyroscope());
-        log.info("Orientation: {}", getEnvironmentReading().getOrientation());
-        log.info("Relative Orientation: {}", getEnvironmentReading().getRelativeOrientation());
-        log.info("Acceleration: {}", getEnvironmentReading().getAccelerometer());
-        log.info("Compass: {}", getEnvironmentReading().getCompass());
-        log.info("Magnetometer: {}", getEnvironmentReading().getMagnetometer());
+        final Optional<Orientation> orientation = getEnvironmentReading().map(EnvironmentReading::getOrientation);
 
         return String.format(
                 "{ yaw: %3.2f, pitch: %3.2f, roll: %3.2f }",
-                orientation.getYaw(),
-                orientation.getPitch(),
-                orientation.getRoll()
+                orientation.map(Orientation::getYaw).orElse(0.0),
+                orientation.map(Orientation::getPitch).orElse(0.0),
+                orientation.map(Orientation::getRoll).orElse(0.0)
         );
     }
 
@@ -78,8 +74,7 @@ public class SnapshotBackedSystemState implements SystemState {
     }
 
     private String getMotorState(final Location location) {
-        final MotorResponse motorResponse = getMotorResponse();
-        final Optional<Motor> motor = motorResponse.getMotor(location);
+        final Optional<Motor> motor = getMotorResponse().flatMap(location::getMotor);
 
         return String.format(
                 "{ command: %s, speed: %d }",
@@ -88,19 +83,35 @@ public class SnapshotBackedSystemState implements SystemState {
         );
     }
 
-    @Override
-    public String getRightMotorState() {
-        return getMotorState(Location.BACK_RIGHT);
-    }
-
-    private MotorResponse getMotorResponse() {
+    private Optional<MotorResponse> getMotorResponse() {
         final ActorPath motor = getActorPath("/user/hub/motors");
         return snapshot.getSnapshot(motor, MotorResponse.class);
     }
 
     @Override
+    public String getRightMotorState() {
+        return getMotorState(Location.BACK_RIGHT);
+    }
+
+    @Override
+    public String getSnapshotSubsystems() {
+        return snapshot.getSubsystems().stream()
+                .map(ActorPath::name)
+                .sorted()
+                .collect(joining(", "));
+    }
+
+    @Override
+    public String getCompletedSnapshotSubsystems() {
+        return snapshot.getCompletedSubsystems().stream()
+                .map(ActorPath::name)
+                .sorted()
+                .collect(joining(", "));
+    }
+
+    @Override
     public int throttle() {
-        return getDriveState().getThrottle();
+        return getDriveState().map(DriveState::getThrottle).orElse(0);
     }
 
     @Override
@@ -111,7 +122,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public String getSnapshotDuration() {
-        final Duration duration = Duration.between(snapshot.getStart(), snapshot.getEnd());
+        final Duration duration = Duration.between(snapshot.getStart(), snapshot.getEnd().orElseGet(Instant::now));
         return String.valueOf(duration.toMillis());
     }
 }
