@@ -25,22 +25,6 @@ public class CosineDriverMotorStrategyTest {
     }
 
     @Test
-    public void drive() {
-        final DriveState driveState = new DriveState(
-                new OpenClosedRange(0, 255),
-                new OpenClosedRange(0, 360),
-                255,
-                15
-        );
-        final MotorRequest motorRequest = motorStrategy.drive(driveState);
-        final Motor leftMotor = motorRequest.getMotor(BACK_LEFT).orElseThrow(IllegalStateException::new);
-        final Motor rightMotor = motorRequest.getMotor(BACK_RIGHT).orElseThrow(IllegalStateException::new);
-
-        assertThat(leftMotor.getCommand(), is(equalTo(rightMotor.getCommand())));
-        assertThat(rightMotor.getSpeed(), is(greaterThan(leftMotor.getSpeed())));
-    }
-
-    @Test
     public void driveForwardLeft() {
         assertTurningDrive(120, FORWARD, BACK_RIGHT, BACK_LEFT);
     }
@@ -48,8 +32,8 @@ public class CosineDriverMotorStrategyTest {
     private void assertTurningDrive(
             final int orientation,
             final Command command,
-            final Location slowerLocation,
-            final Location fasterLocation
+            final Location fasterLocation,
+            final Location slowerLocation
     ) {
         final DriveState driveState = createDriveState(orientation);
         final MotorRequest motorRequest = motorStrategy.drive(driveState);
@@ -91,11 +75,6 @@ public class CosineDriverMotorStrategyTest {
         assertStraightDrive(90, FORWARD);
     }
 
-    @Test
-    public void driveBackward() {
-        assertStraightDrive(270, BACKWARD);
-    }
-
     private void assertStraightDrive(final int orientation, final Command command) {
         final DriveState driveState = createDriveState(orientation);
         final MotorRequest motorRequest = motorStrategy.drive(driveState);
@@ -106,5 +85,37 @@ public class CosineDriverMotorStrategyTest {
         assertThat(leftMotor.getCommand(), is(equalTo(command)));
         assertThat(rightMotor.getSpeed(), is(equalTo(leftMotor.getSpeed())));
         assertThat(leftMotor.getSpeed(), is(equalTo(driveState.getThrottle())));
+    }
+
+    @Test
+    public void driveBackward() {
+        assertStraightDrive(270, BACKWARD);
+    }
+
+    @Test
+    public void driveLeft() {
+        assertSidewaysDrive(180, BACK_LEFT, BACK_RIGHT);
+    }
+
+    private void assertSidewaysDrive(
+            final int orientation,
+            final Location zeroLocation,
+            final Location fullLocation
+    ) {
+        final DriveState driveState = createDriveState(orientation);
+        final MotorRequest motorRequest = motorStrategy.drive(driveState);
+        final Motor fullMotor = motorRequest.getMotor(fullLocation).orElseThrow(IllegalStateException::new);
+        final Motor zeroMotor = motorRequest.getMotor(zeroLocation).orElseThrow(IllegalStateException::new);
+
+        assertThat(fullMotor.getCommand(), is(equalTo(zeroMotor.getCommand())));
+        assertThat(fullMotor.getCommand(), is(equalTo(FORWARD)));
+        assertThat(zeroMotor.getSpeed(), is(equalTo(0)));
+        assertThat(fullMotor.getSpeed(), is(equalTo(driveState.getThrottle())));
+    }
+
+    @Test
+    public void driveRight() {
+        assertSidewaysDrive(0, BACK_RIGHT, BACK_LEFT);
+        assertSidewaysDrive(360, BACK_RIGHT, BACK_LEFT);
     }
 }

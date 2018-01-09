@@ -14,13 +14,13 @@ public class CosineDriverMotorStrategy implements DriverMotorStrategy {
         final int adjustedThrottle = (int) abs(floor(sin(orientation) * throttle));
         final Command command = (orientation - PI) > 0 ? Command.BACKWARD : Command.FORWARD;
 
-        final int leftSpeed = shouldAdjustLeftMotor(orientation) ? adjustedThrottle : throttle;
-        final int rightSpeed = shouldAdjustLeftMotor(orientation) ? throttle : adjustedThrottle;
+        final int leftSpeed = shouldAdjustRightMotor(orientation) ? throttle : adjustedThrottle;
+        final int rightSpeed = shouldAdjustRightMotor(orientation) ? adjustedThrottle : throttle;
 
         return createMotorRequest(leftSpeed, rightSpeed, command);
     }
 
-    private boolean shouldAdjustLeftMotor(final double orientation) {
+    private boolean shouldAdjustRightMotor(final double orientation) {
         final double quadrant = orientation / (PI / 2);
         final boolean inFirstQuadrant = quadrant >= 0.0 && quadrant < 1.0;
         final boolean inThirdQuadrant = quadrant > 2.0 && quadrant <= 3.0;
