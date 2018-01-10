@@ -1,18 +1,13 @@
 package com.salcedo.rapbot.locomotion;
 
-import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
-import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
+import com.salcedo.rapbot.hub.ServiceClientActor;
 
 import java.util.concurrent.CompletionStage;
 
-import static akka.pattern.PatternsCS.pipe;
-
-public final class MotorActor extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+public final class MotorActor extends ServiceClientActor {
     private final MotorService motorService;
 
     public MotorActor(final MotorService motorService) {
@@ -39,19 +34,17 @@ public final class MotorActor extends AbstractActor {
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
+        return baseReceiveBuilder()
                 .match(MotorRequest.class, this::drive)
-                .match(TakeSnapshotMessage.class, this::snapshot)
                 .build();
     }
 
-    private void snapshot(TakeSnapshotMessage message) {
-        final CompletionStage<ObjectSnapshotMessage> completionStage = motorService.state()
-                .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
-        pipe(completionStage, getContext().dispatcher()).to(sender());
+    @Override
+    protected CompletionStage<?> snapshot() {
+        return motorService.state();
     }
 
     private void drive(final MotorRequest request) {
-        motorService.drive(request);
+        callWithBreaker(() -> motorService.drive(request));
     }
 }
