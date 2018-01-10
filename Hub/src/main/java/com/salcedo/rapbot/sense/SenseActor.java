@@ -4,10 +4,11 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
-import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
 import java.util.concurrent.CompletionStage;
+
+import static akka.pattern.PatternsCS.pipe;
 
 public final class SenseActor extends AbstractActor {
     private final SenseService senseService;
@@ -45,9 +46,8 @@ public final class SenseActor extends AbstractActor {
     }
 
     private void snapshot(final TakeSnapshotMessage message) {
-        final ActorRef sender = sender();
-
-        senseService.senseEnvironment()
-                .thenAccept(response -> sender.tell(new ObjectSnapshotMessage(message.getUuid(), response), self()));
+        final CompletionStage<ObjectSnapshotMessage> completionStage = senseService.senseEnvironment()
+                .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
+        pipe(completionStage, getContext().dispatcher()).to(sender());
     }
 }

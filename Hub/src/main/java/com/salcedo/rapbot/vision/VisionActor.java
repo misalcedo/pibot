@@ -7,6 +7,10 @@ import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 
+import java.util.concurrent.CompletionStage;
+
+import static akka.pattern.PatternsCS.pipe;
+
 public final class VisionActor extends AbstractActor {
     private final VisionService visionService;
 
@@ -34,9 +38,8 @@ public final class VisionActor extends AbstractActor {
     }
 
     private void snapshot(final TakeSnapshotMessage message) {
-        final ActorRef sender = sender();
-
-        visionService.takePicture()
-                .thenAccept(response -> sender.tell(new ObjectSnapshotMessage(message.getUuid(), response), self()));
+        final CompletionStage<ObjectSnapshotMessage> completionStage = visionService.takePicture()
+                .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
+        pipe(completionStage, getContext().dispatcher()).to(sender());
     }
 }
