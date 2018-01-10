@@ -58,7 +58,7 @@ public final class Hub extends AbstractActor {
     @Override
     public void preStart() {
         final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), pi2.port(3000));
-        final VisionService visionService = VisionServiceFactory.url(getContext().getSystem(), pi2.port(3001));
+        final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), Uri.create("http://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"));
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
         motors = getContext().actorOf(MotorActor.props(motorService), "motors");

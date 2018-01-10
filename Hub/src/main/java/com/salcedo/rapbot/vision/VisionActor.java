@@ -18,7 +18,7 @@ public final class VisionActor extends ServiceClientActor {
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
+        return baseReceiveBuilder()
                 .match(ImageRequest.class, r -> takePicture())
                 .build();
     }
