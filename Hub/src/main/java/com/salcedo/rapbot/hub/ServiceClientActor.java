@@ -21,7 +21,7 @@ public abstract class ServiceClientActor extends AbstractActor {
                 getContext().dispatcher(),
                 getContext().system().scheduler(),
                 3,
-                Duration.create(10, TimeUnit.SECONDS),
+                Duration.create(100, TimeUnit.MILLISECONDS),
                 Duration.create(1, TimeUnit.MINUTES)
         );
     }
@@ -43,7 +43,7 @@ public abstract class ServiceClientActor extends AbstractActor {
     }
 
     protected void snapshot(final TakeSnapshotMessage message) {
-        final CompletionStage<ObjectSnapshotMessage> completionStage = snapshot()
+        final CompletionStage<ObjectSnapshotMessage> completionStage = callWithBreaker(this::snapshot)
                 .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
         pipe(completionStage, getContext().dispatcher()).to(sender());
     }

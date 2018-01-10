@@ -15,8 +15,8 @@ public final class ObjectSnapshotMessage implements SnapshotMessage {
         return uuid;
     }
 
-    public <T> T getSnapshot(Class<? extends T> type) {
-        return type.cast(object);
+    public Object getSnapshot() {
+        return object;
     }
 
     @Override

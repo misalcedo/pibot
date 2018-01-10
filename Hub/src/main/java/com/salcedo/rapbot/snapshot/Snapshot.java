@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
+import akka.actor.Status;
 
 import java.time.Instant;
 import java.util.*;
@@ -10,6 +11,7 @@ public class Snapshot {
     private final UUID uuid;
     private final Set<ActorPath> subsystems;
     private final Map<ActorPath, SnapshotMessage> responses;
+    private final Set<Status.Failure> failures;
     private Instant end;
 
     Snapshot(UUID uuid, Set<ActorPath> subsystems) {
@@ -17,6 +19,7 @@ public class Snapshot {
         this.subsystems = subsystems;
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
+        this.failures = new LinkedHashSet<>();
     }
 
     void addMessage(ObjectSnapshotMessage message, ActorPath sender) {
@@ -38,7 +41,11 @@ public class Snapshot {
     }
 
     int getResponsesRemaining() {
-        return subsystems.size() - responses.size();
+        return subsystems.size() - (responses.size() + failures.size());
+    }
+
+    void addFailure(final Status.Failure failure) {
+        this.failures.add(failure);
     }
 
     public UUID getUuid() {
@@ -55,7 +62,9 @@ public class Snapshot {
 
     public <T> Optional<T> getSnapshot(final ActorPath subsystem, final Class<? extends T> snapshotType) {
         return Optional.ofNullable(responses.get(subsystem))
-                .map(message -> message.getSnapshot(snapshotType));
+                .map(SnapshotMessage::getSnapshot)
+                .filter(snapshotType::isInstance)
+                .map(snapshotType::cast);
     }
 
     public Set<ActorPath> getSubsystems() {
