@@ -1,16 +1,11 @@
 package com.salcedo.rapbot.sense;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 import akka.actor.Props;
-import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
-import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
+import com.salcedo.rapbot.hub.ServiceClientActor;
 
 import java.util.concurrent.CompletionStage;
 
-import static akka.pattern.PatternsCS.pipe;
-
-public final class SenseActor extends AbstractActor {
+public final class SenseActor extends ServiceClientActor {
     private final SenseService senseService;
 
     public SenseActor(final SenseService senseService) {
@@ -23,31 +18,22 @@ public final class SenseActor extends AbstractActor {
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
-                .match(OrientationRequest.class, this::readOrientation)
+        return baseReceiveBuilder()
+                .match(OrientationRequest.class, r -> readOrientation())
                 .match(AccelerationRequest.class, r -> readAcceleration())
-                .match(TakeSnapshotMessage.class, this::snapshot)
                 .build();
     }
 
     private void readAcceleration() {
-        final ActorRef sender = sender();
-
-        senseService.getAcceleration()
-                .thenAccept(response -> sender.tell(response, self()));
+        pipeToSender(senseService::getAcceleration);
     }
 
-    private void readOrientation(final OrientationRequest request) {
-        final ActorRef sender = sender();
-        final CompletionStage<Orientation> orientation = request.isRelative() ?
-                senseService.getRelativeOrientation() : senseService.getOrientation();
-
-        orientation.thenAccept(response -> sender.tell(response, self()));
+    private void readOrientation() {
+        pipeToSender(senseService::getOrientation);
     }
 
-    private void snapshot(final TakeSnapshotMessage message) {
-        final CompletionStage<ObjectSnapshotMessage> completionStage = senseService.senseEnvironment()
-                .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
-        pipe(completionStage, getContext().dispatcher()).to(sender());
+    @Override
+    protected CompletionStage<?> snapshot() {
+        return senseService.senseEnvironment();
     }
 }

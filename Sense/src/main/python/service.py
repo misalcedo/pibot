@@ -18,7 +18,6 @@ def all_sensors():
         "pressure": sense.pressure,
         "temperature": sense.temperature,
         "orientation": current_orientation,
-        "relativeOrientation": relative_orientation_dict(current_orientation),
         "compass": sense.compass,
         "magnetometer": sense.compass_raw,
         "gyroscope": sense.gyroscope_raw,
@@ -60,23 +59,6 @@ def temperature():
 @app.route('/orientation')
 def orientation():
     return str(sense.orientation)
-
-
-@app.route('/relative_orientation')
-def relative_orientation():
-    return str(relative_orientation_dict(sense.orientation))
-
-
-def relative_orientation_dict(current_orientation):
-    return {
-        'yaw': relative_dimension("yaw", current_orientation),
-        'pitch': relative_dimension("pitch", current_orientation),
-        'roll': relative_dimension("roll", current_orientation)
-    }
-
-
-def relative_dimension(dimension, current_orientation):
-    return initial_orientation[dimension] - current_orientation[dimension]
 
 
 @app.route('/accelerometer_raw')
