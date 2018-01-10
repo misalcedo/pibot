@@ -49,7 +49,7 @@ public class SnapshotActor extends AbstractActor {
         final String actor = message.getActor().path().toStringWithoutAddress();
         final Status.Failure failure = new Status.Failure(new RuntimeException(actor));
 
-        snapshot.addFailure(failure);
+        fail(failure);
     }
 
     /**
@@ -63,7 +63,7 @@ public class SnapshotActor extends AbstractActor {
         log.warning("Removed {} from subsystems due to termination.", message.actor());
     }
 
-    private void failure(Status.Failure message) {
+    private void fail(Status.Failure message) {
         log.error(
                 "Received a failure for some subsystem. Failure cause: {}. Snapshot: {}.",
                 message.cause(),
@@ -71,34 +71,16 @@ public class SnapshotActor extends AbstractActor {
         );
 
         snapshot.addFailure(message);
+        publishSnapshotIfComplete();
     }
 
-    /**
-     * Registers a subsystem for future snapshots. Any ongoing snapshots are unaffected.
-     *
-     * @param message The subsystem to register.
-     */
-    private void register(final RegisterSubSystemMessage message) {
-        subSystems.add(message.getSubSystem());
-        context().watch(message.getSubSystem());
-    }
-
-    /**
-     * Aggregates snapshot messages for the ongoing snapshot.
-     *
-     * @param message The snapshot for a subsystem.
-     */
-    private void aggregate(final ObjectSnapshotMessage message) {
-        snapshot.addMessage(message, sender().path());
-        log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
-
-        if (snapshot.isDone()) {
-            log.debug("Completed snapshot '{}'.", snapshot.getUuid());
-            publishSnapshot();
+    private void publishSnapshotIfComplete() {
+        if (!snapshot.isDone()) {
+            return;
         }
-    }
 
-    private void publishSnapshot() {
+        log.debug("Completed snapshot '{}'.", snapshot.getUuid());
+
         getContext().getSystem().eventStream().publish(snapshot);
         getContext().become(createReceive());
         clearSnapshot();
@@ -137,11 +119,33 @@ public class SnapshotActor extends AbstractActor {
                 .match(RegisterSubSystemMessage.class, this::register)
                 .match(Terminated.class, this::unregisterAndFail)
                 .match(ObjectSnapshotMessage.class, this::aggregate)
-                .match(Status.Failure.class, this::failure)
+                .match(Status.Failure.class, this::fail)
                 .build();
     }
 
     private void removeTimeout() {
         context().setReceiveTimeout(Duration.Undefined());
+    }
+
+    /**
+     * Registers a subsystem for future snapshots. Any ongoing snapshots are unaffected.
+     *
+     * @param message The subsystem to register.
+     */
+    private void register(final RegisterSubSystemMessage message) {
+        subSystems.add(message.getSubSystem());
+        context().watch(message.getSubSystem());
+    }
+
+    /**
+     * Aggregates snapshot messages for the ongoing snapshot.
+     *
+     * @param message The snapshot for a subsystem.
+     */
+    private void aggregate(final ObjectSnapshotMessage message) {
+        log.debug("Received message: {}.", message);
+        snapshot.addMessage(message, sender().path());
+        log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
+        publishSnapshotIfComplete();
     }
 }
