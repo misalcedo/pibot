@@ -15,6 +15,7 @@ import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.sense.*;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotActor;
+import com.salcedo.rapbot.snapshot.SnapshotRouterActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
@@ -71,7 +72,7 @@ public final class Hub extends AbstractActor {
     }
 
     private void createSnapshot() {
-        snapshot = getContext().actorOf(SnapshotActor.props(), "snapshot");
+        snapshot = getContext().actorOf(SnapshotRouterActor.props(), "snapshot");
 
         context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
         context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);

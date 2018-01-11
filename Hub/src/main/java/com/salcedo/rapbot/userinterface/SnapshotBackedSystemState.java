@@ -12,6 +12,7 @@ import com.salcedo.rapbot.sense.EnvironmentReading;
 import com.salcedo.rapbot.sense.Orientation;
 import com.salcedo.rapbot.snapshot.Snapshot;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -69,6 +70,23 @@ public class SnapshotBackedSystemState implements SystemState {
     }
 
     @Override
+    public int throttle() {
+        return getDriveState().map(DriveState::getThrottle).orElse(0);
+    }
+
+    @Override
+    public String getSnapshotId() {
+        String id = snapshot.getUuid().toString();
+        return id.substring(id.length() - 8);
+    }
+
+    @Override
+    public String getSnapshotDuration() {
+        final Duration duration = Duration.between(snapshot.getStart(), snapshot.getEnd().orElseGet(Instant::now));
+        return String.valueOf(duration.toMillis());
+    }
+
+    @Override
     public String getLeftMotorState() {
         return getMotorState(Location.BACK_LEFT);
     }
@@ -110,19 +128,13 @@ public class SnapshotBackedSystemState implements SystemState {
     }
 
     @Override
-    public int throttle() {
-        return getDriveState().map(DriveState::getThrottle).orElse(0);
-    }
+    public String getImagePath() {
+        final ActorPath vision = getActorPath("/user/hub/vision");
+        final Optional<Path> path = this.snapshot.getSnapshot(vision, Path.class);
 
-    @Override
-    public String getSnapshotId() {
-        String id = snapshot.getUuid().toString();
-        return id.substring(id.length() - 8);
-    }
-
-    @Override
-    public String getSnapshotDuration() {
-        final Duration duration = Duration.between(snapshot.getStart(), snapshot.getEnd().orElseGet(Instant::now));
-        return String.valueOf(duration.toMillis());
+        return path
+                .map(Path::toAbsolutePath)
+                .map(Path::toString)
+                .orElse("/dev/null");
     }
 }

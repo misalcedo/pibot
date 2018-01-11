@@ -5,9 +5,12 @@ import uk.co.caprica.vlcj.player.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CanvasVideoSurface;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static java.awt.BorderLayout.*;
 import static java.awt.Color.GREEN;
@@ -27,8 +30,9 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JLabel snapshotSubsystems;
     private final JLabel snapshotCompletedSubsystems;
     private final JLabel fullSensorOrientation;
-    private final JLabel snapshotLeftMotor;
-    private final JLabel snapshotRightMotor;
+    private final JLabel leftMotor;
+    private final JLabel rightMotor;
+    private final JLabel picture;
 
     SwingGraphicalUserInterface(final Uri videoFeed, final KeyListener keyListener) {
         this.videoFeed = videoFeed;
@@ -42,8 +46,9 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.snapshotSubsystems = new JLabel();
         this.snapshotCompletedSubsystems = new JLabel();
         this.fullSensorOrientation = new JLabel();
-        this.snapshotLeftMotor = new JLabel();
-        this.snapshotRightMotor = new JLabel();
+        this.leftMotor = new JLabel();
+        this.rightMotor = new JLabel();
+        this.picture = new JLabel();
     }
 
     @Override
@@ -89,9 +94,11 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         panel.add(new JLabel("Sensor Orientation: "));
         panel.add(fullSensorOrientation);
         panel.add(new JLabel("Left Motor: "));
-        panel.add(snapshotLeftMotor);
+        panel.add(leftMotor);
         panel.add(new JLabel("Right Motor: "));
-        panel.add(snapshotRightMotor);
+        panel.add(rightMotor);
+        panel.add(new JLabel("Image Path: "));
+        panel.add(picture);
 
         return panel;
     }
@@ -170,6 +177,11 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         updateSensors(state);
         updateMotors(state);
         updateDriver(state);
+        updateVision(state);
+    }
+
+    private void updateVision(SystemState state) {
+        picture.setText(state.getImagePath());
     }
 
     private void updateSnapshot(SystemState state) {
@@ -190,7 +202,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     }
 
     private void updateMotors(SystemState state) {
-        snapshotLeftMotor.setText(state.getLeftMotorState());
-        snapshotRightMotor.setText(state.getRightMotorState());
+        leftMotor.setText(state.getLeftMotorState());
+        rightMotor.setText(state.getRightMotorState());
     }
 }

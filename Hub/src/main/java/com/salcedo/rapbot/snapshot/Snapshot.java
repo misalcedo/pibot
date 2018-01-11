@@ -1,17 +1,17 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
-import akka.actor.Status;
 
 import java.time.Instant;
 import java.util.*;
+
+import static java.util.function.Predicate.isEqual;
 
 public class Snapshot {
     private final Instant start;
     private final UUID uuid;
     private final Set<ActorPath> subsystems;
     private final Map<ActorPath, SnapshotMessage> responses;
-    private final Set<Status.Failure> failures;
     private Instant end;
 
     Snapshot(UUID uuid, Set<ActorPath> subsystems) {
@@ -19,10 +19,9 @@ public class Snapshot {
         this.subsystems = subsystems;
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
-        this.failures = new LinkedHashSet<>();
     }
 
-    void addMessage(ObjectSnapshotMessage message, ActorPath sender) {
+    void addMessage(SnapshotMessage message, ActorPath sender) {
         if (message.getId() != uuid || !subsystems.contains(sender)) {
             throw new IllegalArgumentException("Invalid UUID or sender.");
         } else if (responses.containsKey(sender)) {
@@ -41,11 +40,7 @@ public class Snapshot {
     }
 
     int getResponsesRemaining() {
-        return subsystems.size() - (responses.size() + failures.size());
-    }
-
-    void addFailure(final Status.Failure failure) {
-        this.failures.add(failure);
+        return subsystems.size() - responses.size();
     }
 
     public UUID getUuid() {
@@ -84,5 +79,9 @@ public class Snapshot {
                 ", subsystems=" + subsystems +
                 ", responses=" + responses +
                 '}';
+    }
+
+    public boolean isSubsystem(final ActorPath path) {
+        return subsystems.stream().anyMatch(isEqual(path));
     }
 }

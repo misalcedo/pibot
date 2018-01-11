@@ -14,4 +14,6 @@ public interface SystemState {
 
     String getSnapshotSubsystems();
     String getCompletedSnapshotSubsystems();
+
+    String getImagePath();
 }

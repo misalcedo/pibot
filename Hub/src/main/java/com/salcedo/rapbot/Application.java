@@ -29,14 +29,7 @@ public final class Application {
         hub = system.actorOf(Hub.props(pi2, zero, gui, new KeyboardDriverStrategy()), "hub");
     }
 
-    private SQLContext sqlContext() {
-        final SparkContext sparkContext = new SparkContext("local[*]", "RapBot");
-        final SparkSession sparkSession = new SparkSession(sparkContext);
-
-        return new SQLContext(sparkSession);
-    }
-
-    public static void main(final String[] arguments) throws Exception {
+    public static void main(final String[] arguments) {
         final Application application = new Application();
 
         invokeLater(application.gui::display);
