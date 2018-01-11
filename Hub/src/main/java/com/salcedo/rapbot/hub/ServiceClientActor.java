@@ -45,7 +45,7 @@ public abstract class ServiceClientActor extends AbstractActor {
     protected void snapshot(final TakeSnapshotMessage message) {
         final CompletionStage<ObjectSnapshotMessage> completionStage = callWithBreaker(this::snapshot)
                 .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
-        pipe(completionStage, getContext().dispatcher()).to(sender());
+        pipe(completionStage, getContext().dispatcher()).to(sender(), self());
     }
 
     protected abstract CompletionStage<?> snapshot();
