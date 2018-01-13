@@ -9,6 +9,7 @@ import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
+import com.salcedo.rapbot.learner.SnapshotWriterActor;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
@@ -24,6 +25,7 @@ import com.salcedo.rapbot.vision.VisionService;
 import com.salcedo.rapbot.vision.VisionServiceFactory;
 
 import java.awt.event.KeyEvent;
+import java.nio.file.Paths;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
@@ -36,13 +38,15 @@ public final class Hub extends AbstractActor {
     private ActorRef sensors;
     private ActorRef vision;
     private ActorRef snapshot;
+    private ActorRef writer;
     private ActorRef guiUpdator;
 
     public Hub(
             final Uri pi2,
             final Uri zero,
             final GraphicalUserInterface gui,
-            final DriverStrategy<KeyEvent> manualDriver) {
+            final DriverStrategy<KeyEvent> manualDriver
+    ) {
         this.pi2 = pi2;
         this.zero = zero;
         this.gui = gui;
@@ -67,6 +71,7 @@ public final class Hub extends AbstractActor {
         sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
         driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
+        writer = getContext().actorOf(SnapshotWriterActor.props(Paths.get("/home", "miguel", "data")), "writer");
 
         createSnapshot();
     }
