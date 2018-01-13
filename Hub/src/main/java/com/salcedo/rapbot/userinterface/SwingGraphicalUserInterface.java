@@ -83,7 +83,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private Component createSnapshotInfo() {
         final JPanel panel = new JPanel(new GridLayout(0, 2));
 
-        panel.add(new JLabel("Snapshot ID: "));
+        panel.add(new JLabel("SystemSnapshot ID: "));
         panel.add(snapshotId);
         panel.add(new JLabel("Duration (milliseconds): "));
         panel.add(snapshotDuration);

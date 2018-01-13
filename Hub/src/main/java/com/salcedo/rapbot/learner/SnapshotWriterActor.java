@@ -1,14 +1,11 @@
 package com.salcedo.rapbot.learner;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorPath;
-import akka.actor.ActorPaths;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.salcedo.rapbot.driver.DriveState;
-import com.salcedo.rapbot.locomotion.MotorResponse;
-import com.salcedo.rapbot.snapshot.Snapshot;
+import com.salcedo.rapbot.snapshot.SingleResponseSystemSnapshot;
+import com.salcedo.rapbot.snapshot.SystemSnapshot;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
@@ -18,7 +15,6 @@ import org.apache.spark.sql.SQLContext;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.apache.spark.sql.SaveMode.Append;
 
@@ -27,12 +23,12 @@ public class SnapshotWriterActor extends AbstractActor {
     private final SQLContext sqlContext;
     private final Path path;
     private final long bufferSize;
-    private final List<Snapshot> buffer;
+    private final List<SystemSnapshot> buffer;
 
     public SnapshotWriterActor(final Path path) {
         final SparkConf sparkConf = getSparkConf();
         this.sqlContext = SQLContext.getOrCreate(SparkContext.getOrCreate(sparkConf));
-        this.bufferSize = 10;
+        this.bufferSize = 1;
         this.buffer = new LinkedList<>();
         this.path = path;
     }
@@ -50,24 +46,24 @@ public class SnapshotWriterActor extends AbstractActor {
         return Props.create(SnapshotWriterActor.class, path);
     }
 
-    private void buffer(final Snapshot snapshot) {
-        buffer.add(snapshot);
+    private void buffer(final SystemSnapshot systemSnapshot) {
+        buffer.add(systemSnapshot);
         if (buffer.size() >= bufferSize) {
             flush();
         }
     }
 
     private void flush() {
-        //log.info("Flushing learning orientation");
+        /*log.info("Flushing learning orientation");
 
-        //final Dataset<Row> snapshots = sqlContext.createDataFrame(buffer, Snapshot.class);
-        //snapshots.write().mode(Append).save(path.toAbsolutePath().toString());
+        final Dataset<Row> snapshots = sqlContext.createDataFrame(buffer, SingleResponseSystemSnapshot.class);
+        snapshots.write().mode(Append).save(path.toAbsolutePath().toString());*/
     }
 
     @Override
     public void preStart() {
         buffer.clear();
-        getContext().getSystem().eventStream().subscribe(self(), Snapshot.class);
+        getContext().getSystem().eventStream().subscribe(self(), SystemSnapshot.class);
     }
 
     @Override
@@ -79,7 +75,7 @@ public class SnapshotWriterActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(Snapshot.class, this::buffer)
+                .match(SystemSnapshot.class, this::buffer)
                 .build();
     }
 }

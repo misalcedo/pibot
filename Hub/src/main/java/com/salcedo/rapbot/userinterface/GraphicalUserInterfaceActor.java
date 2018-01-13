@@ -2,7 +2,7 @@ package com.salcedo.rapbot.userinterface;
 
 import akka.actor.AbstractActor;
 import akka.actor.Props;
-import com.salcedo.rapbot.snapshot.Snapshot;
+import com.salcedo.rapbot.snapshot.SystemSnapshot;
 
 public class GraphicalUserInterfaceActor extends AbstractActor {
     private final GraphicalUserInterface gui;
@@ -17,18 +17,18 @@ public class GraphicalUserInterfaceActor extends AbstractActor {
 
     @Override
     public void preStart() {
-        getContext().getSystem().eventStream().subscribe(self(), Snapshot.class);
+        getContext().getSystem().eventStream().subscribe(self(), SystemSnapshot.class);
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(Snapshot.class, this::update)
+                .match(SystemSnapshot.class, this::update)
                 .build();
     }
 
-    private void update(Snapshot snapshot) {
-        final SystemState systemState = new SnapshotBackedSystemState(snapshot, context());
+    private void update(SystemSnapshot systemSnapshot) {
+        final SystemState systemState = new SnapshotBackedSystemState(systemSnapshot, context());
         gui.update(systemState);
     }
 }

@@ -10,7 +10,7 @@ import com.salcedo.rapbot.locomotion.Motor;
 import com.salcedo.rapbot.locomotion.MotorResponse;
 import com.salcedo.rapbot.sense.EnvironmentReading;
 import com.salcedo.rapbot.sense.Orientation;
-import com.salcedo.rapbot.snapshot.Snapshot;
+import com.salcedo.rapbot.snapshot.SystemSnapshot;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -21,11 +21,11 @@ import static java.util.stream.Collectors.joining;
 
 
 public class SnapshotBackedSystemState implements SystemState {
-    private final Snapshot snapshot;
+    private final SystemSnapshot systemSnapshot;
     private final ActorContext context;
 
-    SnapshotBackedSystemState(final Snapshot snapshot, final ActorContext context) {
-        this.snapshot = snapshot;
+    SnapshotBackedSystemState(final SystemSnapshot systemSnapshot, final ActorContext context) {
+        this.systemSnapshot = systemSnapshot;
         this.context = context;
     }
 
@@ -40,7 +40,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     private Optional<EnvironmentReading> getEnvironmentReading() {
         final ActorPath sensors = getActorPath("/user/hub/sensors");
-        return snapshot.getSnapshot(sensors, EnvironmentReading.class);
+        return systemSnapshot.getSnapshot(sensors, EnvironmentReading.class);
     }
 
     private ActorPath getActorPath(final String relativePath) {
@@ -54,7 +54,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     private Optional<DriveState> getDriveState() {
         final ActorPath driver = getActorPath("/user/hub/driver");
-        return snapshot.getSnapshot(driver, DriveState.class);
+        return systemSnapshot.getSnapshot(driver, DriveState.class);
     }
 
     @Override
@@ -76,13 +76,13 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public String getSnapshotId() {
-        String id = snapshot.getUuid().toString();
+        String id = systemSnapshot.getUuid().toString();
         return id.substring(id.length() - 8);
     }
 
     @Override
     public String getSnapshotDuration() {
-        final Duration duration = Duration.between(snapshot.getStart(), snapshot.getEnd().orElseGet(Instant::now));
+        final Duration duration = Duration.between(systemSnapshot.getStart(), systemSnapshot.getEnd().orElseGet(Instant::now));
         return String.valueOf(duration.toMillis());
     }
 
@@ -103,7 +103,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     private Optional<MotorResponse> getMotorResponse() {
         final ActorPath motor = getActorPath("/user/hub/motors");
-        return snapshot.getSnapshot(motor, MotorResponse.class);
+        return systemSnapshot.getSnapshot(motor, MotorResponse.class);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public String getSnapshotSubsystems() {
-        return snapshot.getSubsystems().stream()
+        return systemSnapshot.getSubsystems().stream()
                 .map(ActorPath::name)
                 .sorted()
                 .collect(joining(", "));
@@ -121,7 +121,7 @@ public class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public String getCompletedSnapshotSubsystems() {
-        return snapshot.getCompletedSubsystems().stream()
+        return systemSnapshot.getCompletedSubsystems().stream()
                 .map(ActorPath::name)
                 .sorted()
                 .collect(joining(", "));
@@ -130,7 +130,7 @@ public class SnapshotBackedSystemState implements SystemState {
     @Override
     public String getImagePath() {
         final ActorPath vision = getActorPath("/user/hub/vision");
-        final Optional<Path> path = this.snapshot.getSnapshot(vision, Path.class);
+        final Optional<Path> path = this.systemSnapshot.getSnapshot(vision, Path.class);
 
         return path
                 .map(Path::toAbsolutePath)

@@ -34,7 +34,7 @@ public class SnapshotRouterActor extends AbstractActor {
 
     @Override
     public void preStart() {
-        getContext().getSystem().eventStream().subscribe(self(), Snapshot.class);
+        getContext().getSystem().eventStream().subscribe(self(), SystemSnapshot.class);
         setTimeout();
     }
 
@@ -51,7 +51,7 @@ public class SnapshotRouterActor extends AbstractActor {
                 .match(Terminated.class, this::unregister)
                 .match(StartSnapshotMessage.class, m -> startSnapshot())
                 .match(ReceiveTimeout.class, m -> startSnapshot())
-                .match(Snapshot.class, this::finishSnapshot)
+                .match(SystemSnapshot.class, this::finishSnapshot)
                 .build();
     }
 
@@ -61,13 +61,17 @@ public class SnapshotRouterActor extends AbstractActor {
         final UUID uuid = UUID.randomUUID();
         final Set<ActorPath> paths = subSystems.stream().map(ActorRef::path).collect(toSet());
 
-        log.debug("Starting snapshot '{}'. Subsystems: {}.", uuid, paths);
+        log.debug("Starting systemSnapshot '{}'. Subsystems: {}.", uuid, paths);
 
-        final Snapshot snapshot = new Snapshot(uuid, paths);
-        final ActorRef routee = getContext().actorOf(SnapshotActor.props(snapshot));
+        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(getSystemName(), uuid, paths);
+        final ActorRef routee = getContext().actorOf(SnapshotActor.props(systemSnapshot));
 
         addRoutee(uuid, routee);
         subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), routee));
+    }
+
+    private String getSystemName() {
+        return getContext().getSystem().name();
     }
 
     private void addRoutee(UUID uuid, ActorRef actor) {
@@ -96,14 +100,14 @@ public class SnapshotRouterActor extends AbstractActor {
         context().watch(message.getSubSystem());
     }
 
-    private void finishSnapshot(final Snapshot snapshot) {
-        final Routee routee = snapshots.remove(snapshot.getUuid());
+    private void finishSnapshot(final SystemSnapshot systemSnapshot) {
+        final Routee routee = snapshots.remove(systemSnapshot.getUuid());
 
         removeRoutee(routee);
         routee.send(PoisonPill.getInstance(), self());
         setTimeout();
 
-        log.debug("Completed snapshot: {}.", snapshot);
+        log.debug("Completed systemSnapshot: {}.", systemSnapshot);
     }
 
     private void removeRoutee(Routee routee) {

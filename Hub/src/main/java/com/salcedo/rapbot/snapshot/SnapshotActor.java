@@ -9,23 +9,18 @@ import akka.event.LoggingAdapter;
 
 public class SnapshotActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private final Snapshot snapshot;
+    private final SystemSnapshot systemSnapshot;
 
-    public SnapshotActor(final Snapshot snapshot) {
-        this.snapshot = snapshot;
+    public SnapshotActor(final SystemSnapshot systemSnapshot) {
+        this.systemSnapshot = systemSnapshot;
     }
 
-    public static Props props(final Snapshot snapshot) {
-        return Props.create(SnapshotActor.class, snapshot);
-    }
-
-    private void terminate(Terminated message) {
-        final SnapshotMessage snapshotMessage = new ObjectSnapshotMessage(snapshot.getUuid(), message);
-        aggregateConditionally(snapshotMessage);
+    public static Props props(final SystemSnapshot systemSnapshot) {
+        return Props.create(SnapshotActor.class, systemSnapshot);
     }
 
     private void aggregateConditionally(final SnapshotMessage snapshotMessage) {
-        if (!snapshot.isSubsystem(sender().path())) {
+        if (!systemSnapshot.isSubsystem(sender().path())) {
             log.warning("Received message from an invalid subsystem '{}': {}.", sender().path().toStringWithoutAddress(), snapshotMessage);
             return;
         }
@@ -35,20 +30,20 @@ public class SnapshotActor extends AbstractActor {
 
     private void aggregate(final SnapshotMessage message) {
         log.debug("Received message: {}.", message);
-        snapshot.addMessage(message, sender().path());
+        systemSnapshot.addSnapshot(message, sender().path());
 
-        log.debug("Snapshot '{}' requires {} additional response(s).", snapshot.getUuid(), snapshot.getResponsesRemaining());
+        log.debug("SystemSnapshot '{}' requires {} additional response(s).", systemSnapshot.getUuid(), systemSnapshot.getResponsesRemaining());
         publishSnapshotIfComplete();
     }
 
     private void publishSnapshotIfComplete() {
-        if (!snapshot.isDone()) {
+        if (!systemSnapshot.isDone()) {
             return;
         }
 
-        log.debug("Completed snapshot '{}'.", snapshot.getUuid());
+        log.debug("Completed systemSnapshot '{}'.", systemSnapshot.getUuid());
 
-        getContext().getSystem().eventStream().publish(snapshot);
+        getContext().getSystem().eventStream().publish(systemSnapshot);
         getContext().become(createReceive());
     }
 
@@ -61,7 +56,7 @@ public class SnapshotActor extends AbstractActor {
     }
 
     private void fail(Status.Failure message) {
-        final SnapshotMessage snapshotMessage = new ObjectSnapshotMessage(snapshot.getUuid(), message);
+        final SnapshotMessage snapshotMessage = new ObjectSnapshotMessage(systemSnapshot.getUuid(), message);
         aggregateConditionally(snapshotMessage);
     }
 }
