@@ -63,15 +63,11 @@ public class SnapshotRouterActor extends AbstractActor {
 
         log.debug("Starting systemSnapshot '{}'. Subsystems: {}.", uuid, paths);
 
-        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(getSystemName(), uuid, paths);
+        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(uuid, paths);
         final ActorRef routee = getContext().actorOf(SnapshotActor.props(systemSnapshot));
 
         addRoutee(uuid, routee);
         subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), routee));
-    }
-
-    private String getSystemName() {
-        return getContext().getSystem().name();
     }
 
     private void addRoutee(UUID uuid, ActorRef actor) {

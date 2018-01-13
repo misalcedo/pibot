@@ -10,18 +10,16 @@ import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Collectors.toSet;
 
 public class SingleResponseSystemSnapshot implements SystemSnapshot {
-    private final String system;
     private final Instant start;
     private final UUID uuid;
     private final Set<String> subsystems;
     private final Map<String, Object> responses;
     private Instant end;
 
-    SingleResponseSystemSnapshot(String system, UUID uuid, Set<ActorPath> subsystems) {
-        this.system = system;
+    public SingleResponseSystemSnapshot(UUID uuid, Set<ActorPath> subsystems) {
         this.uuid = uuid;
         this.subsystems = subsystems.stream()
-                .map(ActorPath::toStringWithoutAddress)
+                .map(ActorPath::toString)
                 .collect(toSet());
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
@@ -89,7 +87,6 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
 
     private Set<ActorPath> toActorPaths(Set<String> paths) {
         return paths.stream()
-                .map(path -> "akka://" + system + "/" + path)
                 .map(ActorPaths::fromString)
                 .collect(toSet());
     }

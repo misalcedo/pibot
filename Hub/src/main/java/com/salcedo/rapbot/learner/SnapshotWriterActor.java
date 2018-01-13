@@ -54,10 +54,10 @@ public class SnapshotWriterActor extends AbstractActor {
     }
 
     private void flush() {
-        /*log.info("Flushing learning orientation");
+        log.info("Flushing learning orientation");
 
         final Dataset<Row> snapshots = sqlContext.createDataFrame(buffer, SingleResponseSystemSnapshot.class);
-        snapshots.write().mode(Append).save(path.toAbsolutePath().toString());*/
+        snapshots.write().mode(Append).save(path.toAbsolutePath().toString());
     }
 
     @Override
