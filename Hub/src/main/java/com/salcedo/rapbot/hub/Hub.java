@@ -9,13 +9,13 @@ import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
-import com.salcedo.rapbot.learner.SnapshotWriterActor;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
-import com.salcedo.rapbot.sense.*;
+import com.salcedo.rapbot.sense.SenseActor;
+import com.salcedo.rapbot.sense.SenseService;
+import com.salcedo.rapbot.sense.SenseServiceFactory;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
-import com.salcedo.rapbot.snapshot.SnapshotActor;
 import com.salcedo.rapbot.snapshot.SnapshotRouterActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
@@ -25,10 +25,9 @@ import com.salcedo.rapbot.vision.VisionService;
 import com.salcedo.rapbot.vision.VisionServiceFactory;
 
 import java.awt.event.KeyEvent;
-import java.nio.file.Paths;
 
 public final class Hub extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(this);
     private final Uri pi2;
     private final Uri zero;
     private final GraphicalUserInterface gui;
@@ -67,8 +66,8 @@ public final class Hub extends AbstractActor {
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
         motors = getContext().actorOf(MotorActor.props(motorService), "motors");
-        vision = getContext().actorOf(VisionActor.props(visionService),"vision");
-        sensors = getContext().actorOf(SenseActor.props(senseService),"sensors");
+        vision = getContext().actorOf(VisionActor.props(visionService), "vision");
+        sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
         driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
         guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
         //writer = getContext().actorOf(SnapshotWriterActor.props(Paths.get("/home", "miguel", "data")), "writer");
