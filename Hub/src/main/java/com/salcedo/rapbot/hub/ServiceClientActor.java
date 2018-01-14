@@ -8,25 +8,30 @@ import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
 
 import static akka.pattern.PatternsCS.pipe;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 public abstract class ServiceClientActor extends AbstractActor {
     private final CircuitBreaker breaker;
+    private CompletableFuture<?> snapshotRequest;
 
     protected ServiceClientActor() {
         this.breaker = new CircuitBreaker(
                 getContext().dispatcher(),
                 getContext().system().scheduler(),
-                3,
-                Duration.create(100, TimeUnit.MILLISECONDS),
-                Duration.create(1, TimeUnit.MINUTES)
+                5,
+                Duration.create(100, MILLISECONDS),
+                Duration.create(1, MINUTES)
         );
+        this.snapshotRequest = completedFuture(null);
     }
 
-    protected  ReceiveBuilder baseReceiveBuilder() {
+    protected ReceiveBuilder baseReceiveBuilder() {
         return receiveBuilder()
                 .match(TakeSnapshotMessage.class, this::snapshot);
     }
@@ -43,9 +48,13 @@ public abstract class ServiceClientActor extends AbstractActor {
     }
 
     protected void snapshot(final TakeSnapshotMessage message) {
-        final CompletionStage<ObjectSnapshotMessage> completionStage = callWithBreaker(this::snapshot)
+        if (snapshotRequest.isDone()) {
+            snapshotRequest = callWithBreaker(this::snapshot).toCompletableFuture();
+        }
+
+        final CompletionStage<ObjectSnapshotMessage> snapshotStage = snapshotRequest
                 .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
-        pipe(completionStage, getContext().dispatcher()).to(sender(), self());
+        pipe(snapshotStage, getContext().dispatcher()).to(sender(), self());
     }
 
     protected abstract CompletionStage<?> snapshot();
