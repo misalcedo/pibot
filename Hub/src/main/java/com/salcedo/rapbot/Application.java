@@ -20,13 +20,12 @@ public final class Application {
 
     private Application() {
         final Uri pi2 = Uri.create("http://192.168.1.42");
-        final Uri zero = Uri.create("http://192.168.1.24");
         //final Uri videoFeed = pi2.port(3001).addPathSegment("/stream.mjpg");
         final Uri videoFeed = Uri.create("http://www.rmp-streaming.com/media/bbb-360p.mp4");
 
         system = ActorSystem.create("RapBot");
         gui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
-        hub = system.actorOf(Hub.props(pi2, zero, gui, new KeyboardDriverStrategy()), "hub");
+        hub = system.actorOf(Hub.props(pi2, gui, new KeyboardDriverStrategy()), "hub");
     }
 
     public static void main(final String[] arguments) {

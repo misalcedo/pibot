@@ -29,34 +29,23 @@ import java.awt.event.KeyEvent;
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
     private final Uri pi2;
-    private final Uri zero;
     private final GraphicalUserInterface gui;
     private final DriverStrategy<KeyEvent> manualDriver;
-    private ActorRef driver;
-    private ActorRef motors;
-    private ActorRef sensors;
-    private ActorRef vision;
-    private ActorRef snapshot;
-    private ActorRef writer;
-    private ActorRef guiUpdator;
 
     public Hub(
             final Uri pi2,
-            final Uri zero,
             final GraphicalUserInterface gui,
             final DriverStrategy<KeyEvent> manualDriver
     ) {
         this.pi2 = pi2;
-        this.zero = zero;
         this.gui = gui;
         this.manualDriver = manualDriver;
     }
 
     public static Props props(final Uri pi2,
-                              final Uri zero,
                               final GraphicalUserInterface gui,
                               final DriverStrategy<KeyEvent> manualDriver) {
-        return Props.create(Hub.class, pi2, zero, gui, manualDriver);
+        return Props.create(Hub.class, pi2, gui, manualDriver);
     }
 
     @Override
@@ -65,28 +54,26 @@ public final class Hub extends AbstractActor {
         final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), pi2.port(3001));
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
 
-        motors = getContext().actorOf(MotorActor.props(motorService), "motors");
-        vision = getContext().actorOf(VisionActor.props(visionService), "vision");
-        sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
-        driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
-        guiUpdator = getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
-        //writer = getContext().actorOf(SnapshotWriterActor.props(Paths.get("/home", "miguel", "data")), "writer");
+        final ActorRef motors = getContext().actorOf(MotorActor.props(motorService), "motors");
+        final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
+        final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
+        final ActorRef driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
+        getContext().actorOf(GraphicalUserInterfaceActor.props(this.gui), "gui");
 
         createSnapshot();
-    }
-
-    private void createSnapshot() {
-        snapshot = getContext().actorOf(SnapshotRouterActor.props(), "snapshot");
-
-        context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
-        context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
 
         context().system().eventStream().publish(new RegisterSubSystemMessage(vision));
         context().system().eventStream().publish(new RegisterSubSystemMessage(sensors));
         context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
         context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
-
         context().system().eventStream().publish(new StartSnapshotMessage());
+    }
+
+    private void createSnapshot() {
+        final ActorRef snapshot = getContext().actorOf(SnapshotRouterActor.props(), "snapshot");
+
+        context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
+        context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
     }
 
     @Override

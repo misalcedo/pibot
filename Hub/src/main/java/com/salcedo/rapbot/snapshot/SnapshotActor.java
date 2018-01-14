@@ -56,7 +56,7 @@ public class SnapshotActor extends AbstractActor {
     }
 
     private void fail(final Status.Failure message) {
-        log.warning("Received failure for {}. Failure: {}", sender(), message.cause());
+        log.debug("Received failure for {}. Failure: {}", sender(), message.cause());
         aggregateConditionally(new ObjectSnapshotMessage(systemSnapshot.getUuid(), message));
     }
 }

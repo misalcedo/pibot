@@ -14,7 +14,7 @@ import java.util.concurrent.CompletionStage;
 import static akka.pattern.PatternsCS.pipe;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public abstract class ServiceClientActor extends AbstractActor {
     private final CircuitBreaker breaker;
@@ -24,9 +24,9 @@ public abstract class ServiceClientActor extends AbstractActor {
         this.breaker = new CircuitBreaker(
                 getContext().dispatcher(),
                 getContext().system().scheduler(),
-                5,
+                10,
                 Duration.create(100, MILLISECONDS),
-                Duration.create(1, MINUTES)
+                Duration.create(1, SECONDS)
         );
         this.snapshotRequest = completedFuture(null);
     }
@@ -36,17 +36,6 @@ public abstract class ServiceClientActor extends AbstractActor {
                 .match(TakeSnapshotMessage.class, this::snapshot);
     }
 
-    protected <T> void pipeToSender(Callable<CompletionStage<T>> callable) {
-        pipe(
-                callWithBreaker(callable),
-                getContext().dispatcher()
-        ).to(sender());
-    }
-
-    protected <T> CompletionStage<T> callWithBreaker(Callable<CompletionStage<T>> callable) {
-        return breaker.callWithCircuitBreakerCS(callable);
-    }
-
     protected void snapshot(final TakeSnapshotMessage message) {
         if (snapshotRequest.isDone()) {
             snapshotRequest = callWithBreaker(this::snapshot).toCompletableFuture();
@@ -54,7 +43,15 @@ public abstract class ServiceClientActor extends AbstractActor {
 
         final CompletionStage<ObjectSnapshotMessage> snapshotStage = snapshotRequest
                 .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
-        pipe(snapshotStage, getContext().dispatcher()).to(sender(), self());
+        pipeToSender(() -> snapshotStage);
+    }
+
+    protected <T> void pipeToSender(Callable<CompletionStage<T>> callable) {
+        pipe(callWithBreaker(callable), getContext().dispatcher()).to(sender(), self());
+    }
+
+    protected <T> CompletionStage<T> callWithBreaker(Callable<CompletionStage<T>> callable) {
+        return breaker.callWithCircuitBreakerCS(callable);
     }
 
     protected abstract CompletionStage<?> snapshot();
