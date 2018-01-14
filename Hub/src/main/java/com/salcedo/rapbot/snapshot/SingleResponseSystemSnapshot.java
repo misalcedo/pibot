@@ -1,11 +1,14 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
+import akka.actor.Status;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.isEqual;
+import static java.util.stream.Collectors.toSet;
 
 public class SingleResponseSystemSnapshot implements SystemSnapshot {
     private final Instant start;
@@ -83,7 +86,10 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
 
     @Override
     public Set<ActorPath> getCompletedSubsystems() {
-        return responses.keySet();
+        return responses.entrySet().stream()
+                .filter(entry -> !Status.Failure.class.isInstance(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(toSet());
     }
 
     @Override

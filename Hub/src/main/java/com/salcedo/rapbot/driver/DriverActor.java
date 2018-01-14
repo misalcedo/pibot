@@ -13,7 +13,7 @@ import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 import java.awt.event.KeyEvent;
 
 public final class DriverActor extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    private final LoggingAdapter log = Logging.getLogger(this);
     private final DriverStrategy<KeyEvent> driverStrategy;
     private final DriverMotorStrategy motorStrategy;
     private final ActorRef motors;

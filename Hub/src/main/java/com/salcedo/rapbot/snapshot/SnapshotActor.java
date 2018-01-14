@@ -44,7 +44,7 @@ public class SnapshotActor extends AbstractActor {
         log.debug("Completed systemSnapshot '{}'.", systemSnapshot.getUuid());
 
         getContext().getSystem().eventStream().publish(systemSnapshot);
-        getContext().become(createReceive());
+        getContext().stop(self());
     }
 
     @Override
