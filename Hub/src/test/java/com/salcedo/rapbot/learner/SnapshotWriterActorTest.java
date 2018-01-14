@@ -11,8 +11,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.UUID;
-
 import static akka.testkit.JavaTestKit.shutdownActorSystem;
 import static java.nio.file.Files.createTempDirectory;
 import static java.util.Collections.singleton;
@@ -37,10 +35,9 @@ public class SnapshotWriterActorTest {
     public void createReceive() {
         final TestProbe probe = new TestProbe(system);
         final ActorRef subsystem = system.actorOf(TestActors.echoActorProps());
-        final UUID uuid = randomUUID();
-        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(uuid, singleton(subsystem.path()));
+        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(randomUUID(), singleton(subsystem.path()));
 
-        systemSnapshot.addSnapshot(new ObjectSnapshotMessage(uuid, new Object()), subsystem.path());
+        systemSnapshot.addSnapshot(new ObjectSnapshotMessage(systemSnapshot.getUuid(), new Object()), subsystem.path());
 
         probe.send(writer, systemSnapshot);
     }

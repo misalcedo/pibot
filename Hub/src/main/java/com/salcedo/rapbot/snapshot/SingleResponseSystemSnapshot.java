@@ -1,26 +1,22 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
-import akka.actor.ActorPaths;
 
 import java.time.Instant;
 import java.util.*;
 
 import static java.util.function.Predicate.isEqual;
-import static java.util.stream.Collectors.toSet;
 
 public class SingleResponseSystemSnapshot implements SystemSnapshot {
     private final Instant start;
     private final UUID uuid;
-    private final Set<String> subsystems;
-    private final Map<String, Object> responses;
+    private final Set<ActorPath> subsystems;
+    private final Map<ActorPath, Object> responses;
     private Instant end;
 
     public SingleResponseSystemSnapshot(UUID uuid, Set<ActorPath> subsystems) {
         this.uuid = uuid;
-        this.subsystems = subsystems.stream()
-                .map(ActorPath::toString)
-                .collect(toSet());
+        this.subsystems = subsystems;
         this.start = Instant.now();
         this.responses = new LinkedHashMap<>();
     }
@@ -33,7 +29,7 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
             throw new IllegalArgumentException("Subsystem already responded to this snapshot.");
         }
 
-        responses.put(actor.toStringWithoutAddress(), message.getSnapshot());
+        responses.put(actor, message.getSnapshot());
 
         if (isDone()) {
             end = Instant.now();
@@ -41,7 +37,7 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
     }
 
     private boolean hasResponded(ActorPath actor) {
-        return responses.containsKey(actor.toStringWithoutAddress());
+        return responses.containsKey(actor);
     }
 
     @Override
@@ -77,28 +73,22 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
     }
 
     private Object getSnapshot(ActorPath subsystem) {
-        return responses.get(subsystem.toStringWithoutAddress());
+        return responses.get(subsystem);
     }
 
     @Override
     public Set<ActorPath> getSubsystems() {
-        return toActorPaths(subsystems);
-    }
-
-    private Set<ActorPath> toActorPaths(Set<String> paths) {
-        return paths.stream()
-                .map(ActorPaths::fromString)
-                .collect(toSet());
+        return subsystems;
     }
 
     @Override
     public Set<ActorPath> getCompletedSubsystems() {
-        return toActorPaths(responses.keySet());
+        return responses.keySet();
     }
 
     @Override
     public boolean isSubsystem(final ActorPath path) {
-        return subsystems.stream().anyMatch(isEqual(path.toStringWithoutAddress()));
+        return subsystems.stream().anyMatch(isEqual(path));
     }
 
     @Override

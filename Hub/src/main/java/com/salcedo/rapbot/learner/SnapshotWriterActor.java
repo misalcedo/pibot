@@ -56,7 +56,7 @@ public class SnapshotWriterActor extends AbstractActor {
     private void flush() {
         log.info("Flushing learning orientation");
 
-        final Dataset<Row> snapshots = sqlContext.createDataFrame(buffer, SingleResponseSystemSnapshot.class);
+        final Dataset<Row> snapshots = sqlContext.createDataFrame(buffer, SystemSnapshot.class);
         snapshots.write().mode(Append).save(path.toAbsolutePath().toString());
     }
 
