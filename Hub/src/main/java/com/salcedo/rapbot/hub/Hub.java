@@ -9,6 +9,7 @@ import akka.event.LoggingAdapter;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
+import com.salcedo.rapbot.driver.KeyboardDriverStrategy;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
@@ -28,31 +29,47 @@ import java.awt.event.KeyEvent;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
-    private final Uri pi2;
+    private final Uri motorServiceUri;
+    private final Uri visionServiceUri;
+    private final Uri senseServiceUri;
     private final GraphicalUserInterface gui;
     private final DriverStrategy<KeyEvent> manualDriver;
 
     public Hub(
-            final Uri pi2,
+            final Uri motorServiceUri,
+            final Uri visionServiceUri,
+            final Uri senseServiceUri,
             final GraphicalUserInterface gui,
             final DriverStrategy<KeyEvent> manualDriver
     ) {
-        this.pi2 = pi2;
+        this.motorServiceUri = motorServiceUri;
+        this.visionServiceUri = visionServiceUri;
+        this.senseServiceUri = senseServiceUri;
         this.gui = gui;
         this.manualDriver = manualDriver;
     }
 
-    public static Props props(final Uri pi2,
-                              final GraphicalUserInterface gui,
-                              final DriverStrategy<KeyEvent> manualDriver) {
-        return Props.create(Hub.class, pi2, gui, manualDriver);
+    public static Props props(
+            final Uri motorServiceUri,
+            final Uri visionServiceUri,
+            final Uri senseServiceUri,
+            final GraphicalUserInterface gui
+    ) {
+        return Props.create(
+                Hub.class,
+                motorServiceUri,
+                visionServiceUri,
+                senseServiceUri,
+                gui,
+                new KeyboardDriverStrategy()
+        );
     }
 
     @Override
     public void preStart() {
-        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), pi2.port(3000));
-        final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), pi2.port(3001));
-        final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), pi2.port(3002));
+        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), motorServiceUri);
+        final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), visionServiceUri);
+        final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), senseServiceUri);
 
         final ActorRef motors = getContext().actorOf(MotorActor.props(motorService), "motors");
         final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");

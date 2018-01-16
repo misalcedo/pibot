@@ -10,8 +10,9 @@ import com.salcedo.rapbot.snapshot.SystemSnapshot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import scala.concurrent.duration.Duration;
 
-import static akka.testkit.JavaTestKit.shutdownActorSystem;
+import static akka.testkit.TestKit.shutdownActorSystem;
 import static java.nio.file.Files.createTempDirectory;
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
@@ -28,7 +29,7 @@ public class SnapshotWriterActorTest {
 
     @After
     public void tearDown() {
-        shutdownActorSystem(system);
+        shutdownActorSystem(system, Duration.Inf(), true);
     }
 
     @Test
