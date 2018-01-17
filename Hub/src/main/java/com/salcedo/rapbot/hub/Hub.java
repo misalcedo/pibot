@@ -10,6 +10,7 @@ import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.DriverStrategy;
 import com.salcedo.rapbot.driver.KeyboardDriverStrategy;
+import com.salcedo.rapbot.learner.SnapshotWriterActor;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
@@ -26,6 +27,10 @@ import com.salcedo.rapbot.vision.VisionService;
 import com.salcedo.rapbot.vision.VisionServiceFactory;
 
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import static java.nio.file.Files.createTempDirectory;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
@@ -66,7 +71,7 @@ public final class Hub extends AbstractActor {
     }
 
     @Override
-    public void preStart() {
+    public void preStart() throws Exception {
         final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), motorServiceUri);
         final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), visionServiceUri);
         final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), senseServiceUri);
@@ -75,6 +80,7 @@ public final class Hub extends AbstractActor {
         final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
         final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
         final ActorRef driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
+        getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
         getContext().actorOf(GraphicalUserInterfaceActor.props(this.gui), "gui");
 
         createSnapshot();
@@ -84,6 +90,10 @@ public final class Hub extends AbstractActor {
         context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
         context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
         context().system().eventStream().publish(new StartSnapshotMessage());
+    }
+
+    private Path createWriterDirectory() throws IOException {
+        return createTempDirectory(getContext().getSystem().name());
     }
 
     private void createSnapshot() {

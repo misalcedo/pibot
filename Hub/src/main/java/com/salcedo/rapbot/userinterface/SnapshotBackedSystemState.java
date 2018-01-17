@@ -10,6 +10,7 @@ import com.salcedo.rapbot.locomotion.Motor;
 import com.salcedo.rapbot.locomotion.MotorResponse;
 import com.salcedo.rapbot.sense.EnvironmentReading;
 import com.salcedo.rapbot.sense.Orientation;
+import com.salcedo.rapbot.sense.ThreeDimensionalSensorReading;
 import com.salcedo.rapbot.snapshot.SystemSnapshot;
 
 import java.nio.file.Path;
@@ -34,7 +35,7 @@ public class SnapshotBackedSystemState implements SystemState {
         return getEnvironmentReading()
                 .map(EnvironmentReading::getOrientation)
                 .map(Orientation::getYaw)
-                .map(Integer.class::cast)
+                .map(Double::intValue)
                 .orElse(90);
     }
 
@@ -67,6 +68,29 @@ public class SnapshotBackedSystemState implements SystemState {
                 orientation.map(Orientation::getPitch).orElse(0.0),
                 orientation.map(Orientation::getRoll).orElse(0.0)
         );
+    }
+
+    @Override
+    public String get3DAcceleration() {
+        final Optional<ThreeDimensionalSensorReading> acceleration = getEnvironmentReading()
+                .map(EnvironmentReading::getAccelerometer);
+
+        return String.format(
+                "{ x: %3.2f, y: %3.2f, z: %3.2f }",
+                acceleration.map(ThreeDimensionalSensorReading::getX)
+                        .map(this::gravityToCentimeterAcceleration)
+                        .orElse(0.0),
+                acceleration.map(ThreeDimensionalSensorReading::getY)
+                        .map(this::gravityToCentimeterAcceleration)
+                        .orElse(0.0),
+                acceleration.map(ThreeDimensionalSensorReading::getZ)
+                        .map(this::gravityToCentimeterAcceleration)
+                        .orElse(0.0)
+        );
+    }
+
+    private double gravityToCentimeterAcceleration(final double gravity) {
+        return 9.81 * gravity * 100;
     }
 
     @Override

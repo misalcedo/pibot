@@ -30,6 +30,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JLabel snapshotSubsystems;
     private final JLabel snapshotCompletedSubsystems;
     private final JLabel fullSensorOrientation;
+    private final JLabel acceleration;
     private final JLabel leftMotor;
     private final JLabel rightMotor;
     private final JLabel picture;
@@ -46,6 +47,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         this.snapshotSubsystems = new JLabel();
         this.snapshotCompletedSubsystems = new JLabel();
         this.fullSensorOrientation = new JLabel();
+        this.acceleration = new JLabel();
         this.leftMotor = new JLabel();
         this.rightMotor = new JLabel();
         this.picture = new JLabel();
@@ -93,6 +95,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         panel.add(snapshotCompletedSubsystems);
         panel.add(new JLabel("Sensor Orientation: "));
         panel.add(fullSensorOrientation);
+        panel.add(new JLabel("Acceleration (centimeters/second^2): "));
+        panel.add(acceleration);
         panel.add(new JLabel("Left Motor: "));
         panel.add(leftMotor);
         panel.add(new JLabel("Right Motor: "));
@@ -193,6 +197,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
 
     private void updateSensors(SystemState state) {
         fullSensorOrientation.setText(state.get3DOrientation());
+        acceleration.setText(state.get3DAcceleration());
         actualOrientation.setValue(state.actualOrientation());
     }
 

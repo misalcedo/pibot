@@ -27,18 +27,17 @@ public final class Application {
         Kamon.addReporter(new PrometheusReporter());
         Kamon.addReporter(new ZipkinReporter());
 
-        final Uri pi2 = Uri.create("http://192.168.1.42");
+        final Uri pi2 = Uri.create("http://192.168.1.41");
         final Uri zero = Uri.create("http://192.168.1.23");
         final Uri motorService = pi2.port(3000);
         final Uri visionService = pi2.port(3001);
-        final Uri senseService = zero.port(3002);
+        final Uri senseService = pi2.port(3002);
         final Uri videoFeed = visionService.addPathSegment("/stream.mjpg");
 
         final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
         final Props hubProps = Hub.props(motorService, visionService, senseService, ui);
 
         system.actorOf(hubProps, "hub");
-        system.registerOnTermination(Kamon::stopAllReporters);
         system.registerOnTermination(Kamon::stopAllReporters);
 
         invokeLater(ui::display);

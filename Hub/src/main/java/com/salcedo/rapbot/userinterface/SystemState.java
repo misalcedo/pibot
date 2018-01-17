@@ -16,4 +16,6 @@ public interface SystemState {
     String getCompletedSnapshotSubsystems();
 
     String getImagePath();
+
+    String get3DAcceleration();
 }
