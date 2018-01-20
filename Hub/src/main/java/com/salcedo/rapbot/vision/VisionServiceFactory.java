@@ -4,6 +4,7 @@ import akka.actor.ActorSystem;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.model.Uri;
 import akka.stream.ActorMaterializer;
+import uk.co.caprica.vlcj.player.MediaPlayer;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,5 +20,9 @@ public interface VisionServiceFactory {
         } catch (final MalformedURLException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    static VisionService vlcj(MediaPlayer mediaPlayer) {
+        return new MediaPlayerBackedVisionService(mediaPlayer);
     }
 }

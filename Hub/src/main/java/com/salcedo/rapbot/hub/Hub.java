@@ -6,17 +6,13 @@ import akka.actor.Props;
 import akka.actor.Terminated;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.driver.DriverActor;
-import com.salcedo.rapbot.driver.DriverStrategy;
 import com.salcedo.rapbot.driver.KeyboardDriverStrategy;
 import com.salcedo.rapbot.learner.SnapshotWriterActor;
 import com.salcedo.rapbot.locomotion.MotorActor;
 import com.salcedo.rapbot.locomotion.MotorService;
-import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.sense.SenseActor;
 import com.salcedo.rapbot.sense.SenseService;
-import com.salcedo.rapbot.sense.SenseServiceFactory;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotRouterActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
@@ -24,9 +20,7 @@ import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import com.salcedo.rapbot.vision.VisionActor;
 import com.salcedo.rapbot.vision.VisionService;
-import com.salcedo.rapbot.vision.VisionServiceFactory;
 
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -34,54 +28,46 @@ import static java.nio.file.Files.createTempDirectory;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
-    private final Uri motorServiceUri;
-    private final Uri visionServiceUri;
-    private final Uri senseServiceUri;
+    private final MotorService motorService;
+    private final VisionService visionService;
+    private final SenseService senseService;
     private final GraphicalUserInterface gui;
-    private final DriverStrategy<KeyEvent> manualDriver;
 
     public Hub(
-            final Uri motorServiceUri,
-            final Uri visionServiceUri,
-            final Uri senseServiceUri,
-            final GraphicalUserInterface gui,
-            final DriverStrategy<KeyEvent> manualDriver
+            final MotorService motorService,
+            final VisionService visionService,
+            final SenseService senseService,
+            final GraphicalUserInterface gui
     ) {
-        this.motorServiceUri = motorServiceUri;
-        this.visionServiceUri = visionServiceUri;
-        this.senseServiceUri = senseServiceUri;
+        this.motorService = motorService;
+        this.visionService = visionService;
+        this.senseService = senseService;
         this.gui = gui;
-        this.manualDriver = manualDriver;
     }
 
     public static Props props(
-            final Uri motorServiceUri,
-            final Uri visionServiceUri,
-            final Uri senseServiceUri,
+            final MotorService motorService,
+            final VisionService visionService,
+            final SenseService senseService,
             final GraphicalUserInterface gui
     ) {
         return Props.create(
                 Hub.class,
-                motorServiceUri,
-                visionServiceUri,
-                senseServiceUri,
-                gui,
-                new KeyboardDriverStrategy()
+                motorService,
+                visionService,
+                senseService,
+                gui
         );
     }
 
     @Override
     public void preStart() throws Exception {
-        final MotorService motorService = MotorServiceFactory.http(getContext().getSystem(), motorServiceUri);
-        final VisionService visionService = VisionServiceFactory.http(getContext().getSystem(), visionServiceUri);
-        final SenseService senseService = SenseServiceFactory.http(getContext().getSystem(), senseServiceUri);
-
         final ActorRef motors = getContext().actorOf(MotorActor.props(motorService), "motors");
         final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
         final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
-        final ActorRef driver = getContext().actorOf(DriverActor.props(motors, manualDriver), "driver");
-        getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
-        getContext().actorOf(GraphicalUserInterfaceActor.props(this.gui), "gui");
+        final ActorRef driver = getContext().actorOf(DriverActor.props(motors, new KeyboardDriverStrategy()), "driver");
+        //getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
+        getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
 
         createSnapshot();
 

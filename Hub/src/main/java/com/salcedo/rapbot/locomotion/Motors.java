@@ -24,6 +24,10 @@ abstract class Motors {
                 .findFirst();
     }
 
+    public Set<Motor> getMotors() {
+        return motors;
+    }
+
     public static abstract class MotorsBuilder {
         private final Set<Motor> motors = new LinkedHashSet<>();
 

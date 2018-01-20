@@ -15,4 +15,8 @@ public interface MotorServiceFactory {
                 new GsonBuilder().create()
         );
     }
+
+    static MotorService stub() {
+        return new StubMotorService();
+    }
 }

@@ -1,16 +1,17 @@
 package com.salcedo.rapbot.userinterface;
 
 import akka.http.javadsl.model.Uri;
+import uk.co.caprica.vlcj.binding.internal.libvlc_log_level_e;
+import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.CanvasVideoSurface;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import static java.awt.BorderLayout.*;
 import static java.awt.Color.GREEN;
@@ -18,7 +19,7 @@ import static java.awt.Color.RED;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import static javax.swing.SwingConstants.VERTICAL;
 
-public class SwingGraphicalUserInterface implements GraphicalUserInterface {
+public class SwingGraphicalUserInterface extends WindowAdapter implements GraphicalUserInterface {
     private final Uri videoFeed;
     private final JFrame frame;
     private final KeyListener keyListener;
@@ -34,11 +35,15 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private final JLabel leftMotor;
     private final JLabel rightMotor;
     private final JLabel picture;
+    private final MediaPlayerFactory mediaPlayerFactory;
+    private final EmbeddedMediaPlayer mediaPlayer;
 
     SwingGraphicalUserInterface(final Uri videoFeed, final KeyListener keyListener) {
         this.videoFeed = videoFeed;
         this.keyListener = keyListener;
         this.frame = new JFrame("RapBot");
+        this.mediaPlayerFactory = new MediaPlayerFactory();
+        this.mediaPlayer = mediaPlayerFactory.newEmbeddedMediaPlayer();
         this.targetOrientation = new JProgressBar();
         this.actualOrientation = new JProgressBar();
         this.throttle = new JProgressBar();
@@ -56,10 +61,8 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     @Override
     public void display() {
         prepareFrame();
-
-        final EmbeddedMediaPlayer embeddedMediaPlayer = setContent();
-
-        finalizeFrame(embeddedMediaPlayer);
+        setContent();
+        finalizeFrame();
     }
 
     private void prepareFrame() {
@@ -68,18 +71,12 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         frame.setLayout(new BorderLayout());
     }
 
-    private EmbeddedMediaPlayer setContent() {
-        final MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory();
-        final EmbeddedMediaPlayer embeddedMediaPlayer = mediaPlayerFactory.newEmbeddedMediaPlayer();
-        final Canvas videoSurface = createVideoFeed(embeddedMediaPlayer, mediaPlayerFactory);
-
-        frame.add(videoSurface, PAGE_START);
+    private void setContent() {
+        frame.add(createVideoFeed(), PAGE_START);
         frame.add(createActualOrientation(), LINE_START);
         frame.add(createTargetOrientation(), CENTER);
         frame.add(createThrottle(), LINE_END);
         frame.add(createSnapshotInfo(), PAGE_END);
-
-        return embeddedMediaPlayer;
     }
 
     private Component createSnapshotInfo() {
@@ -107,7 +104,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         return panel;
     }
 
-    private Canvas createVideoFeed(final EmbeddedMediaPlayer embeddedMediaPlayer, final MediaPlayerFactory mediaPlayerFactory) {
+    private Canvas createVideoFeed() {
         final Canvas canvas = new Canvas();
         final CanvasVideoSurface videoSurface = mediaPlayerFactory.newVideoSurface(canvas);
 
@@ -116,7 +113,7 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         canvas.setSize(640, 480);
         canvas.setVisible(true);
 
-        embeddedMediaPlayer.setVideoSurface(videoSurface);
+        mediaPlayer.setVideoSurface(videoSurface);
 
         return canvas;
     }
@@ -167,12 +164,13 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
         return panel;
     }
 
-    private void finalizeFrame(EmbeddedMediaPlayer embeddedMediaPlayer) {
+    private void finalizeFrame() {
         frame.pack();
         frame.setVisible(true);
         frame.requestFocus();
 
-        embeddedMediaPlayer.playMedia(this.videoFeed.toString(), ":network-caching=0");
+        mediaPlayer.setPlaySubItems(true);
+        mediaPlayer.playMedia(videoFeed.toString(), ":network-caching=0");
     }
 
     @Override
@@ -209,5 +207,15 @@ public class SwingGraphicalUserInterface implements GraphicalUserInterface {
     private void updateMotors(SystemState state) {
         leftMotor.setText(state.getLeftMotorState());
         rightMotor.setText(state.getRightMotorState());
+    }
+
+    @Override
+    public void windowClosing(WindowEvent windowEvent) {
+        mediaPlayer.release();
+        mediaPlayerFactory.release();
+    }
+
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
     }
 }
