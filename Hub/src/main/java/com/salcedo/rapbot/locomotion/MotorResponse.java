@@ -1,8 +1,7 @@
 package com.salcedo.rapbot.locomotion;
 
+import java.util.HashSet;
 import java.util.Set;
-
-import static java.util.Collections.unmodifiableSet;
 
 public final class MotorResponse extends Motors {
     MotorResponse(Set<Motor> motors) {
@@ -15,7 +14,7 @@ public final class MotorResponse extends Motors {
 
     public final static class MotorResponseBuilder extends MotorsBuilder {
         public MotorResponse build() {
-            return new MotorResponse(unmodifiableSet(getMotors()));
+            return new MotorResponse(new HashSet<>(getMotors()));
         }
 
         @Override

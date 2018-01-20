@@ -55,6 +55,15 @@ public class SnapshotActor extends AbstractActor {
                 .build();
     }
 
+    @Override
+    public void preStart() {
+        final TakeSnapshotMessage message = new TakeSnapshotMessage(systemSnapshot.getUuid());
+
+        systemSnapshot.getSubsystems().stream()
+                .map(path -> getContext().actorFor(path))
+                .forEach(subSystem -> subSystem.tell(message, self()));
+    }
+
     private void fail(final Status.Failure message) {
         log.debug("Received failure for {}. Failure: {}", sender(), message.cause());
         aggregateConditionally(new ObjectSnapshotMessage(systemSnapshot.getUuid(), message));

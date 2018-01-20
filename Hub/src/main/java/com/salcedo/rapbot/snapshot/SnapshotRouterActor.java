@@ -3,7 +3,6 @@ package com.salcedo.rapbot.snapshot;
 import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.routing.ActorRefRoutee;
 import akka.routing.BroadcastRoutingLogic;
 import akka.routing.Router;
 import scala.concurrent.duration.Duration;
@@ -56,20 +55,21 @@ public class SnapshotRouterActor extends AbstractActor {
         removeTimeout();
 
         final UUID uuid = UUID.randomUUID();
-        final Set<ActorPath> paths = subSystems.stream().map(ActorRef::path).collect(toSet());
+        final Set<ActorPath> paths = subSystems.stream()
+                .map(ActorRef::path)
+                .collect(toSet());
 
         log.debug("Starting systemSnapshot '{}'. Subsystems: {}.", uuid, paths);
 
-        final SystemSnapshot systemSnapshot = new SingleResponseSystemSnapshot(uuid, paths);
-        final ActorRef routee = getContext().actorOf(SnapshotActor.props(systemSnapshot));
-
-        addRoutee(routee);
-        subSystems.forEach(subSystem -> subSystem.tell(new TakeSnapshotMessage(uuid), routee));
+        addRoutee(new SingleResponseSystemSnapshot(uuid, paths));
     }
 
-    private void addRoutee(ActorRef actor) {
+    private void addRoutee(SystemSnapshot systemSnapshot) {
+        final ActorRef actor = getContext().actorOf(SnapshotActor.props(systemSnapshot));
+
         getContext().watch(actor);
-        router = router.addRoutee(new ActorRefRoutee(actor));
+
+        router = router.addRoutee(actor);
     }
 
     private void removeTimeout() {
