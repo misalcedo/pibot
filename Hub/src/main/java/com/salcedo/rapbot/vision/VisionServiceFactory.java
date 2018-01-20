@@ -23,6 +23,8 @@ public interface VisionServiceFactory {
     }
 
     static VisionService vlcj(MediaPlayer mediaPlayer) {
-        return new MediaPlayerBackedVisionService(mediaPlayer);
+        final MediaPlayerBackedVisionService visionService = new MediaPlayerBackedVisionService(mediaPlayer);
+        mediaPlayer.addMediaPlayerEventListener(visionService);
+        return visionService;
     }
 }

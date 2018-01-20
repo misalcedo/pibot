@@ -1,10 +1,7 @@
 package com.salcedo.rapbot.vision;
 
-import akka.actor.ActorSystem;
 import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter;
-import uk.co.caprica.vlcj.player.MediaPlayerEventListener;
-import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,12 +27,9 @@ public class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter impl
 
     @Override
     public CompletionStage<Path> takePicture() {
-        embeddedMediaPlayer.addMediaPlayerEventListener(this);
-
         final Path path = createPath();
 
         requests.put(path.toAbsolutePath().toString(), new CompletableFuture<>());
-
         embeddedMediaPlayer.saveSnapshot(path.toAbsolutePath().toFile());
 
         return completedFuture(path);
@@ -49,7 +44,7 @@ public class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter impl
     }
 
     @Override
-    public void snapshotTaken(MediaPlayer mediaPlayer, String filename) {
+    public void snapshotTaken(final MediaPlayer mediaPlayer, final String filename) {
         requests.remove(filename).complete(Paths.get(filename));
     }
 }

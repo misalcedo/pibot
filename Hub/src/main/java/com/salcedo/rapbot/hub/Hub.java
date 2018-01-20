@@ -66,7 +66,7 @@ public final class Hub extends AbstractActor {
         final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
         final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
         final ActorRef driver = getContext().actorOf(DriverActor.props(motors, new KeyboardDriverStrategy()), "driver");
-        //getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
+        getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
         getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
 
         createSnapshot();

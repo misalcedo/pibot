@@ -34,9 +34,7 @@ public final class Application {
         Kamon.addReporter(new ZipkinReporter());
 
         final Uri pi2 = Uri.create("http://192.168.1.41");
-        //final Uri zero = Uri.create("http://192.168.1.23");
-
-        final Uri videoFeed = Uri.create("http://foo.com");//visionService.addPathSegment("/stream.mjpg");
+        final Uri videoFeed = pi2.addPathSegment("/stream.mjpg");
 
         final MotorService motorService = MotorServiceFactory.http(system, pi2.port(3000));
         final VisionService visionService = VisionServiceFactory.http(system, pi2.port(3001));
