@@ -23,7 +23,7 @@ public class SnapshotWriterActor extends AbstractActor {
     public SnapshotWriterActor(final Path path) {
         final SparkConf sparkConf = getSparkConf();
         this.sqlContext = SQLContext.getOrCreate(SparkContext.getOrCreate(sparkConf));
-        this.bufferSize = 1;
+        this.bufferSize = 1_000;
         this.buffer = new LinkedList<>();
         this.path = path;
     }
@@ -52,6 +52,7 @@ public class SnapshotWriterActor extends AbstractActor {
         sqlContext.createDataset(buffer, kryo(SystemSnapshot.class))
                 .write()
                 .mode(Append)
+                .format("parquet")
                 .save(path.toAbsolutePath().toString());
     }
 

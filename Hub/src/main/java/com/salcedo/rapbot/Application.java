@@ -16,6 +16,9 @@ import kamon.Kamon;
 import kamon.prometheus.PrometheusReporter;
 import kamon.zipkin.ZipkinReporter;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static javax.swing.SwingUtilities.invokeLater;
 
 public final class Application {
@@ -35,13 +38,22 @@ public final class Application {
 
         final Uri pi2 = Uri.create("http://192.168.1.41");
         final Uri videoFeed = pi2.addPathSegment("/stream.mjpg");
+        final Path workingDirectory = Paths.get(
+                "/home",
+                "miguel",
+                "IdeaProjects",
+                "RapBot",
+                "spark-warehouse",
+                "snapshots.parquet"
+        );
+
+        final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
 
         final MotorService motorService = MotorServiceFactory.http(system, pi2.port(3000));
         final VisionService visionService = VisionServiceFactory.http(system, pi2.port(3001));
         final SenseService senseService = SenseServiceFactory.http(system, pi2.port(3002));
 
-        final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
-        final Props hubProps = Hub.props(motorService, visionService, senseService, ui);
+        final Props hubProps = Hub.props(motorService, visionService, senseService, ui, workingDirectory);
 
         system.actorOf(hubProps, "hub");
         system.registerOnTermination(Kamon::stopAllReporters);

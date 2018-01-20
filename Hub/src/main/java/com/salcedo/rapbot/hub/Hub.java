@@ -21,10 +21,7 @@ import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import com.salcedo.rapbot.vision.VisionActor;
 import com.salcedo.rapbot.vision.VisionService;
 
-import java.io.IOException;
 import java.nio.file.Path;
-
-import static java.nio.file.Files.createTempDirectory;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
@@ -32,41 +29,47 @@ public final class Hub extends AbstractActor {
     private final VisionService visionService;
     private final SenseService senseService;
     private final GraphicalUserInterface gui;
+    private final Path workingDirectory;
 
     public Hub(
             final MotorService motorService,
             final VisionService visionService,
             final SenseService senseService,
-            final GraphicalUserInterface gui
-    ) {
+            final GraphicalUserInterface gui,
+            final Path workingDirectory) {
         this.motorService = motorService;
         this.visionService = visionService;
         this.senseService = senseService;
         this.gui = gui;
+        this.workingDirectory = workingDirectory;
     }
 
     public static Props props(
             final MotorService motorService,
             final VisionService visionService,
             final SenseService senseService,
-            final GraphicalUserInterface gui
-    ) {
+            final GraphicalUserInterface gui,
+            final Path workingDirectory) {
         return Props.create(
                 Hub.class,
                 motorService,
                 visionService,
                 senseService,
-                gui
+                gui,
+                workingDirectory
         );
     }
 
     @Override
-    public void preStart() throws Exception {
+    public void preStart() {
+        log.info("Starting Hub with working directory of: {}.", workingDirectory);
+
         final ActorRef motors = getContext().actorOf(MotorActor.props(motorService), "motors");
         final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
         final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
         final ActorRef driver = getContext().actorOf(DriverActor.props(motors, new KeyboardDriverStrategy()), "driver");
-        getContext().actorOf(SnapshotWriterActor.props(createWriterDirectory()), "writer");
+
+        getContext().actorOf(SnapshotWriterActor.props(workingDirectory), "writer");
         getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
 
         createSnapshot();
@@ -76,10 +79,6 @@ public final class Hub extends AbstractActor {
         context().system().eventStream().publish(new RegisterSubSystemMessage(driver));
         context().system().eventStream().publish(new RegisterSubSystemMessage(motors));
         context().system().eventStream().publish(new StartSnapshotMessage());
-    }
-
-    private Path createWriterDirectory() throws IOException {
-        return createTempDirectory(getContext().getSystem().name());
     }
 
     private void createSnapshot() {
