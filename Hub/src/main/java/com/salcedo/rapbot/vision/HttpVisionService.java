@@ -6,8 +6,8 @@ import akka.stream.IOResult;
 import akka.stream.Materializer;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static akka.stream.javadsl.FileIO.toPath;
@@ -29,21 +29,32 @@ public final class HttpVisionService implements VisionService {
 
     @Override
     public CompletionStage<Path> takePicture() {
-        final Path path = createPath();
+        final CompletableFuture<Path> completableFuture = new CompletableFuture<>();
 
-        return http.singleRequest(createHttpRequest(), materializer)
+        try {
+            final Path path = createPath();
+            sendTakePictureRequest(path, completableFuture);
+        } catch (IOException e) {
+            completableFuture.completeExceptionally(e);
+        }
+
+        return completableFuture;
+    }
+
+    private void sendTakePictureRequest(final Path path, final CompletableFuture<Path> completableFuture) {
+        http.singleRequest(createHttpRequest(), materializer)
                 .thenApply(HttpResponse::entity)
                 .thenApply(HttpEntity::getDataBytes)
                 .thenCompose(source -> source.runWith(toPath(path), materializer))
-                .thenApply(ioResult -> mapToPath(path, ioResult));
+                .thenAccept(ioResult -> mapToPath(path, ioResult, completableFuture));
     }
 
-    private Path mapToPath(final Path path, final IOResult ioResult) {
+    private void mapToPath(final Path path, final IOResult ioResult, final CompletableFuture<Path> completableFuture) {
         if (ioResult.wasSuccessful()) {
-            return path;
+            completableFuture.complete(path);
         }
 
-        throw new RuntimeException(ioResult.getError());
+        completableFuture.completeExceptionally(ioResult.getError());
     }
 
     private HttpRequest createHttpRequest() {
@@ -52,11 +63,7 @@ public final class HttpVisionService implements VisionService {
                 .withMethod(HttpMethods.GET);
     }
 
-    private Path createPath() {
-        try {
-            return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private Path createPath() throws IOException {
+        return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
     }
 }

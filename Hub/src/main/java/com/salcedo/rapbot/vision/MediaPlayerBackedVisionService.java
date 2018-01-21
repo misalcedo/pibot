@@ -4,7 +4,6 @@ import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -14,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createTempFile;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter implements VisionService {
     private final Map<String, CompletableFuture<Path>> requests;
@@ -29,20 +27,22 @@ public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapte
 
     @Override
     public CompletionStage<Path> takePicture() {
-        final Path path = createPath();
+        final CompletableFuture<Path> completableFuture = new CompletableFuture<>();
 
-        requests.put(path.toAbsolutePath().toString(), new CompletableFuture<>());
-        embeddedMediaPlayer.saveSnapshot(path.toAbsolutePath().toFile());
+        try {
+            final Path path = createPath();
 
-        return completedFuture(path);
+            requests.put(path.toAbsolutePath().toString(), completableFuture);
+            embeddedMediaPlayer.saveSnapshot(path.toAbsolutePath().toFile());
+        } catch (IOException e) {
+            completableFuture.completeExceptionally(e);
+        }
+
+        return completableFuture;
     }
 
-    private Path createPath() {
-        try {
-            return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private Path createPath() throws IOException {
+        return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
     }
 
     @Override
