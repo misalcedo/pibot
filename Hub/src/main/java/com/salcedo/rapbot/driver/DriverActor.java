@@ -67,11 +67,9 @@ public final class DriverActor extends AbstractActor {
 
     private void drive(final KeyEvent keyEvent) {
         desiredState = driverStrategy.drive(keyEvent, desiredState);
+        motors.tell(motorStrategy.drive(desiredState), self());
+        context().system().eventStream().publish(new StartSnapshotMessage());
 
         log.debug("Changed desired drive state to {}", desiredState);
-
-        motors.tell(motorStrategy.drive(desiredState), self());
-
-        context().system().eventStream().publish(new StartSnapshotMessage());
     }
 }

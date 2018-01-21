@@ -23,7 +23,7 @@ public class SnapshotWriterActor extends AbstractActor {
     public SnapshotWriterActor(final Path path) {
         final SparkConf sparkConf = getSparkConf();
         this.sqlContext = SQLContext.getOrCreate(SparkContext.getOrCreate(sparkConf));
-        this.bufferSize = 1_000;
+        this.bufferSize = 100;
         this.buffer = new LinkedList<>();
         this.path = path;
     }
