@@ -8,10 +8,11 @@ import uk.co.caprica.vlcj.player.MediaPlayer;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 
 public interface VisionServiceFactory {
-    static VisionService http(final ActorSystem system, final Uri uri) {
-        return new HttpVisionService(Http.get(system), ActorMaterializer.create(system), uri);
+    static VisionService http(final ActorSystem system, final Uri uri, final Path workingDirectory) {
+        return new HttpVisionService(Http.get(system), ActorMaterializer.create(system), uri, workingDirectory);
     }
 
     static VisionService url(final ActorSystem system, final Uri uri) {
@@ -22,8 +23,8 @@ public interface VisionServiceFactory {
         }
     }
 
-    static VisionService vlcj(MediaPlayer mediaPlayer) {
-        final MediaPlayerBackedVisionService visionService = new MediaPlayerBackedVisionService(mediaPlayer);
+    static VisionService vlcj(MediaPlayer mediaPlayer, Path workingDirectory) {
+        final MediaPlayerBackedVisionService visionService = new MediaPlayerBackedVisionService(mediaPlayer, workingDirectory);
         mediaPlayer.addMediaPlayerEventListener(visionService);
         return visionService;
     }

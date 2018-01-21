@@ -65,6 +65,16 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
         finalizeFrame();
     }
 
+    @Override
+    public void onClose(Runnable runnable) {
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent windowEvent) {
+                runnable.run();
+            }
+        });
+    }
+
     private void prepareFrame() {
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         frame.addKeyListener(keyListener);

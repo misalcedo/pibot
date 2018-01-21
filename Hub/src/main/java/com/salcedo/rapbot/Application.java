@@ -38,19 +38,12 @@ public final class Application {
 
         final Uri pi2 = Uri.create("http://192.168.1.41");
         final Uri videoFeed = pi2.addPathSegment("/stream.mjpg");
-        final Path workingDirectory = Paths.get(
-                "/home",
-                "miguel",
-                "IdeaProjects",
-                "RapBot",
-                "spark-warehouse",
-                "snapshots.parquet"
-        );
+        final Path workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "production");
 
         final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
 
         final MotorService motorService = MotorServiceFactory.http(system, pi2.port(3000));
-        final VisionService visionService = VisionServiceFactory.http(system, pi2.port(3001));
+        final VisionService visionService = VisionServiceFactory.http(system, pi2.port(3001), workingDirectory);
         final SenseService senseService = SenseServiceFactory.http(system, pi2.port(3002));
 
         final Props hubProps = Hub.props(motorService, visionService, senseService, ui, workingDirectory);

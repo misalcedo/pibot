@@ -5,24 +5,26 @@ import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createTempFile;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-public class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter implements VisionService {
+public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter implements VisionService {
     private final Map<String, CompletableFuture<Path>> requests;
     private final MediaPlayer embeddedMediaPlayer;
+    private final Path workingDirectory;
 
-    MediaPlayerBackedVisionService(MediaPlayer embeddedMediaPlayer) {
-        this.requests = new ConcurrentHashMap<>();
+    MediaPlayerBackedVisionService(final MediaPlayer embeddedMediaPlayer, final Path workingDirectory) {
         this.embeddedMediaPlayer = embeddedMediaPlayer;
+        this.workingDirectory = workingDirectory;
+        this.requests = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -37,7 +39,7 @@ public class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter impl
 
     private Path createPath() {
         try {
-            return Files.createTempFile("image", ".jpg");
+            return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

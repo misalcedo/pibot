@@ -30,7 +30,7 @@ public final class LocalApplication {
         this.system = ActorSystem.create("RapBot");
     }
 
-    public static void main(final String[] arguments) throws Exception {
+    public static void main(final String[] arguments) {
         new LocalApplication().run();
     }
 
@@ -39,19 +39,12 @@ public final class LocalApplication {
         Kamon.addReporter(new ZipkinReporter());
 
         final Uri videoFeed = Uri.create("https://www.youtube.com/watch?v=EZW7et3tPuQ");
-        final Path workingDirectory = Paths.get(
-                "/home",
-                "miguel",
-                "IdeaProjects",
-                "RapBot",
-                "spark-warehouse",
-                "test-snapshots.parquet"
-        );
+        final Path workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "test");
 
         final SwingGraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
 
         final MotorService motorService = MotorServiceFactory.stub();
-        final VisionService visionService = VisionServiceFactory.vlcj(ui.getMediaPlayer());
+        final VisionService visionService = VisionServiceFactory.vlcj(ui.getMediaPlayer(), workingDirectory);
         final SenseService senseService = SenseServiceFactory.http(system, Uri.create(""));
 
         final Props hubProps = Hub.props(motorService, visionService, senseService, ui, workingDirectory);
@@ -59,6 +52,7 @@ public final class LocalApplication {
         system.actorOf(hubProps, "hub");
         system.registerOnTermination(Kamon::stopAllReporters);
 
+        ui.onClose(system::terminate);
         invokeLater(ui::display);
     }
 }

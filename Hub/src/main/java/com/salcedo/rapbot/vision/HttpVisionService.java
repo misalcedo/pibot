@@ -7,24 +7,24 @@ import akka.stream.Materializer;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static akka.stream.javadsl.FileIO.toPath;
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createTempFile;
 
 public final class HttpVisionService implements VisionService {
     private final Http http;
     private final Materializer materializer;
     private final Uri destination;
+    private final Path workingDirectory;
 
-    HttpVisionService(final Http http, final Materializer materializer, final Uri destination) {
+    HttpVisionService(final Http http, final Materializer materializer, final Uri destination, final Path workingDirectory) {
         this.http = http;
         this.materializer = materializer;
         this.destination = destination;
+        this.workingDirectory = workingDirectory;
     }
 
     @Override
@@ -54,7 +54,7 @@ public final class HttpVisionService implements VisionService {
 
     private Path createPath() {
         try {
-            return Files.createTempFile("image", ".jpg");
+            return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

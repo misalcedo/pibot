@@ -9,5 +9,7 @@ public interface GraphicalUserInterface {
      */
     void display();
 
+    void onClose(final Runnable runnable);
+
     void update(final SystemState state);
 }

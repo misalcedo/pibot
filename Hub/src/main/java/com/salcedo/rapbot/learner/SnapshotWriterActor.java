@@ -53,12 +53,13 @@ public class SnapshotWriterActor extends AbstractActor {
                 .write()
                 .mode(Append)
                 .format("parquet")
-                .save(path.toAbsolutePath().toString());
+                .save(path.resolve("snapshots.parquet").toAbsolutePath().toString());
     }
 
     @Override
     public void preStart() {
         buffer.clear();
+        getContext().getSystem().registerOnTermination(sqlContext.sparkSession()::stop);
         getContext().getSystem().eventStream().subscribe(self(), SystemSnapshot.class);
     }
 
