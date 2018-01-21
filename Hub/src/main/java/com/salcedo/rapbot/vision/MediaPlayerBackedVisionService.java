@@ -42,7 +42,7 @@ public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapte
     }
 
     private Path createPath() throws IOException {
-        return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".jpg");
+        return createTempFile(createDirectories(workingDirectory.resolve("images")), "image", ".png");
     }
 
     @Override
