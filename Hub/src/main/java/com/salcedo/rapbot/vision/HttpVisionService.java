@@ -29,32 +29,30 @@ public final class HttpVisionService implements VisionService {
 
     @Override
     public CompletionStage<Path> takePicture() {
-        final CompletableFuture<Path> completableFuture = new CompletableFuture<>();
-
         try {
             final Path path = createPath();
-            sendTakePictureRequest(path, completableFuture);
+            return sendTakePictureRequest(path);
         } catch (IOException e) {
+            final CompletableFuture<Path> completableFuture = new CompletableFuture<>();
             completableFuture.completeExceptionally(e);
+            return completableFuture;
         }
-
-        return completableFuture;
     }
 
-    private void sendTakePictureRequest(final Path path, final CompletableFuture<Path> completableFuture) {
-        http.singleRequest(createHttpRequest(), materializer)
+    private CompletionStage<Path> sendTakePictureRequest(Path path) {
+        return http.singleRequest(createHttpRequest(), materializer)
                 .thenApply(HttpResponse::entity)
                 .thenApply(HttpEntity::getDataBytes)
                 .thenCompose(source -> source.runWith(toPath(path), materializer))
-                .thenAccept(ioResult -> mapToPath(path, ioResult, completableFuture));
+                .thenApply(ioResult -> mapToPath(path, ioResult));
     }
 
-    private void mapToPath(final Path path, final IOResult ioResult, final CompletableFuture<Path> completableFuture) {
+    private Path mapToPath(final Path path, final IOResult ioResult) {
         if (ioResult.wasSuccessful()) {
-            completableFuture.complete(path);
+            return path;
         }
 
-        completableFuture.completeExceptionally(ioResult.getError());
+        throw new RuntimeException(ioResult.getError());
     }
 
     private HttpRequest createHttpRequest() {
