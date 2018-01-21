@@ -11,8 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.*;
 
 public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapter implements VisionService {
     private final Map<String, CompletableFuture<Path>> requests;
@@ -32,8 +31,12 @@ public final class MediaPlayerBackedVisionService extends MediaPlayerEventAdapte
         try {
             final Path path = createPath();
 
-            requests.put(path.toAbsolutePath().toString(), completableFuture);
-            embeddedMediaPlayer.saveSnapshot(path.toAbsolutePath().toFile());
+            if (embeddedMediaPlayer.saveSnapshot(path.toAbsolutePath().toFile())) {
+                requests.put(path.toAbsolutePath().toString(), completableFuture);
+            } else {
+                deleteIfExists(path);
+                completableFuture.cancel(true);
+            }
         } catch (IOException e) {
             completableFuture.completeExceptionally(e);
         }
