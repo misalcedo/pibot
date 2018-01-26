@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.userinterface;
+package com.salcedo.rapbot.hub;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorPath;
@@ -21,11 +21,11 @@ import java.util.Optional;
 import static java.util.stream.Collectors.joining;
 
 
-public class SnapshotBackedSystemState implements SystemState {
+public final class SnapshotBackedSystemState implements SystemState {
     private final SystemSnapshot systemSnapshot;
     private final ActorContext context;
 
-    SnapshotBackedSystemState(final SystemSnapshot systemSnapshot, final ActorContext context) {
+    public SnapshotBackedSystemState(final SystemSnapshot systemSnapshot, final ActorContext context) {
         this.systemSnapshot = systemSnapshot;
         this.context = context;
     }

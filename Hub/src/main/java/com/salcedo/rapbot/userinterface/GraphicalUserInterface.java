@@ -1,5 +1,7 @@
 package com.salcedo.rapbot.userinterface;
 
+import com.salcedo.rapbot.hub.SystemState;
+
 /**
  * Interface to control the GUI for RapBot.
  */

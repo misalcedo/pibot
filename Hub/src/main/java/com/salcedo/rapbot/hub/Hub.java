@@ -16,6 +16,7 @@ import com.salcedo.rapbot.sense.SenseService;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotRouterActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
+import com.salcedo.rapbot.snapshot.SystemSnapshot;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import com.salcedo.rapbot.vision.VisionActor;
@@ -69,7 +70,7 @@ public final class Hub extends AbstractActor {
         final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
         final ActorRef driver = getContext().actorOf(DriverActor.props(motors, new KeyboardDriverStrategy()), "driver");
 
-        getContext().actorOf(SnapshotWriterActor.props(workingDirectory), "writer");
+        //getContext().actorOf(SnapshotWriterActor.props(workingDirectory), "writer");
         getContext().actorOf(GraphicalUserInterfaceActor.props(gui), "gui");
 
         createSnapshot();
@@ -86,13 +87,19 @@ public final class Hub extends AbstractActor {
 
         context().system().eventStream().subscribe(snapshot, StartSnapshotMessage.class);
         context().system().eventStream().subscribe(snapshot, RegisterSubSystemMessage.class);
+        context().system().eventStream().subscribe(self(), SystemSnapshot.class);
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Terminated.class, this::terminate)
+                .match(SystemSnapshot.class, this::state)
                 .build();
+    }
+
+    private void state(final SystemSnapshot snapshot) {
+        getContext().getSystem().eventStream().publish(new SnapshotBackedSystemState(snapshot, context()));
     }
 
     private void terminate(Terminated message) {

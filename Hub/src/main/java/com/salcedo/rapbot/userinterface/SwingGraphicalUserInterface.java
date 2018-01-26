@@ -1,7 +1,7 @@
 package com.salcedo.rapbot.userinterface;
 
 import akka.http.javadsl.model.Uri;
-import uk.co.caprica.vlcj.binding.internal.libvlc_log_level_e;
+import com.salcedo.rapbot.hub.SystemState;
 import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;

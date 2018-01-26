@@ -1,4 +1,4 @@
-package com.salcedo.rapbot.userinterface;
+package com.salcedo.rapbot.hub;
 
 public interface SystemState {
     int actualOrientation();
