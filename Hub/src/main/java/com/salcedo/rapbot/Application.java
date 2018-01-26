@@ -37,7 +37,7 @@ public final class Application {
         Kamon.addReporter(new ZipkinReporter());
 
         final Uri pi2 = Uri.create("http://192.168.1.41");
-        final Uri videoFeed = pi2.addPathSegment("/stream.mjpg");
+        final Uri videoFeed = pi2.port(3001).addPathSegment("/stream.mjpg");
         final Path workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "production");
 
         final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);

@@ -10,3 +10,8 @@ build/
 
 # Project
 data/
+
+# UI
+WebUI/bower_components/
+WebUI/build/
+WebUI/node_modules/
