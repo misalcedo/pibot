@@ -1,7 +1,7 @@
 {
-  "name": "My App",
-  "short_name": "My App",
-  "description": "My App description",
+  "name": "Raspberry Pi Robot Web UI",
+  "short_name": "RapBot",
+  "description": "A Web interface for the Raspberry Pi robot.",
   "icons": [
     {
       "src": "images/manifest/icon-192x192.png",
