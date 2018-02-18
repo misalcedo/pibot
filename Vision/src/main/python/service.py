@@ -4,15 +4,19 @@ from stream import StreamingServer, BaseStreamingHandler
 
 
 class StreamingHandler(BaseStreamingHandler):
+    @staticmethod
+    def read_frame():
+        with video_output.condition:
+            video_output.condition.wait()
+            return video_output.frame
+
     def send_frame(self):
-        camera.capture(self.wfile, 'jpeg', use_video_port=True)
+        self.wfile.write(self.read_frame())
 
     def send_frames(self):
         try:
             while True:
-                with video_output.condition:
-                    video_output.condition.wait()
-                    frame = video_output.frame
+                frame = self.read_frame()
 
                 self.wfile.write(b'--FRAME\r\n')
                 self.send_header('Content-Type', 'image/jpeg')

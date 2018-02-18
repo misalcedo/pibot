@@ -22,7 +22,7 @@ class BaseStreamingHandler(BaseHTTPRequestHandler):
             self.index()
         elif self.path == '/stream.mjpg':
             self.stream()
-        elif self.path == '/still.bmp':
+        elif self.path == '/still.jpg':
             self.still()
         else:
             self.not_found()
@@ -32,7 +32,7 @@ class BaseStreamingHandler(BaseHTTPRequestHandler):
         self.send_header('Age', 0)
         self.send_header('Cache-Control', 'no-cache, private')
         self.send_header('Pragma', 'no-cache')
-        self.send_header('Content-Type', 'image/bmp')
+        self.send_header('Content-Type', 'image/jpeg')
         self.end_headers()
         self.send_frame()
 
