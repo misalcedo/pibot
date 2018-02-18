@@ -4,6 +4,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.Hub;
+import com.salcedo.rapbot.hub.ServiceFactory;
+import com.salcedo.rapbot.hub.SingletonServiceFactory;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.sense.SenseService;
@@ -37,7 +39,7 @@ public final class Application {
         Kamon.addReporter(new ZipkinReporter());
 
         final Uri pi2 = Uri.create("http://192.168.1.41");
-        final Uri videoFeed = pi2.port(3001).addPathSegment("/stream.mjpg");
+        final Uri videoFeed = pi2.port(3001).addPathSegment("stream.mjpg");
         final Path workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "production");
 
         final GraphicalUserInterface ui = GraphicalUserInterfaceFactory.awt(system, videoFeed);
@@ -46,7 +48,9 @@ public final class Application {
         final VisionService visionService = VisionServiceFactory.http(system, pi2.port(3001), workingDirectory);
         final SenseService senseService = SenseServiceFactory.http(system, pi2.port(3002));
 
-        final Props hubProps = Hub.props(motorService, visionService, senseService, ui, workingDirectory);
+        final ServiceFactory serviceFactory = new SingletonServiceFactory(motorService, visionService, senseService);
+
+        final Props hubProps = Hub.props(serviceFactory, ui, workingDirectory);
 
         system.actorOf(hubProps, "hub");
         system.registerOnTermination(Kamon::stopAllReporters);

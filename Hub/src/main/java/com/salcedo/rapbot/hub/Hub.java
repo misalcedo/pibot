@@ -8,11 +8,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.salcedo.rapbot.driver.DriverActor;
 import com.salcedo.rapbot.driver.KeyboardDriverStrategy;
-import com.salcedo.rapbot.learner.SnapshotWriterActor;
 import com.salcedo.rapbot.locomotion.MotorActor;
-import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.sense.SenseActor;
-import com.salcedo.rapbot.sense.SenseService;
 import com.salcedo.rapbot.snapshot.RegisterSubSystemMessage;
 import com.salcedo.rapbot.snapshot.SnapshotRouterActor;
 import com.salcedo.rapbot.snapshot.StartSnapshotMessage;
@@ -20,54 +17,38 @@ import com.salcedo.rapbot.snapshot.SystemSnapshot;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterface;
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceActor;
 import com.salcedo.rapbot.vision.VisionActor;
-import com.salcedo.rapbot.vision.VisionService;
 
 import java.nio.file.Path;
 
 public final class Hub extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(this);
-    private final MotorService motorService;
-    private final VisionService visionService;
-    private final SenseService senseService;
+    private final ServiceFactory serviceFactory;
     private final GraphicalUserInterface gui;
     private final Path workingDirectory;
 
     public Hub(
-            final MotorService motorService,
-            final VisionService visionService,
-            final SenseService senseService,
+            final ServiceFactory serviceFactory,
             final GraphicalUserInterface gui,
             final Path workingDirectory) {
-        this.motorService = motorService;
-        this.visionService = visionService;
-        this.senseService = senseService;
+        this.serviceFactory = serviceFactory;
         this.gui = gui;
         this.workingDirectory = workingDirectory;
     }
 
     public static Props props(
-            final MotorService motorService,
-            final VisionService visionService,
-            final SenseService senseService,
+            final ServiceFactory serviceFactory,
             final GraphicalUserInterface gui,
             final Path workingDirectory) {
-        return Props.create(
-                Hub.class,
-                motorService,
-                visionService,
-                senseService,
-                gui,
-                workingDirectory
-        );
+        return Props.create(Hub.class, serviceFactory, gui, workingDirectory);
     }
 
     @Override
     public void preStart() {
         log.info("Starting Hub with working directory of: {}.", workingDirectory);
 
-        final ActorRef motors = getContext().actorOf(MotorActor.props(motorService), "motors");
-        final ActorRef vision = getContext().actorOf(VisionActor.props(visionService), "vision");
-        final ActorRef sensors = getContext().actorOf(SenseActor.props(senseService), "sensors");
+        final ActorRef motors = getContext().actorOf(MotorActor.props(serviceFactory.motor()), "motors");
+        final ActorRef vision = getContext().actorOf(VisionActor.props(serviceFactory.vision()), "vision");
+        final ActorRef sensors = getContext().actorOf(SenseActor.props(serviceFactory.sense()), "sensors");
         final ActorRef driver = getContext().actorOf(DriverActor.props(motors, new KeyboardDriverStrategy()), "driver");
 
         //getContext().actorOf(SnapshotWriterActor.props(workingDirectory), "writer");

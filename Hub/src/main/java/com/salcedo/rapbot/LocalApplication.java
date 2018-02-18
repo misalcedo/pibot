@@ -4,6 +4,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.http.javadsl.model.Uri;
 import com.salcedo.rapbot.hub.Hub;
+import com.salcedo.rapbot.hub.ServiceFactory;
+import com.salcedo.rapbot.hub.SingletonServiceFactory;
 import com.salcedo.rapbot.locomotion.MotorService;
 import com.salcedo.rapbot.locomotion.MotorServiceFactory;
 import com.salcedo.rapbot.sense.SenseService;
@@ -47,7 +49,8 @@ public final class LocalApplication {
         final VisionService visionService = VisionServiceFactory.vlcj(ui.getMediaPlayer(), workingDirectory);
         final SenseService senseService = SenseServiceFactory.http(system, Uri.create(""));
 
-        final Props hubProps = Hub.props(motorService, visionService, senseService, ui, workingDirectory);
+        final ServiceFactory serviceFactory = new SingletonServiceFactory(motorService, visionService, senseService);
+        final Props hubProps = Hub.props(serviceFactory, ui, workingDirectory);
 
         system.actorOf(hubProps, "hub");
         system.registerOnTermination(Kamon::stopAllReporters);
