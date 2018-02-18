@@ -22,7 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="video-feed.html">
+<link rel="lazy-import" href="robot-cockpit.html">
 <link rel="lazy-import" href="my-view2.html">
 <link rel="lazy-import" href="my-view3.html">
 <link rel="lazy-import" href="my-view404.html">
@@ -79,7 +79,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
                 <app-toolbar>Menu</app-toolbar>
                 <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-                    <a name="video-feed" href="[[rootPath]]video-feed">Video Feed</a>
+                    <a name="robot-cockpit" href="[[rootPath]]robot-cockpit">Cockpit</a>
                     <a name="my-view2" href="[[rootPath]]my-view2">View Two</a>
                     <a name="my-view3" href="[[rootPath]]my-view3">View Three</a>
                 </iron-selector>
@@ -95,7 +95,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 </app-header>
 
                 <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
-                    <video-feed name="video-feed" feed-url="http://192.168.1.41:3001/stream.mjpg"></video-feed>
+                    <robot-cockpit name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg" orientation="90"></robot-cockpit>
                     <my-view2 name="my-view2"></my-view2>
                     <my-view3 name="my-view3"></my-view3>
                     <my-view404 name="my-view404"></my-view404>
@@ -133,8 +133,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _routePageChanged(page) {
                 // If no page was found in the route data, page will be an empty string.
-                // Default to 'video-feed' in that case.
-                this.page = page || 'video-feed';
+                // Default to 'robot-cockpit' in that case.
+                this.page = page || 'robot-cockpit';
 
                 // Close a non-persistent drawer when the page & route are changed.
                 if (!this.$.drawer.persistent) {

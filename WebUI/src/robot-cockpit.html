@@ -1,33 +1,35 @@
 <!-- Load the Polymer.Element base class -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="video-feed.html">
+<link rel="import" href="instrument-cluster.html">
 
-<dom-module id="video-feed">
+<dom-module id="robot-cockpit">
     <!-- Defines the element's style and local DOM -->
     <template>
         <style include="shared-styles">
-            :host {
-                display: block;
-
-                padding: 16px;
-            }
         </style>
 
-        <img src="[[feedUrl]]"/>
+        <video-feed feed-url="{{feedUrl}}"></video-feed>
+        <instrument-cluster throttle="[[throttle]]" orientation="{{orientation}}"></instrument-cluster>
     </template>
     <script>
         // Your new element extends the Polymer.Element base class
-        class VideoFeed extends Polymer.Element {
+        class RobotCockpit extends Polymer.Element {
             static get is() {
-                return 'video-feed';
+                return 'robot-cockpit';
             }
 
             static get properties() {
-                return {feedUrl: String};
+                return {
+                    feedUrl: String,
+                    throttle: Number,
+                    orientation: Number
+                }
             }
         }
 
         //Now, register your new custom element so the browser can use it
-        customElements.define(VideoFeed.is, VideoFeed);
+        customElements.define(RobotCockpit.is, RobotCockpit);
     </script>
 </dom-module>

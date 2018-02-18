@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>my-view1</title>
+
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../bower_components/web-component-tester/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <link rel="import" href="../src/my-view1.html">
+  </head>
+  <body>
+    <test-fixture id="BasicView">
+      <template>
+        <cockpit feed-url="images/favicon.ico" throttle="200" orientation="90"></cockpit>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('cockpit tests', function() {
+        test('Number in circle should be 1', function() {
+            const myView = fixture('BasicView');
+            const videoFeed = myView.shadowRoot.querySelector('video-feed');
+            assert.notEqual(videoFeed, undefined);
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -9,17 +9,17 @@ class StreamingHandler(BaseStreamingHandler):
 
     def send_frames(self):
         try:
-            video_output.truncate()
-
             while True:
-                frame = video_output.read()
-                if frame:
-                    self.wfile.write(b'--FRAME\r\n')
-                    self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame))
-                    self.end_headers()
-                    self.wfile.write(frame)
-                    self.wfile.write(b'\r\n')
+                with video_output.condition:
+                    video_output.condition.wait()
+                    frame = video_output.frame
+
+                self.wfile.write(b'--FRAME\r\n')
+                self.send_header('Content-Type', 'image/jpeg')
+                self.send_header('Content-Length', len(frame))
+                self.end_headers()
+                self.wfile.write(frame)
+                self.wfile.write(b'\r\n')
         except Exception as e:
             self.log_message('Removed streaming client %s: %s', self.client_address, str(e))
 

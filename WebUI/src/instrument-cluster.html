@@ -1,33 +1,33 @@
 <!-- Load the Polymer.Element base class -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="degree-gauge.html">
 
-<dom-module id="video-feed">
+<dom-module id="instrument-cluster">
     <!-- Defines the element's style and local DOM -->
     <template>
         <style include="shared-styles">
-            :host {
-                display: block;
-
-                padding: 16px;
-            }
         </style>
 
-        <img src="[[feedUrl]]"/>
+        <p>Hello!</p>
+        <degree-gauge value="{{orientation}}"></degree-gauge>
     </template>
     <script>
         // Your new element extends the Polymer.Element base class
-        class VideoFeed extends Polymer.Element {
+        class InstrumentCluster extends Polymer.Element {
             static get is() {
-                return 'video-feed';
+                return 'instrument-cluster';
             }
 
             static get properties() {
-                return {feedUrl: String};
+                return {
+                    throttle: Number,
+                    orientation: Number
+                }
             }
         }
 
         //Now, register your new custom element so the browser can use it
-        customElements.define(VideoFeed.is, VideoFeed);
+        customElements.define(InstrumentCluster.is, InstrumentCluster);
     </script>
 </dom-module>

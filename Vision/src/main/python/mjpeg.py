@@ -1,28 +1,23 @@
 from io import BytesIO
-from collections import deque
+from threading import Condition
 
 
 class FrameSplitter:
     def __init__(self):
+        self.frame = None
         self.output = BytesIO()
-        self.queue = deque()
+        self.condition = Condition()
 
     def write(self, buffer):
         if buffer.startswith(b'\xff\xd8'):
-            size = self.output.tell()
+            # New frame, copy the existing buffer's content and notify all
+            # clients it's available
+            self.output.truncate()
+
+            with self.condition:
+                self.frame = self.output.getvalue()
+                self.condition.notify_all()
+
             self.output.seek(0)
 
-            if size > 0:
-                self.queue.append(self.output.read(size))
-                self.output.seek(0)
-
-        self.output.write(buffer)
-
-    def read(self):
-        try:
-            return self.queue.pop()
-        except IndexError:
-            return None
-
-    def truncate(self):
-        self.queue.clear()
+        return self.output.write(buffer)
