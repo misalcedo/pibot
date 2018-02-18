@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
+import akka.actor.ActorRef;
 import akka.actor.Status;
 
 import java.time.Instant;
@@ -37,6 +38,11 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
         if (isDone()) {
             end = Instant.now();
         }
+    }
+
+    @Override
+    public void addSnapshot(SnapshotMessage message, ActorRef sender) {
+        addSnapshot(message, sender.path());
     }
 
     private boolean hasResponded(ActorPath actor) {
@@ -95,6 +101,11 @@ public class SingleResponseSystemSnapshot implements SystemSnapshot {
     @Override
     public boolean isSubsystem(final ActorPath path) {
         return subsystems.stream().anyMatch(isEqual(path));
+    }
+
+    @Override
+    public boolean isSubsystem(ActorRef sender) {
+        return isSubsystem(sender.path());
     }
 
     @Override

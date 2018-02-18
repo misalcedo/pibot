@@ -21,7 +21,6 @@ import kamon.zipkin.ZipkinReporter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static java.nio.file.Files.createTempDirectory;
 import static javax.swing.SwingUtilities.invokeLater;
 
 public final class LocalApplication {

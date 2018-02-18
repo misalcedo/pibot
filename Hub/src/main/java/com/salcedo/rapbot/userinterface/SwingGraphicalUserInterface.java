@@ -14,7 +14,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import static java.awt.BorderLayout.*;
-import static java.awt.Color.GREEN;
 import static java.awt.Color.RED;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import static javax.swing.SwingConstants.VERTICAL;
@@ -25,13 +24,9 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
     private final KeyListener keyListener;
     private final JProgressBar throttle;
     private final JProgressBar targetOrientation;
-    private final JProgressBar actualOrientation;
     private final JLabel snapshotId;
     private final JLabel snapshotDuration;
-    private final JLabel snapshotSubsystems;
     private final JLabel snapshotCompletedSubsystems;
-    private final JLabel fullSensorOrientation;
-    private final JLabel acceleration;
     private final JLabel leftMotor;
     private final JLabel rightMotor;
     private final JLabel picture;
@@ -45,14 +40,10 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
         this.mediaPlayerFactory = new MediaPlayerFactory();
         this.mediaPlayer = mediaPlayerFactory.newEmbeddedMediaPlayer();
         this.targetOrientation = new JProgressBar();
-        this.actualOrientation = new JProgressBar();
         this.throttle = new JProgressBar();
         this.snapshotId = new JLabel();
         this.snapshotDuration = new JLabel();
-        this.snapshotSubsystems = new JLabel();
         this.snapshotCompletedSubsystems = new JLabel();
-        this.fullSensorOrientation = new JLabel();
-        this.acceleration = new JLabel();
         this.leftMotor = new JLabel();
         this.rightMotor = new JLabel();
         this.picture = new JLabel();
@@ -75,6 +66,34 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
         });
     }
 
+    @Override
+    public void update(SystemState state) {
+        updateSnapshot(state);
+        updateMotors(state);
+        updateDriver(state);
+        updateVision(state);
+    }
+
+    private void updateVision(SystemState state) {
+        picture.setText(state.getImagePath());
+    }
+
+    private void updateSnapshot(SystemState state) {
+        snapshotId.setText(state.getSnapshotId());
+        snapshotDuration.setText(state.getSnapshotDuration());
+        snapshotCompletedSubsystems.setText(state.getCompletedSnapshotSubsystems());
+    }
+
+    private void updateDriver(SystemState state) {
+        throttle.setValue(state.throttle());
+        targetOrientation.setValue(state.targetOrientation());
+    }
+
+    private void updateMotors(SystemState state) {
+        leftMotor.setText(state.getLeftMotorState());
+        rightMotor.setText(state.getRightMotorState());
+    }
+
     private void prepareFrame() {
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
         frame.addKeyListener(keyListener);
@@ -83,8 +102,7 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
 
     private void setContent() {
         frame.add(createVideoFeed(), PAGE_START);
-        frame.add(createActualOrientation(), LINE_START);
-        frame.add(createTargetOrientation(), CENTER);
+        frame.add(createTargetOrientation(), LINE_START);
         frame.add(createThrottle(), LINE_END);
         frame.add(createSnapshotInfo(), PAGE_END);
     }
@@ -96,14 +114,8 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
         panel.add(snapshotId);
         panel.add(new JLabel("Duration (milliseconds): "));
         panel.add(snapshotDuration);
-        panel.add(new JLabel("Subsystems: "));
-        panel.add(snapshotSubsystems);
         panel.add(new JLabel("Completed Subsystems: "));
         panel.add(snapshotCompletedSubsystems);
-        panel.add(new JLabel("Sensor Orientation: "));
-        panel.add(fullSensorOrientation);
-        panel.add(new JLabel("Acceleration (centimeters/second^2): "));
-        panel.add(acceleration);
         panel.add(new JLabel("Left Motor: "));
         panel.add(leftMotor);
         panel.add(new JLabel("Right Motor: "));
@@ -130,10 +142,6 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
 
     private Component createTargetOrientation() {
         return createOrientation(targetOrientation, RED);
-    }
-
-    private Component createActualOrientation() {
-        return createOrientation(actualOrientation, GREEN);
     }
 
     private Component createOrientation(final JProgressBar progressBar, final Color color) {
@@ -183,49 +191,13 @@ public class SwingGraphicalUserInterface extends WindowAdapter implements Graphi
         mediaPlayer.playMedia(videoFeed.toString(), ":network-caching=0");
     }
 
-    @Override
-    public void update(SystemState state) {
-        updateSnapshot(state);
-        updateSensors(state);
-        updateMotors(state);
-        updateDriver(state);
-        updateVision(state);
-    }
-
-    private void updateVision(SystemState state) {
-        picture.setText(state.getImagePath());
-    }
-
-    private void updateSnapshot(SystemState state) {
-        snapshotId.setText(state.getSnapshotId());
-        snapshotDuration.setText(state.getSnapshotDuration());
-        snapshotSubsystems.setText(state.getSnapshotSubsystems());
-        snapshotCompletedSubsystems.setText(state.getCompletedSnapshotSubsystems());
-    }
-
-    private void updateSensors(SystemState state) {
-        fullSensorOrientation.setText(state.get3DOrientation());
-        acceleration.setText(state.get3DAcceleration());
-        actualOrientation.setValue(state.actualOrientation());
-    }
-
-    private void updateDriver(SystemState state) {
-        throttle.setValue(state.throttle());
-        targetOrientation.setValue(state.targetOrientation());
-    }
-
-    private void updateMotors(SystemState state) {
-        leftMotor.setText(state.getLeftMotorState());
-        rightMotor.setText(state.getRightMotorState());
-    }
-
-    @Override
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }    @Override
     public void windowClosing(WindowEvent windowEvent) {
         mediaPlayer.release();
         mediaPlayerFactory.release();
     }
 
-    public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
-    }
+
 }

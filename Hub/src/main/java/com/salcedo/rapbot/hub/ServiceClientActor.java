@@ -1,9 +1,12 @@
 package com.salcedo.rapbot.hub;
 
 import akka.actor.AbstractActor;
+import akka.actor.Status;
 import akka.japi.pf.ReceiveBuilder;
 import akka.pattern.CircuitBreaker;
 import com.salcedo.rapbot.snapshot.ObjectSnapshotMessage;
+import com.salcedo.rapbot.snapshot.SnapshotActor;
+import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot;
 import com.salcedo.rapbot.snapshot.SnapshotMessage;
 import com.salcedo.rapbot.snapshot.TakeSnapshotMessage;
 import scala.concurrent.duration.Duration;
@@ -34,16 +37,16 @@ public abstract class ServiceClientActor extends AbstractActor {
 
     protected ReceiveBuilder baseReceiveBuilder() {
         return receiveBuilder()
-                .match(TakeSnapshotMessage.class, this::snapshot);
+                .match(TakeSubSystemSnapshot.class, this::snapshot);
     }
 
-    protected void snapshot(final TakeSnapshotMessage message) {
+    protected void snapshot(final TakeSubSystemSnapshot message) {
         if (snapshotRequest.isDone()) {
             snapshotRequest = callWithBreaker(this::snapshot).toCompletableFuture();
         }
 
-        final CompletionStage<SnapshotMessage> snapshotStage = snapshotRequest
-                .thenApply(response -> new ObjectSnapshotMessage(message.getUuid(), response));
+        final CompletionStage<Status.Success> snapshotStage = snapshotRequest
+                .thenApply(Status.Success::new);
         pipe(snapshotStage, getContext().dispatcher()).to(sender(), self());
     }
 

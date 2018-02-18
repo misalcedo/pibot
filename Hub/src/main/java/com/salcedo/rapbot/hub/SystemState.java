@@ -1,9 +1,7 @@
 package com.salcedo.rapbot.hub;
 
 public interface SystemState {
-    int actualOrientation();
     int targetOrientation();
-    String get3DOrientation();
     int throttle();
 
     String getSnapshotId();
@@ -12,10 +10,7 @@ public interface SystemState {
     String getLeftMotorState();
     String getRightMotorState();
 
-    String getSnapshotSubsystems();
     String getCompletedSnapshotSubsystems();
 
     String getImagePath();
-
-    String get3DAcceleration();
 }

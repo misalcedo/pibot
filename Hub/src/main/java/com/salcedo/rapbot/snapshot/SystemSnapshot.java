@@ -1,6 +1,7 @@
 package com.salcedo.rapbot.snapshot;
 
 import akka.actor.ActorPath;
+import akka.actor.ActorRef;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -9,6 +10,8 @@ import java.util.UUID;
 
 public interface SystemSnapshot {
     void addSnapshot(SnapshotMessage message, ActorPath sender);
+
+    void addSnapshot(SnapshotMessage message, ActorRef sender);
 
     boolean isDone();
 
@@ -27,4 +30,5 @@ public interface SystemSnapshot {
     Set<ActorPath> getCompletedSubsystems();
 
     boolean isSubsystem(final ActorPath path);
+    boolean isSubsystem(final ActorRef sender);
 }
