@@ -16,7 +16,7 @@ def update_motor(motor):
 def drive():
     app.logger.info("Received request to update motors: %s", request.json)
 
-    for motor in request.json["motors"]:
+    for motor in request.json.values():
         update_motor(motor)
 
     return jsonify(vehicle.dict())
@@ -31,4 +31,4 @@ def release():
 
 @app.route('/motors', methods=['GET'])
 def state():
-    return jsonify(vehicle.dict())
+    return jsonify({'backLeft': vehicle.motors[0], 'backRight': vehicle.motors[1]})
