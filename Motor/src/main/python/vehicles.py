@@ -17,8 +17,6 @@ class Vehicle:
         motor.run(command + 1)
         motor.setSpeed(speed)
 
-        print("Set %d motor to %d command with %d speed" % (index + 1, command + 1, speed))
-
         motor_state = {"location": index, "command": command, "speed": speed}
         n = len(self.motors)
 
