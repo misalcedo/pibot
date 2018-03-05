@@ -34,7 +34,7 @@ class SnapshotActor(val uuid: UUID, subsystems: Set[ActorRef]) extends Actor wit
   }
 
   private def fail(message: Status.Failure): Unit = {
-    log.error("Received failure for {}.", sender, message.cause)
+    log.error("Received failure for {}. Cause: {}", sender, message.cause)
     addResponse(message)
   }
 

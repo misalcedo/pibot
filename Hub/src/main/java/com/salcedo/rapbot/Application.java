@@ -1,3 +1,4 @@
+/*
 package com.salcedo.rapbot;
 
 import akka.actor.ActorSystem;
@@ -58,3 +59,4 @@ public final class Application {
         invokeLater(ui::display);
     }
 }
+*/

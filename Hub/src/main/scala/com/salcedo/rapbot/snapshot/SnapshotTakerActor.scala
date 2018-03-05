@@ -9,7 +9,7 @@ import com.salcedo.rapbot.snapshot.SnapshotTakerActor.{RegisterSubSystem, TakeSn
 
 object SnapshotTakerActor {
 
-  case class TakeSnapshot()
+  case object TakeSnapshot
 
   case class RegisterSubSystem(subsystem: ActorRef)
 
@@ -21,14 +21,14 @@ class SnapshotTakerActor() extends Actor with ActorLogging {
   var router = Router(BroadcastRoutingLogic())
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[TakeSnapshot])
+    context.system.eventStream.subscribe(self, TakeSnapshot.getClass)
     context.system.eventStream.subscribe(self, classOf[RegisterSubSystem])
   }
 
   override def receive: PartialFunction[Any, Unit] = {
     case subsystem: RegisterSubSystem => this.register(subsystem)
     case terminated: Terminated => this.terminate(terminated)
-    case _: TakeSnapshot => this.snapshot()
+    case TakeSnapshot => this.snapshot()
   }
 
   private def snapshot(): Unit = {

@@ -69,7 +69,7 @@ public final class SnapshotBackedSystemState implements SystemState {
 
     @Override
     public String getCompletedSnapshotSubsystems() {
-        return subsystems.toString();
+        return subsystems.mkString("{ ", ", ", " }");
     }
 
     @Override

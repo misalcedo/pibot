@@ -2,17 +2,22 @@ package com.salcedo.rapbot.hub
 
 import java.nio.file.{Path, Paths}
 
-import akka.actor.{Actor, ActorLogging, Props, Status, Terminated}
-import com.salcedo.rapbot.driver.{DriveState, DriverActor}
-import com.salcedo.rapbot.locomotion.{Location, MotorActor, MotorResponse}
-import com.salcedo.rapbot.sense.SenseActor
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Status, Terminated}
+import com.salcedo.rapbot.driver.DriverActor.Drive
+import com.salcedo.rapbot.hub.Hub.{NullSystem, SubSystem, System}
+import com.salcedo.rapbot.motor.MotorActor.Vehicle
 import com.salcedo.rapbot.snapshot.SnapshotActor.Snapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.{RegisterSubSystem, TakeSnapshot}
 import com.salcedo.rapbot.userinterface.{GraphicalUserInterface, GraphicalUserInterfaceActor}
-import com.salcedo.rapbot.vision.VisionActor
 
 object Hub {
+
+  sealed trait System
+
+  case class SubSystem(props: Props, name: String) extends System
+
+  case class NullSystem() extends System
 
   case class SystemState(
                           snapshotId: String,
@@ -23,29 +28,25 @@ object Hub {
                           image: String
                         )
 
-  def props(serviceFactory: ServiceFactory, gui: GraphicalUserInterface, workingDirectory: Path): Props = {
-    Props(new Hub(serviceFactory, gui, workingDirectory))
+  def props(gui: GraphicalUserInterface, driver: System, vision: System, motor: System): Props = {
+    Props(new Hub(gui, driver, vision, motor))
   }
 }
 
-class Hub(serviceFactory: ServiceFactory, gui: GraphicalUserInterface, workingDirectory: Path) extends Actor with ActorLogging {
-  private val motors = context.actorOf(MotorActor.props(serviceFactory.motor), "motor")
-  private val vision = context.actorOf(VisionActor.props(serviceFactory.vision), "vision")
-  private val sensors = context.actorOf(SenseActor.props(serviceFactory.sense), "sense")
-  private val driver = context.actorOf(DriverActor.props(motors), "driver")
+class Hub(gui: GraphicalUserInterface, driverSystem: System, visionSystem: System, motorSystem: System) extends Actor with ActorLogging {
+  private val driver = actorFor(driverSystem)
+  private val vision = actorFor(visionSystem)
+  private val motor = actorFor(motorSystem)
   private val snapshot = context.actorOf(SnapshotTakerActor.props, "snapshot")
   private val ui = context.actorOf(GraphicalUserInterfaceActor.props(gui), "gui")
 
   override def preStart(): Unit = {
-    log.info("Starting Hub with working directory of: {}.", workingDirectory)
-
     context.system.eventStream.subscribe(self, classOf[Snapshot])
 
-    snapshot ! RegisterSubSystem(vision)
     snapshot ! RegisterSubSystem(driver)
-    snapshot ! RegisterSubSystem(motors)
-    snapshot ! RegisterSubSystem(sensors)
-    snapshot ! TakeSnapshot()
+    snapshot ! RegisterSubSystem(vision)
+    snapshot ! RegisterSubSystem(motor)
+    snapshot ! TakeSnapshot
   }
 
   override def receive: PartialFunction[Any, Unit] = {
@@ -53,21 +54,27 @@ class Hub(serviceFactory: ServiceFactory, gui: GraphicalUserInterface, workingDi
     case snapshot: Snapshot => this.state(snapshot)
   }
 
+  def actorFor(system: System): ActorRef = {
+    system match {
+      case SubSystem(props, name) => context.actorOf(props, name)
+      case NullSystem() => context.actorOf(NullActor.props)
+    }
+  }
 
   private def state(snapshot: Snapshot): Unit = {
-    val driveState: Option[DriveState] = snapshot.responses.get(driver)
+    val drive: Option[Drive] = snapshot.responses.get(driver)
       .filter(_.isInstanceOf[Status.Success])
       .map(_.asInstanceOf[Status.Success])
       .map(_.status)
-      .filter(_.isInstanceOf[DriveState])
-      .map(_.asInstanceOf[DriveState])
+      .filter(_.isInstanceOf[Drive])
+      .map(_.asInstanceOf[Drive])
 
-    val motorResponse: Option[MotorResponse] = snapshot.responses.get(motors)
+    val motorResponse: Option[Vehicle] = snapshot.responses.get(null)
       .filter(_.isInstanceOf[Status.Success])
       .map(_.asInstanceOf[Status.Success])
       .map(_.status)
-      .filter(_.isInstanceOf[MotorResponse])
-      .map(_.asInstanceOf[MotorResponse])
+      .filter(_.isInstanceOf[Vehicle])
+      .map(_.asInstanceOf[Vehicle])
 
     val image: Option[Path] = snapshot.responses.get(vision)
       .filter(_.isInstanceOf[Status.Success])
@@ -82,19 +89,18 @@ class Hub(serviceFactory: ServiceFactory, gui: GraphicalUserInterface, workingDi
         .filter(_._2.isInstanceOf[Status.Success])
         .keySet
         .map(_.path)
-        .map(_.toStringWithoutAddress),
+        .map(_.name),
       snapshot.duration,
-      driveState.map(_.getThrottle).getOrElse(0),
-      driveState.map(_.getOrientation).getOrElse(0),
-      motorResponse.map(_.getMotor(Location.BACK_LEFT))
+      drive.map(_.throttle).getOrElse(0),
+      drive.map(_.orientation).getOrElse(90),
+      motorResponse.map(_.backLeft)
         .map(_.toString)
         .getOrElse(""),
-      motorResponse.map(_.getMotor(Location.BACK_RIGHT))
+      motorResponse.map(_.backRight)
         .map(_.toString)
         .getOrElse(""),
       image.map(_.toAbsolutePath).getOrElse(Paths.get("/dev/null"))
     ))
-    // TODO: publish SystemState case class, Hub is the only class that should know the names of its child actors.
   }
 
   private def terminate(message: Terminated): Unit = {

@@ -1,5 +1,6 @@
 package com.salcedo.rapbot.driver;
 
+import com.salcedo.rapbot.Range;
 import org.junit.Before;
 import org.junit.Test;
 
