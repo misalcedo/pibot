@@ -27,7 +27,7 @@ object CommandDriverActor {
 
   case object Slower extends Command
 
-  def props: Props = Props(new CommandDriverActor(15, 5))
+  def props: Props = Props(new CommandDriverActor(5, 15))
 }
 
 class CommandDriverActor(val throttleStep: Int, val orientationStep: Int) extends Actor with ActorLogging {
