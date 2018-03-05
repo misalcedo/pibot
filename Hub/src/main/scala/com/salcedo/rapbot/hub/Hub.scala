@@ -17,7 +17,7 @@ object Hub {
 
   case class SubSystem(props: Props, name: String) extends System
 
-  case class NullSystem() extends System
+  case object NullSystem extends System
 
   case class SystemState(
                           snapshotId: String,
@@ -57,7 +57,7 @@ class Hub(gui: GraphicalUserInterface, driverSystem: System, visionSystem: Syste
   def actorFor(system: System): ActorRef = {
     system match {
       case SubSystem(props, name) => context.actorOf(props, name)
-      case NullSystem() => context.actorOf(NullActor.props)
+      case NullSystem => context.actorOf(NullActor.props)
     }
   }
 

@@ -45,15 +45,14 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
       case Update(orientation, throttle) =>
         val updatedOrientation = drive.orientation + orientation.getOrElse(0)
         val updatedThrottle = drive.throttle + throttle.getOrElse(0)
-        drive.copy(orientation = updatedOrientation, throttle = updatedThrottle)
+
+        drive.copy(updatedOrientation, updatedThrottle)
       case Replace(orientation, throttle) =>
-        val replacedOrientation = orientation.getOrElse(drive.orientation)
-        val replacedThrottle = throttle.getOrElse(drive.throttle)
-        drive.copy(orientation = replacedOrientation, throttle = replacedThrottle)
+        drive.copy(orientation.getOrElse(drive.orientation), throttle.getOrElse(drive.throttle))
     }
 
     // TODO: bound throttle and make orientation circular
-    drive = drive.copy(orientation = drive.orientation, throttle = drive.throttle)
+    drive = drive.copy(modulo(drive.orientation), bound(drive.throttle))
 
     context.system.eventStream.publish(vehicle(drive))
     context.system.eventStream.publish(TakeSnapshot)
