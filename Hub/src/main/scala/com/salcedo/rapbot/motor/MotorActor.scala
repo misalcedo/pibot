@@ -1,102 +1,96 @@
 package com.salcedo.rapbot.motor
 
-import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
+import java.util.UUID
+
+import akka.actor.Status.Success
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl.{JsonFraming, Sink}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
-import com.salcedo.rapbot.motor.MotorActor.{Dequeue, Motor, Vehicle}
-import com.salcedo.rapbot.snapshot.RemoteSnapshot
+import com.salcedo.rapbot.motor.MotorActor._
+import com.salcedo.rapbot.remote.ActorBreaker
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
 import net.liftweb.json.Serialization.{read, write}
 import net.liftweb.json._
-import net.liftweb.json.ext.EnumSerializer
 
-import scala.concurrent.{Future, Promise}
-
-object Location extends Enumeration {
-  val BackLeft, BackRight = Value
-}
-
-object Command extends Enumeration {
-  val Forward, Backward, Brake, Release = Value
-}
+import scala.concurrent.Future
 
 object MotorActor {
 
-  final case class Vehicle(backLeft: Motor, backRight: Motor)
+  case class Vehicle(backLeft: Motor, backRight: Motor)
 
-  final case class Motor(speed: Int, command: Command.Value, location: Location.Value)
+  sealed case class Command(value: Int)
 
-  final case object Dequeue
+  case object Forward extends Command(1)
+  case object Backward extends Command(2)
+  case object Brake extends Command(3)
+  case object Release extends Command(4)
+
+  case class Motor(speed: Int, command: Command)
+
+  case class Pushed(version: UUID)
 
   def props(uri: Uri): Props = Props(new MotorActor(uri))
 }
 
-class MotorActor(val uri: Uri) extends Actor with RemoteSnapshot with ActorLogging {
-
-  import context.dispatcher
-
+class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging {
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
-  implicit val formats: Formats = DefaultFormats + new EnumSerializer(Location) + new EnumSerializer(Command)
+  implicit val formats: Formats = DefaultFormats
 
   val http = Http(context.system)
-  var promise: Promise[Unit] = Promise().success()
-  var next: Option[Vehicle] = None
+  var vehicle = Vehicle(Motor(0, Release), Motor(0, Release))
+  var version: UUID = nextVersion
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[Vehicle])
+    send()
   }
 
   override def receive: PartialFunction[Any, Unit] = {
-    case vehicle: Vehicle => this.enqueue(vehicle)
-    case Dequeue => this.dequeue()
+    case vehicle: Vehicle => this.update(vehicle)
+    case Pushed(v) => this.push(v)
     case _: TakeSubSystemSnapshot => this.snapshot()
   }
 
-  def enqueue(vehicle: Vehicle): Unit = {
-    next = Some(vehicle)
-    dequeue()
-  }
-
-  def dequeue(): Unit = {
-    if (promise.isCompleted) {
-      promise = Promise()
-
-      next.foreach(update)
-      next = None
-    }
-  }
-
   def update(vehicle: Vehicle): Unit = {
-    promise.future.onComplete(self ! _)
+    this.version = nextVersion
+    this.vehicle = vehicle
+  }
 
+  private def nextVersion = {
+    UUID.randomUUID()
+  }
+
+  def push(pushedVersion: UUID): Unit = {
+    if (version.equals(pushedVersion)) {
+      log.debug("Received a pushed message for '{}' version", version)
+      return
+    }
+
+    send()
+  }
+
+  def send(): Unit = {
     val request = HttpRequest(
       uri = uri.withPath(Uri.Path("/motors")),
       method = HttpMethods.PUT,
       entity = HttpEntity(ContentTypes.`application/json`, write(vehicle))
     )
 
-    http.singleRequest(request).flatMap {
-      case HttpResponse(StatusCodes.OK, _, entity, _) =>
-        entity.dataBytes.map(_.utf8String).runWith(Sink.seq).onComplete(f => log.info("Updated motors: {}", f.get.head))
-        promise.success().future
-      case HttpResponse(statusCode, _, entity, _) =>
-        entity.discardBytes()
-        val message = s"Received a response with a status code other than 200 OK. Status: $statusCode"
-        promise.failure(new IllegalStateException(message))
-        sys.error(message)
-    }
-  }
-
-  override def remoteSnapshot: Future[Vehicle] = {
-    http.singleRequest(HttpRequest(uri = uri.withPath(Uri.Path("/motors")))).flatMap {
+    val future = http.singleRequest(request).flatMap {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
         parseVehicle(entity)
       case HttpResponse(statusCode, _, entity, _) =>
         entity.discardBytes()
         sys.error(s"Received a response with a status code other than 200 OK. Status: $statusCode")
-    }
+    }(context.dispatcher)
+
+    future.onComplete(_ => self ! Pushed(version))(context.dispatcher)
+  }
+
+  def snapshot(): Unit = {
+    sender() ! Success(vehicle)
   }
 
   private def parseVehicle(entity: ResponseEntity): Future[Vehicle] = {
@@ -105,6 +99,6 @@ class MotorActor(val uri: Uri) extends Actor with RemoteSnapshot with ActorLoggi
       .map(_.utf8String)
       .map(read[Vehicle])
       .runWith(Sink.seq)
-      .map(_.head)
+      .map(_.head)(context.dispatcher)
   }
 }

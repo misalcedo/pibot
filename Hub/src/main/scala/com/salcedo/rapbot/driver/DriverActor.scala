@@ -7,7 +7,7 @@ import akka.actor._
 import com.salcedo.rapbot.driver.CommandDriverActor.Command
 import com.salcedo.rapbot.driver.DriverActor.{Drive, DriveChange, Replace, Update}
 import com.salcedo.rapbot.motor.MotorActor._
-import com.salcedo.rapbot.motor.{Command, Location}
+import com.salcedo.rapbot.motor.MotorActor.{Command, Location}
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 

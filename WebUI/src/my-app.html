@@ -36,125 +36,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                 display: block;
             }
-
-            app-drawer-layout:not([narrow]) [drawer-toggle] {
-                display: none;
-            }
-
-            app-header {
-                color: #fff;
-                background-color: var(--app-primary-color);
-            }
-
-            app-header paper-icon-button {
-                --paper-icon-button-ink-color: white;
-            }
-
-            .drawer-list {
-                margin: 0 20px;
-            }
-
-            .drawer-list a {
-                display: block;
-                padding: 0 16px;
-                text-decoration: none;
-                color: var(--app-secondary-color);
-                line-height: 40px;
-            }
-
-            .drawer-list a.iron-selected {
-                color: black;
-                font-weight: bold;
-            }
         </style>
 
-        <app-location route="{{route}}" url-space-regex="^[[rootPath]]">
-        </app-location>
-
-        <app-route route="{{route}}" pattern="[[rootPath]]:page" data="{{routeData}}" tail="{{subroute}}">
-        </app-route>
-
-        <app-drawer-layout fullbleed narrow="{{narrow}}">
-            <!-- Drawer content -->
-            <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
-                <app-toolbar>Menu</app-toolbar>
-                <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-                    <a name="robot-cockpit" href="[[rootPath]]robot-cockpit">Cockpit</a>
-                    <a name="my-view2" href="[[rootPath]]my-view2">View Two</a>
-                    <a name="my-view3" href="[[rootPath]]my-view3">View Three</a>
-                </iron-selector>
-            </app-drawer>
-
-            <!-- Main content -->
-            <app-header-layout has-scrolling-region>
-                <app-header slot="header" condenses reveals effects="waterfall">
-                    <app-toolbar>
-                        <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-                        <div main-title>RapBot</div>
-                    </app-toolbar>
-                </app-header>
-
-                <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
-                    <robot-cockpit name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg" orientation="90"></robot-cockpit>
-                    <my-view2 name="my-view2"></my-view2>
-                    <my-view3 name="my-view3"></my-view3>
-                    <my-view404 name="my-view404"></my-view404>
-                </iron-pages>
-            </app-header-layout>
-        </app-drawer-layout>
+        <robot-cockpit name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg" orientation="90"></robot-cockpit>
     </template>
 
     <script>
         class MyApp extends Polymer.Element {
             static get is() {
                 return 'my-app';
-            }
-
-            static get properties() {
-                return {
-                    page: {
-                        type: String,
-                        reflectToAttribute: true,
-                        observer: '_pageChanged',
-                    },
-                    routeData: Object,
-                    subroute: String,
-                    // This shouldn't be neccessary, but the Analyzer isn't picking up
-                    // Polymer.Element#rootPath
-                    rootPath: String,
-                };
-            }
-
-            static get observers() {
-                return [
-                    '_routePageChanged(routeData.page)',
-                ];
-            }
-
-            _routePageChanged(page) {
-                // If no page was found in the route data, page will be an empty string.
-                // Default to 'robot-cockpit' in that case.
-                this.page = page || 'robot-cockpit';
-
-                // Close a non-persistent drawer when the page & route are changed.
-                if (!this.$.drawer.persistent) {
-                    this.$.drawer.close();
-                }
-            }
-
-            _pageChanged(page) {
-                // Load page import on demand. Show 404 page if fails
-                const resolvedPageUrl = this.resolveUrl(page + '.html');
-                Polymer.importHref(
-                    resolvedPageUrl,
-                    null,
-                    this._showPage404.bind(this),
-                    true
-                );
-            }
-
-            _showPage404() {
-                this.page = 'view404';
             }
         }
 
