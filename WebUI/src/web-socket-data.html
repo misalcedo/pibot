@@ -1,10 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 
 <dom-module id="web-socket-data">
-    <template>
-        <p>Url: [[url]]</p>
-        <p>Data: [[_stringify(data)]]</p>
-    </template>
     <script>
         class WebSocketData extends Polymer.Element {
             static get is() {
@@ -55,10 +51,6 @@
 
             close() {
                 this.socket.close();
-            }
-
-            _stringify(object) {
-                return JSON.stringify(object);
             }
         }
 
