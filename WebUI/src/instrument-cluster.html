@@ -1,19 +1,17 @@
 <!-- Load the Polymer.Element base class -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/paper-progress">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="degree-gauge.html">
 
 <dom-module id="instrument-cluster">
-    <!-- Defines the element's style and local DOM -->
     <template>
         <style include="shared-styles">
         </style>
 
-        <degree-gauge value="{{orientation}}"></degree-gauge>
+        <span>[[_direction(orientation)]]</span>
+        <paper-progress value="[[_orientation(orientation)]]" min="0" max="180"></paper-progress>
     </template>
     <script>
-        // Your new element extends the Polymer.Element base class
         class InstrumentCluster extends Polymer.Element {
             static get is() {
                 return 'instrument-cluster';
@@ -25,9 +23,16 @@
                     orientation: Number
                 }
             }
+
+            _direction(orientation) {
+                return orientation > 180 ? 'Reverse' : 'Drive';
+            }
+
+            _orientation(orientation) {
+                return orientation > 180 ? orientation - 180 : 180 - orientation;
+            }
         }
 
-        //Now, register your new custom element so the browser can use it
         customElements.define(InstrumentCluster.is, InstrumentCluster);
     </script>
 </dom-module>
