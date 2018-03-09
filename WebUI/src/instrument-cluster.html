@@ -6,10 +6,21 @@
 <dom-module id="instrument-cluster">
     <template>
         <style include="shared-styles">
+            paper-progress#orientation {
+                --paper-progress-active-color: #e91e63;
+                --paper-progress-container-color: #0000FF;
+            }
         </style>
 
-        <span>[[_direction(orientation)]]</span>
-        <paper-progress value="[[_orientation(orientation)]]" min="0" max="180"></paper-progress>
+        <p>Direction: <span>[[_direction(orientation)]]</span></p>
+
+        <p>Orientation: </p>
+        <span id="left">Left</span>
+        <paper-progress id="orientation" value="[[_orientation(orientation)]]" min="0" max="180"></paper-progress>
+        <span id="right">Right</span>
+
+        <p>Throttle: </p>
+        <paper-progress id="throttle" class="red" value="[[throttle]]" min="0" max="255"></paper-progress>
     </template>
     <script>
         class InstrumentCluster extends Polymer.Element {
@@ -29,7 +40,7 @@
             }
 
             _orientation(orientation) {
-                return orientation > 180 ? orientation - 180 : 180 - orientation;
+                return orientation > 180 ? 180 - (orientation - 180) : 180 - orientation;
             }
         }
 
