@@ -1,0 +1,57 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="web-socket-data">
+    <template>
+        <p>Url: [[url]]</p>
+        <p>Data: [[_stringify(data)]]</p>
+    </template>
+    <script>
+        class WebSocketData extends Polymer.Element {
+            static get is() {
+                return 'web-socket-data';
+            }
+
+            static get properties() {
+                return {
+                    url: {type: String},
+                    data: {type: Object, value: {}, notify: true},
+                };
+            }
+
+            ready() {
+                super.ready();
+                this.socket = new WebSocket(this.url);
+                this.socket.onerror = this.onError.bind(this);
+                this.socket.onopen = this.onOpen.bind(this);
+                this.socket.onmessage = this.onMessage.bind(this);
+            }
+
+            onError(error) {
+                this.dispatchEvent(new CustomEvent('onerror', error));
+            }
+
+            onOpen(event) {
+                this.dispatchEvent(new CustomEvent('onopen', event));
+            }
+
+            onMessage(event) {
+                this.dispatchEvent(new CustomEvent('onmessage', event));
+                this.data = event.data;
+            }
+
+            send(message) {
+                this.socket.send(message);
+            }
+
+            close() {
+                this.socket.close();
+            }
+
+            _stringify(object) {
+                return JSON.stringify(object);
+            }
+        }
+
+        customElements.define(WebSocketData.is, WebSocketData);
+    </script>
+</dom-module>

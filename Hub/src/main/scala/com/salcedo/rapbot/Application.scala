@@ -5,8 +5,9 @@ import javax.swing.SwingUtilities.invokeLater
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.salcedo.rapbot.driver.DriverActor
-import com.salcedo.rapbot.hub.Hub
+import com.salcedo.rapbot.hub.{Hub, WebSocketServer}
 import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
@@ -20,6 +21,7 @@ object Application extends App {
   Kamon.addReporter(new ZipkinReporter)
 
   val system = ActorSystem("RapBot")
+
   val robot = Uri("http://192.168.1.41")
 
   val workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "test")
@@ -43,4 +45,6 @@ object Application extends App {
   invokeLater(new Runnable {
     override def run(): Unit = ui.display()
   })
+
+  private val server = new WebSocketServer(system)
 }
