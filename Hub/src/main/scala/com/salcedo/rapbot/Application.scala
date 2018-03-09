@@ -46,6 +46,4 @@ object Application extends App {
   invokeLater(new Runnable {
     override def run(): Unit = ui.display()
   })
-
-  //NettyWSServer.run()
 }
