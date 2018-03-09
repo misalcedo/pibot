@@ -47,7 +47,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   }
 
   def receiveData(data: ByteString): Unit = {
-    log.info(s"Received data from client. Data: ${data.utf8String}")
+    log.debug(s"Received data from client. Data: ${data.utf8String}")
 
     channel.writeInbound(wrappedBuffer(data.asByteBuffer))
   }
