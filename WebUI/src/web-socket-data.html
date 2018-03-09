@@ -36,7 +36,11 @@
 
             onMessage(event) {
                 this.dispatchEvent(new CustomEvent('onmessage', event));
-                this.data = event.data;
+                try {
+                    this.data = JSON.parse(event.data);
+                } catch (e) {
+                    console.log('This doesn\'t look like a valid JSON: ', event.data);
+                }
             }
 
             send(message) {

@@ -12,7 +12,7 @@ import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
 import com.salcedo.rapbot.vision.VisionActor
-import com.salcedo.rapbot.websocket.WebSocketServer
+import com.salcedo.rapbot.websocket.NettyWSServer
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.zipkin.ZipkinReporter
@@ -47,5 +47,5 @@ object Application extends App {
     override def run(): Unit = ui.display()
   })
 
-  private val server = new WebSocketServer(system)
+  NettyWSServer.main(new Array[String](0))
 }

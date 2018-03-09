@@ -12,8 +12,6 @@ import com.google.gson.Gson
 import com.salcedo.rapbot.motor.MotorActor._
 import com.salcedo.rapbot.remote.ActorBreaker
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
-import net.liftweb.json.Serialization.{read, write}
-import net.liftweb.json._
 
 import scala.concurrent.Future
 
