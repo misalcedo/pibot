@@ -25,7 +25,7 @@ object DriverActor {
 
 
 final class DriverActor(val orientationRange: Range, val throttleRange: Range) extends Actor with ActorLogging {
-  val keyBoardDriver: ActorRef = context.actorOf(KeyBoardDriverActor.props(self))
+  val keyBoardDriver: ActorRef = context.actorOf(KeyBoardDriverActor.props)
   val commandDriver: ActorRef = context.actorOf(CommandDriverActor.props)
   var drive = Drive(orientation = 90, throttle = 0)
 

@@ -10,14 +10,14 @@ object KeyBoardDriverActor {
 
   case class Key(event: Int, keyCode: Int)
 
-  def props(driver: ActorRef): Props = Props(new KeyBoardDriverActor(driver))
+  def props: Props = Props(new KeyBoardDriverActor)
 
   def key(keyEvent: KeyEvent): Key = {
     Key(keyEvent.getID, keyEvent.getKeyCode)
   }
 }
 
-class KeyBoardDriverActor(val driver: ActorRef) extends Actor with ActorLogging {
+class KeyBoardDriverActor extends Actor with ActorLogging {
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[KeyEvent])
   }
@@ -39,6 +39,6 @@ class KeyBoardDriverActor(val driver: ActorRef) extends Actor with ActorLogging 
       case _ => NoOp
     }
 
-    driver ! command
+    context.parent ! command
   }
 }

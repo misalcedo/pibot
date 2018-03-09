@@ -1,3 +1,4 @@
+/*
 package com.salcedo.rapbot.learner;
 
 import akka.actor.AbstractActor;
@@ -76,3 +77,4 @@ public class SnapshotWriterActor extends AbstractActor {
                 .build();
     }
 }
+*/
