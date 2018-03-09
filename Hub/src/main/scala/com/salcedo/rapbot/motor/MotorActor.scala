@@ -8,6 +8,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl.{JsonFraming, Sink}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import com.google.gson.Gson
 import com.salcedo.rapbot.motor.MotorActor._
 import com.salcedo.rapbot.remote.ActorBreaker
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
@@ -36,8 +37,8 @@ object MotorActor {
 
 class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging {
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
-  implicit val formats: Formats = DefaultFormats
 
+  private val json = new Gson
   val http = Http(context.system)
   var vehicle = Vehicle(Motor(0, Release), Motor(0, Release))
   var version: UUID = nextVersion
@@ -80,7 +81,7 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
     val request = HttpRequest(
       uri = uri.withPath(Uri.Path("/motors")),
       method = HttpMethods.PUT,
-      entity = HttpEntity(ContentTypes.`application/json`, write(vehicle))
+      entity = HttpEntity(ContentTypes.`application/json`, json.toJson(vehicle))
     )
 
     val future = http.singleRequest(request).flatMap {
@@ -102,7 +103,7 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
     entity.transformDataBytes(JsonFraming.objectScanner(256))
       .dataBytes
       .map(_.utf8String)
-      .map(read[Vehicle])
+      .map(json.fromJson(_, classOf[Vehicle]))
       .runWith(Sink.seq)
       .map(_.head)(context.dispatcher)
   }

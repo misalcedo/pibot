@@ -7,11 +7,12 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.salcedo.rapbot.driver.DriverActor
-import com.salcedo.rapbot.hub.{Hub, WebSocketServer}
+import com.salcedo.rapbot.hub.Hub
 import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
 import com.salcedo.rapbot.vision.VisionActor
+import com.salcedo.rapbot.websocket.WebSocketServer
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.zipkin.ZipkinReporter

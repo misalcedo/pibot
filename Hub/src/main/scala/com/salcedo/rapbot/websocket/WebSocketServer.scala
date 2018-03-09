@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package com.salcedo.rapbot.hub
+package com.salcedo.rapbot.websocket
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
