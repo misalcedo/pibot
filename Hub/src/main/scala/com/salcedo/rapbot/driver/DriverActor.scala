@@ -50,7 +50,6 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
         drive.copy(orientation.getOrElse(drive.orientation), throttle.getOrElse(drive.throttle))
     }
 
-    // TODO: bound throttle and make orientation circular
     drive = drive.copy(modulo(drive.orientation), bound(drive.throttle))
 
     context.system.eventStream.publish(vehicle(drive))
