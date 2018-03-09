@@ -4,10 +4,9 @@ import java.lang.Math._
 
 import akka.actor.Status.Success
 import akka.actor._
-import com.salcedo.rapbot.driver.CommandDriverActor.Command
+import com.salcedo.rapbot.driver.CommandDriverActor.{Command => DriveCommand}
 import com.salcedo.rapbot.driver.DriverActor.{Drive, DriveChange, Replace, Update}
 import com.salcedo.rapbot.motor.MotorActor._
-import com.salcedo.rapbot.motor.MotorActor.{Command, Location}
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 
@@ -31,7 +30,7 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
   var drive = Drive(orientation = 90, throttle = 0)
 
   override def receive: Receive = {
-    case command: Command => commandDriver ! command
+    case command: DriveCommand => commandDriver ! command
     case change: DriveChange => drive(change)
     case _: TakeSubSystemSnapshot => snapshot()
   }
@@ -76,7 +75,7 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
     val orientation = toRadians(drive.orientation)
     val throttle = drive.throttle
     val adjustedThrottle = abs(floor(sin(orientation) * throttle)).toInt
-    val command = if ((orientation - PI) > 0) Command.Backward else Command.Forward
+    val command = if ((orientation - PI) > 0) Backward else Forward
     val leftSpeed = if (shouldAdjustRightMotor(orientation)) throttle else adjustedThrottle
     val rightSpeed = if (shouldAdjustRightMotor(orientation)) adjustedThrottle else throttle
 
@@ -90,10 +89,10 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
     inFirstQuadrant || inThirdQuadrant
   }
 
-  private def createMotorRequest(leftSpeed: Int, rightSpeed: Int, command: Command.Value): Vehicle = {
+  private def createMotorRequest(leftSpeed: Int, rightSpeed: Int, command: Command): Vehicle = {
     Vehicle(
-      Motor(leftSpeed, command, Location.BackLeft),
-      Motor(rightSpeed, command, Location.BackRight)
+      Motor(leftSpeed, command),
+      Motor(rightSpeed, command)
     )
   }
 }

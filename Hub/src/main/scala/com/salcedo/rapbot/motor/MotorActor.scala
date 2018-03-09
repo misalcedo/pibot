@@ -20,12 +20,12 @@ object MotorActor {
 
   case class Vehicle(backLeft: Motor, backRight: Motor)
 
-  sealed case class Command(value: Int)
+  case class Command(value: Int)
 
-  case object Forward extends Command(1)
-  case object Backward extends Command(2)
-  case object Brake extends Command(3)
-  case object Release extends Command(4)
+  val Forward = Command(1)
+  val Backward = Command(2)
+  val Brake = Command(3)
+  val Release = Command(4)
 
   case class Motor(speed: Int, command: Command)
 
@@ -41,6 +41,7 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
   val http = Http(context.system)
   var vehicle = Vehicle(Motor(0, Release), Motor(0, Release))
   var version: UUID = nextVersion
+  var remoteCall: Future[UUID] = Future.successful(version)
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[Vehicle])
@@ -56,6 +57,8 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
   def update(vehicle: Vehicle): Unit = {
     this.version = nextVersion
     this.vehicle = vehicle
+
+    send()
   }
 
   private def nextVersion = {
@@ -72,6 +75,8 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
   }
 
   def send(): Unit = {
+    if (!remoteCall.isCompleted) return
+
     val request = HttpRequest(
       uri = uri.withPath(Uri.Path("/motors")),
       method = HttpMethods.PUT,
