@@ -6,6 +6,7 @@ import akka.io.Tcp.{PeerClosed, Received, Write}
 import akka.util.ByteString
 import com.google.gson.Gson
 import com.salcedo.rapbot.hub.Hub.SystemState
+import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled.wrappedBuffer
 import io.netty.channel.embedded.EmbeddedChannel
@@ -31,30 +32,48 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   val handshake: Promise[Unit] = Promise()
 
   override def receive: Receive = {
-    case HANDSHAKE_COMPLETE => handshake.complete(Try(Unit))
-    case frame: TextWebSocketFrame => log.debug(s"Parsed text frame from client data. Frame: ${frame.text}")
+    case HANDSHAKE_COMPLETE => this.complete()
+    case frame: TextWebSocketFrame => this.event(frame)
     case Received(data) => this.receiveData(data)
-    case PeerClosed => context.stop(self)
+    case PeerClosed => this.close()
     case Failure(e) => log.error("An exception occurred handling the WebSocket frame. {}", e)
     case state: SystemState => this.push(state)
   }
 
+  def complete(): Unit = {
+    handshake.complete(Try(Unit))
+    context.system.eventStream.publish(TakeSnapshot)
+  }
+
+  def event(frame: TextWebSocketFrame): Unit = {
+    log.debug("Parsed text frame from client data. Frame: {}", frame.text)
+    frame.release()
+  }
+
   def receiveData(data: ByteString): Unit = {
-    log.debug(s"Received data from client. Data: ${data.utf8String}")
+    if (!channel.isOpen) return
+
+    log.debug("Received data from client. Data: {}", data.utf8String)
 
     channel.writeInbound(wrappedBuffer(data.asByteBuffer))
   }
 
+  def close(): Unit = {
+    log.debug("Peer closed the connection.")
+
+    channel.close()
+    context.stop(self)
+  }
+
   def push(state: SystemState): Unit = {
-    if (!handshake.isCompleted) return
+    if (!handshake.isCompleted || !channel.isOpen) return
 
     channel.writeOutbound(new TextWebSocketFrame(json.toJson(state)))
 
     val byteBuf = channel.readOutbound().asInstanceOf[ByteBuf]
-    val someValue: Option[ByteBuf] = Some(byteBuf)
     val builder = ByteString.newBuilder
 
-    someValue
+    Some(byteBuf)
       .map(value => value.readBytes(builder.asOutputStream, value.readableBytes()))
       .map(_.release())
       .foreach(_ => connection ! Write(builder.result()))

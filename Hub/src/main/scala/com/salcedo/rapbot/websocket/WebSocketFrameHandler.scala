@@ -7,6 +7,10 @@ import io.netty.handler.codec.http.websocketx.{TextWebSocketFrame, WebSocketFram
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE
 
 class WebSocketFrameHandler(actor: ActorRef) extends SimpleChannelInboundHandler[WebSocketFrame] {
+  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
+    actor ! Failure(cause)
+  }
+
   override def userEventTriggered(ctx: ChannelHandlerContext, event: scala.Any): Unit = {
     event match {
       case HANDSHAKE_COMPLETE => actor ! event

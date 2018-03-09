@@ -11,7 +11,7 @@
         </style>
 
         <video-feed feed-url="{{feedUrl}}"></video-feed>
-        <instrument-cluster throttle="[[throttle]]" orientation="{{orientation}}"></instrument-cluster>
+        <instrument-cluster throttle="[[data.drive.throttle]]" orientation="{{data.drive.orientation}}"></instrument-cluster>
     </template>
     <script>
         // Your new element extends the Polymer.Element base class
@@ -23,8 +23,7 @@
             static get properties() {
                 return {
                     feedUrl: String,
-                    throttle: Number,
-                    orientation: Number
+                    data: Object
                 }
             }
         }

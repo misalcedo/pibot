@@ -32,7 +32,6 @@
 
             onOpen(event) {
                 this.dispatchEvent(new CustomEvent('onopen', event));
-                this.send("foo");
             }
 
             onMessage(event) {
