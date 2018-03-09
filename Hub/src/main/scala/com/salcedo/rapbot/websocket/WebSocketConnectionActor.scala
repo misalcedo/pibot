@@ -7,6 +7,7 @@ import akka.util.ByteString
 import com.google.gson.Gson
 import com.salcedo.rapbot.hub.Hub.SystemState
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
+import com.salcedo.rapbot.websocket.WebSocketConnectionActor.{Event, Refresh}
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled.wrappedBuffer
 import io.netty.channel.embedded.EmbeddedChannel
@@ -18,6 +19,11 @@ import scala.concurrent.Promise
 import scala.util.Try
 
 object WebSocketConnectionActor {
+
+  sealed case class Event(eventType: String, data: String)
+
+  object Refresh extends Event(eventType = "refresh", null)
+
   def props(connection: ActorRef): Props = Props(new WebSocketConnectionActor(connection))
 }
 
@@ -33,7 +39,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
 
   override def receive: Receive = {
     case HANDSHAKE_COMPLETE => this.complete()
-    case frame: TextWebSocketFrame => this.event(frame)
+    case frame: TextWebSocketFrame => this.read(frame)
     case Received(data) => this.receiveData(data)
     case PeerClosed => this.close()
     case Failure(e) => log.error("An exception occurred handling the WebSocket frame. {}", e)
@@ -45,8 +51,14 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
     context.system.eventStream.publish(TakeSnapshot)
   }
 
-  def event(frame: TextWebSocketFrame): Unit = {
+  def read(frame: TextWebSocketFrame): Unit = {
     log.debug("Parsed text frame from client data. Frame: {}", frame.text)
+
+    val event: Event = json.fromJson(frame.text, classOf[Event])
+    event match {
+      case _ => Unit
+    }
+
     frame.release()
   }
 
@@ -56,6 +68,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
     log.debug("Received data from client. Data: {}", data.utf8String)
 
     channel.writeInbound(wrappedBuffer(data.asByteBuffer))
+    readChannel()
   }
 
   def close(): Unit = {
@@ -70,10 +83,14 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
 
     channel.writeOutbound(new TextWebSocketFrame(json.toJson(state)))
 
+    readChannel()
+  }
+
+  private def readChannel(): Unit = {
     val byteBuf = channel.readOutbound().asInstanceOf[ByteBuf]
     val builder = ByteString.newBuilder
 
-    Some(byteBuf)
+    Option(byteBuf)
       .map(value => value.readBytes(builder.asOutputStream, value.readableBytes()))
       .map(_.release())
       .foreach(_ => connection ! Write(builder.result()))

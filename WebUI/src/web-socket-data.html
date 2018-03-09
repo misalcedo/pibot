@@ -23,6 +23,7 @@
                 this.socket = new WebSocket(this.url);
                 this.socket.onerror = this.onError.bind(this);
                 this.socket.onopen = this.onOpen.bind(this);
+                this.socket.onclose = this.onClose.bind(this);
                 this.socket.onmessage = this.onMessage.bind(this);
             }
 
@@ -32,6 +33,11 @@
 
             onOpen(event) {
                 this.dispatchEvent(new CustomEvent('onopen', event));
+            }
+
+            onClose(event) {
+                this.dispatchEvent(new CustomEvent('onclose', event));
+                this.ready()
             }
 
             onMessage(event) {

@@ -16,17 +16,19 @@ import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
 import scala.concurrent.Future
 
 object MotorActor {
+  sealed case class Command(value: Int)
 
-  case class Vehicle(backLeft: Motor, backRight: Motor)
+  object Forward extends Command(1)
 
-  case class Command(value: Int)
+  object Backward extends Command(2)
 
-  val Forward = Command(1)
-  val Backward = Command(2)
-  val Brake = Command(3)
-  val Release = Command(4)
+  object Brake extends Command(3)
+
+  object Release extends Command(4)
 
   case class Motor(speed: Int, command: Command)
+
+  case class Vehicle(backLeft: Motor, backRight: Motor)
 
   case class Pushed(version: UUID)
 
