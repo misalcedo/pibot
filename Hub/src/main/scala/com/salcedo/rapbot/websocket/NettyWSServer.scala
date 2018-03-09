@@ -4,10 +4,14 @@ import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.{ChannelFuture, ChannelFutureListener}
 import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.ServerHandshakeStateEvent
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
+
+import scala.concurrent.{Future, Promise}
+import scala.util.Try
 
 
 /**
@@ -33,26 +37,28 @@ object NettyWSServer {
   val PORT: Int = System.getProperty("port", "8080").toInt
 
   @throws[Exception]
-  def main(args: Array[String]): Unit = {
+  def run(): Future[Unit] = {
     val bossGroup = new NioEventLoopGroup(1)
     val workerGroup = new NioEventLoopGroup
+    val channel = new ServerBootstrap()
+      .group(bossGroup, workerGroup)
+      .channel(classOf[NioServerSocketChannel])
+      .handler(new LoggingHandler(LogLevel.INFO))
+      .childHandler(new WebSocketServerInitializer())
+      .bind(PORT)
+      .sync
+      .channel
 
-    try {
-      val channel = new ServerBootstrap()
-        .group(bossGroup, workerGroup)
-        .channel(classOf[NioServerSocketChannel])
-        .handler(new LoggingHandler(LogLevel.INFO))
-        .childHandler(new WebSocketServerInitializer())
-        .bind(PORT)
-        .sync
-        .channel
+    System.out.println("Open your web browser and navigate to http://127.0.0.1:" + PORT + '/')
 
-      System.out.println("Open your web browser and navigate to http://127.0.0.1:" + PORT + '/')
-      channel.closeFuture.sync
-    } finally {
-      bossGroup.shutdownGracefully()
-      workerGroup.shutdownGracefully()
+    val promise: Promise[Unit] = Promise()
+    val listener: ChannelFutureListener = new ChannelFutureListener() {
+      override def operationComplete(future: ChannelFuture): Unit = promise.complete(Try())
     }
+
+    channel.closeFuture.addListener(listener)
+
+    promise.future
   }
 }
 
@@ -72,7 +78,7 @@ class WebSocketServerInitializer() extends ChannelInitializer[SocketChannel] {
     pipeline.addLast(new HttpServerCodec())
     pipeline.addLast(new HttpObjectAggregator(2048))
     pipeline.addLast(new WebSocketServerProtocolHandler(WebSocketServerInitializer.WEBSOCKET_PATH))
-    pipeline.addLast(new WebSocketFrameHandler)
+    pipeline.addLast(new WebSocketFrameHandlerNotActor)
   }
 }
 
@@ -85,7 +91,7 @@ import io.netty.handler.codec.http.websocketx.{TextWebSocketFrame, WebSocketFram
 /**
   * Echoes uppercase content of text frames.
   */
-class WebSocketFrameHandler extends SimpleChannelInboundHandler[WebSocketFrame] {
+class WebSocketFrameHandlerNotActor extends SimpleChannelInboundHandler[WebSocketFrame] {
   override def userEventTriggered(ctx: ChannelHandlerContext, evt: scala.Any): Unit = {
     evt match {
       case ServerHandshakeStateEvent.HANDSHAKE_COMPLETE =>

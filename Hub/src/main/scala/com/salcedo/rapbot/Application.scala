@@ -5,14 +5,13 @@ import javax.swing.SwingUtilities.invokeLater
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.salcedo.rapbot.driver.DriverActor
 import com.salcedo.rapbot.hub.Hub
 import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
 import com.salcedo.rapbot.vision.VisionActor
-import com.salcedo.rapbot.websocket.NettyWSServer
+import com.salcedo.rapbot.websocket.{NettyWSServer, WebSocketActor}
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.zipkin.ZipkinReporter
@@ -32,8 +31,9 @@ object Application extends App {
   val hubProps = Hub.props(
     ui,
     SubSystem(DriverActor.props(), "driver"),
+    SubSystem(MotorActor.props(robot.withPort(3000)), "motor"),
     SubSystem(VisionActor.props(robot.withPort(3001), workingDirectory), "vision"),
-    SubSystem(MotorActor.props(robot.withPort(3000)), "motor")
+    SubSystem(WebSocketActor.props(3002), "websocket")
   )
 
   system.log.info("Starting system with working directory of: {}.", workingDirectory)
@@ -47,5 +47,5 @@ object Application extends App {
     override def run(): Unit = ui.display()
   })
 
-  NettyWSServer.main(new Array[String](0))
+  //NettyWSServer.run()
 }
