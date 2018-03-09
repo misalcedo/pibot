@@ -11,7 +11,7 @@ import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
 import com.salcedo.rapbot.vision.VisionActor
-import com.salcedo.rapbot.websocket.{NettyWSServer, WebSocketActor}
+import com.salcedo.rapbot.websocket.WebSocketActor
 import kamon.Kamon
 import kamon.prometheus.PrometheusReporter
 import kamon.zipkin.ZipkinReporter

@@ -7,7 +7,8 @@ import akka.actor.{Actor, ActorLogging, Props, Terminated}
 import akka.io.Tcp._
 import akka.io.{IO, Tcp}
 import akka.routing.{BroadcastRoutingLogic, Router}
-import com.salcedo.rapbot.snapshot.SnapshotActor.{Snapshot, TakeSubSystemSnapshot}
+import com.salcedo.rapbot.hub.Hub.SystemState
+import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
 
 object WebSocketActor {
   def props(port: Int): Props = Props(new WebSocketActor(port))
@@ -17,7 +18,7 @@ class WebSocketActor(port: Int) extends Actor with ActorLogging {
   var router = Router(BroadcastRoutingLogic())
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[Snapshot])
+    context.system.eventStream.subscribe(self, classOf[SystemState])
     IO(Tcp)(context.system) ! Bind(self, new InetSocketAddress(port))
   }
 
@@ -25,13 +26,12 @@ class WebSocketActor(port: Int) extends Actor with ActorLogging {
     case Bound(_) ⇒ log.info(s"Started WebSocket server on http://localhost:$port/.")
     case CommandFailed(_: Bind) => context.stop(self)
     case connected: Connected => this.connect(connected)
-    case _: TakeSubSystemSnapshot => sender() ! Success(None)
-    case message: Snapshot => this.snapshot(message)
+    case state: SystemState => this.broadcast(state)
     case terminated: Terminated => this.terminate(terminated)
-
+    case _: TakeSubSystemSnapshot => sender() ! Success(None)
   }
 
-  def connect(connected: Connected) = {
+  def connect(connected: Connected): Unit = {
     val routee = context.actorOf(WebSocketConnectionActor.props(sender()))
 
     context.watch(routee)
@@ -42,8 +42,8 @@ class WebSocketActor(port: Int) extends Actor with ActorLogging {
     sender() ! Register(routee)
   }
 
-  def snapshot(message: Snapshot): Unit = {
-    if (router.routees.nonEmpty) router.route(message, sender())
+  def broadcast(state: SystemState): Unit = {
+    if (router.routees.nonEmpty) router.route(state, sender())
   }
 
   private def terminate(message: Terminated): Unit = {

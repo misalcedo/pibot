@@ -17,12 +17,11 @@ object Hub {
   case class SubSystem(props: Props, name: String)
 
   case class SystemState(
-                          snapshotId: String,
-                          snapshotStartTimeInEpochMillis: Long,
-                          snapshotEndTimeInEpochMillis: Option[Long],
-                          driver: Int,
-                          motor: Int,
-                          image: String
+                          uuid: String,
+                          timeWindow: Long,
+                          drive: Drive,
+                          vehicle: Vehicle,
+                          imagePath: String
                         )
 
   def props(gui: GraphicalUserInterface, subSystems: SubSystem*): Props = {
@@ -58,7 +57,7 @@ class Hub(gui: GraphicalUserInterface, subSystems: Seq[SubSystem]) extends Actor
       .map(_.status)
 
     val drive = snapshots.find(_.isInstanceOf[Drive]).map(_.asInstanceOf[Drive])
-    val motorResponse: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
+    val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
     val image: Option[Path] = snapshots.find(_.isInstanceOf[Path]).map(_.asInstanceOf[Path])
 
     context.system.eventStream.publish(new SnapshotBackedSystemState(
@@ -71,13 +70,21 @@ class Hub(gui: GraphicalUserInterface, subSystems: Seq[SubSystem]) extends Actor
       snapshot.duration,
       drive.map(_.throttle).getOrElse(0),
       drive.map(_.orientation).getOrElse(90),
-      motorResponse.map(_.backLeft)
+      vehicle.map(_.backLeft)
         .map(_.toString)
         .getOrElse(""),
-      motorResponse.map(_.backRight)
+      vehicle.map(_.backRight)
         .map(_.toString)
         .getOrElse(""),
       image.map(_.toAbsolutePath).getOrElse(Paths.get("/dev/null"))
+    ))
+
+    context.system.eventStream.publish(Hub.SystemState(
+      snapshot.uuid.toString,
+      snapshot.duration.toMillis,
+      drive.orNull,
+      vehicle.orNull,
+      image.map(_.toAbsolutePath.toString).getOrElse("/dev/null")
     ))
   }
 
