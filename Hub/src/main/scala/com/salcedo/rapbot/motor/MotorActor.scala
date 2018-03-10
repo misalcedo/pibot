@@ -56,6 +56,8 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
   }
 
   def update(vehicle: Vehicle): Unit = {
+    if (vehicle == this.vehicle) return
+
     this.version = nextVersion
     this.vehicle = vehicle
 
