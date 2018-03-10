@@ -1,7 +1,7 @@
 FROM node:9-onbuild
 
-RUN npm install -g polymer-cli
+RUN npm install polymer-cli
 
 EXPOSE 80
 
-CMD ["polymer", "serve", "-p 80", "-H 0.0.0.0"]
+CMD ["node", "node_modules/polymer-cli/bin/polymer.js", "serve", "-p 80", "-H 0.0.0.0"]
