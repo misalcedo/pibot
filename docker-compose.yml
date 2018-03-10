@@ -63,6 +63,8 @@ services:
     image: misalcedo/rapbot:ui-1.0
     volumes:
       - ./WebUI/src:/usr/src/app/src
+    ports:
+      - 3003:80
     deploy:
       replicas: 1
       update_config:
@@ -73,10 +75,3 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-  prometheus:
-    image: prom/prometheus
-    network_mode: "host"
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
