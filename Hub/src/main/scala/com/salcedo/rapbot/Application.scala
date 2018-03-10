@@ -21,7 +21,7 @@ object Application extends App {
   val workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "test")
 
   val videoFeed = Uri("http://www.rmp-streaming.com/media/bbb-360p.mp4")
-  val ui = GraphicalUserInterfaceFactory.awt(system, akka.http.javadsl.model.Uri.create(videoFeed.toString()))
+  val ui = GraphicalUserInterfaceFactory.noop()
   val hubProps = Hub.props(
     ui,
     SubSystem(DriverActor.props(), "driver"),
