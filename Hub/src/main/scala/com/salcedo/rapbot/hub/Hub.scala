@@ -1,16 +1,15 @@
 package com.salcedo.rapbot.hub
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 import akka.actor.Status.Success
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Status, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import com.salcedo.rapbot.driver.DriverActor.Drive
 import com.salcedo.rapbot.hub.Hub.SubSystem
 import com.salcedo.rapbot.motor.MotorActor.Vehicle
 import com.salcedo.rapbot.snapshot.SnapshotActor.Snapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.{RegisterSubSystem, TakeSnapshot}
-import com.salcedo.rapbot.userinterface.{GraphicalUserInterface, GraphicalUserInterfaceActor}
 
 object Hub {
 
@@ -24,15 +23,14 @@ object Hub {
                           imagePath: String
                         )
 
-  def props(gui: GraphicalUserInterface, subSystems: SubSystem*): Props = {
-    Props(new Hub(gui, subSystems))
+  def props(subSystems: SubSystem*): Props = {
+    Props(new Hub(subSystems))
   }
 }
 
-class Hub(gui: GraphicalUserInterface, subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
+class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
   private val children = subSystems.map(actorFor)
   private val snapshot = context.actorOf(SnapshotTakerActor.props, "snapshot")
-  private val ui = context.actorOf(GraphicalUserInterfaceActor.props(gui), "gui")
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[Snapshot])
@@ -59,25 +57,6 @@ class Hub(gui: GraphicalUserInterface, subSystems: Seq[SubSystem]) extends Actor
     val drive = snapshots.find(_.isInstanceOf[Drive]).map(_.asInstanceOf[Drive])
     val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
     val image: Option[Path] = snapshots.find(_.isInstanceOf[Path]).map(_.asInstanceOf[Path])
-
-    context.system.eventStream.publish(new SnapshotBackedSystemState(
-      snapshot.uuid,
-      snapshot.responses
-        .filter(_._2.isInstanceOf[Status.Success])
-        .keySet
-        .map(_.path)
-        .map(_.name),
-      snapshot.duration,
-      drive.map(_.throttle).getOrElse(0),
-      drive.map(_.orientation).getOrElse(90),
-      vehicle.map(_.backLeft)
-        .map(_.toString)
-        .getOrElse(""),
-      vehicle.map(_.backRight)
-        .map(_.toString)
-        .getOrElse(""),
-      image.map(_.toAbsolutePath).getOrElse(Paths.get("/dev/null"))
-    ))
 
     context.system.eventStream.publish(Hub.SystemState(
       snapshot.uuid.toString,

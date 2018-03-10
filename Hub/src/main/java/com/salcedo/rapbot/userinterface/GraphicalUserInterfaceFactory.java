@@ -10,17 +10,4 @@ public abstract class GraphicalUserInterfaceFactory {
         final EventStreamKeyListener keyListener = new EventStreamKeyListener(system.eventStream());
         return new SwingGraphicalUserInterface(videoFeed, keyListener);
     }
-
-    public static GraphicalUserInterface noop() {
-        return new GraphicalUserInterface() {
-            @Override
-            public void display() {}
-
-            @Override
-            public void onClose(final Runnable runnable) {}
-
-            @Override
-            public void update(final SystemState state) {}
-        };
-    }
 }

@@ -17,13 +17,9 @@ object Application extends App {
   val system = ActorSystem("RapBot")
 
   val robot = Uri("http://192.168.1.41")
-
   val workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "test")
 
-  val videoFeed = Uri("http://www.rmp-streaming.com/media/bbb-360p.mp4")
-  val ui = GraphicalUserInterfaceFactory.noop()
   val hubProps = Hub.props(
-    ui,
     SubSystem(DriverActor.props(), "driver"),
     SubSystem(MotorActor.props(robot.withPort(3000)), "motor"),
     SubSystem(VisionActor.props(robot.withPort(3001), workingDirectory), "vision"),
@@ -32,11 +28,4 @@ object Application extends App {
 
   system.log.info("Starting system with working directory of: {}.", workingDirectory)
   system.actorOf(hubProps, "hub")
-
-  ui.onClose(new Runnable {
-    override def run(): Unit = system.terminate()
-  })
-  invokeLater(new Runnable {
-    override def run(): Unit = ui.display()
-  })
 }
