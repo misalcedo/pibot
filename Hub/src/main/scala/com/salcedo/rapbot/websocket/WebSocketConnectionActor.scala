@@ -1,7 +1,7 @@
 package com.salcedo.rapbot.websocket
 
 import akka.actor.Status.Failure
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import akka.io.Tcp.{PeerClosed, Received, Write}
 import akka.util.ByteString
 import com.google.gson.Gson
@@ -32,12 +32,17 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   )
   val handshake: Promise[Unit] = Promise()
 
+  override def preStart(): Unit = {
+    context.watch(connection)
+  }
+
   override def receive: Receive = {
     case HANDSHAKE_COMPLETE => this.complete()
     case frame: TextWebSocketFrame => this.read(frame)
     case Received(data) => this.receiveData(data)
     case PeerClosed => this.close()
     case Failure(e) => log.error("An exception occurred handling the WebSocket frame. {}", e)
+    case Terminated(_) => context.stop(self)
     case state: SystemState => this.push(state)
   }
 
