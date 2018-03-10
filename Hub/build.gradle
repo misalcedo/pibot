@@ -6,7 +6,7 @@ apply plugin: 'application'
 apply plugin: 'scala'
 
 sourceCompatibility = 1.8
-mainClassName = 'com.salcedo.rapbot.hub.Application'
+mainClassName = 'com.salcedo.rapbot.Application'
 
 idea {
     module {

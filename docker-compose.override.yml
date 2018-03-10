@@ -1,0 +1,10 @@
+version: '3'
+services:
+  hub:
+    build:
+      context: ./Hub
+      dockerfile: Dockerfile-x86
+  ui:
+    build:
+      context: ./WebUI
+      dockerfile: Dockerfile-x86

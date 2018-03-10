@@ -23,7 +23,7 @@ services:
     build: ./Vision
     image: misalcedo/rapbot:vision-1.0
     volumes:
-      - ./Vision/src/main/python:/usr/src/app
+      - ./Vision:/usr/src/app
     ports:
       - 3001:80
     devices:

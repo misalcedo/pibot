@@ -1,0 +1,11 @@
+FROM openjdk:8-jdk-alpine
+COPY . /staging
+WORKDIR /staging
+RUN sh gradlew build
+
+FROM openjdk:8-jre-alpine
+WORKDIR /usr/src/app
+COPY --from=0 /staging/build/distributions/Hub-*.tar .
+RUN tar -xf /usr/src/app/Hub-*.tar --strip-components 1 && rm /usr/src/app/Hub-*.tar
+EXPOSE 80
+CMD ["bin/Hub"]

@@ -1,4 +1,4 @@
-FROM node:9-onbuild
+FROM resin/raspberrypi3-alpine-node:8-onbuild
 
 RUN npm install -g polymer-cli
 

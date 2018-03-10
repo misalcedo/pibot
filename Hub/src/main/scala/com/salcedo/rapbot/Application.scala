@@ -12,14 +12,8 @@ import com.salcedo.rapbot.motor.MotorActor
 import com.salcedo.rapbot.userinterface.GraphicalUserInterfaceFactory
 import com.salcedo.rapbot.vision.VisionActor
 import com.salcedo.rapbot.websocket.WebSocketActor
-import kamon.Kamon
-import kamon.prometheus.PrometheusReporter
-import kamon.zipkin.ZipkinReporter
 
 object Application extends App {
-  Kamon.addReporter(new PrometheusReporter)
-  Kamon.addReporter(new ZipkinReporter)
-
   val system = ActorSystem("RapBot")
 
   val robot = Uri("http://192.168.1.41")
@@ -38,7 +32,6 @@ object Application extends App {
 
   system.log.info("Starting system with working directory of: {}.", workingDirectory)
   system.actorOf(hubProps, "hub")
-  system.registerOnTermination(Kamon.stopAllReporters)
 
   ui.onClose(new Runnable {
     override def run(): Unit = system.terminate()
