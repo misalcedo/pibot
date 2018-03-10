@@ -4,7 +4,7 @@ services:
     build: ./Motor
     image: misalcedo/rapbot:motor-1.0
     volumes:
-      - ./Motor/src/main/python:/usr/src/app
+      - ./Motor:/usr/src/app
     ports:
       - 3000:80
     devices:

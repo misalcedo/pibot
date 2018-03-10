@@ -1,8 +1,6 @@
 FROM resin/raspberrypi-alpine-python:3-onbuild
 
-COPY ./src/main/python /usr/src/app
-
-ENV FLASK_APP=service.py FLASK_DEBUG=1
+ENV FLASK_APP=src/service.py FLASK_DEBUG=1
 
 EXPOSE 80
 
