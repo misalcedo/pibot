@@ -1,0 +1,48 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="vehicle-cluster">
+    <template>
+        <style include="shared-styles">
+            paper-progress.motor {
+                --paper-progress-active-color: #e9d400;
+            }
+        </style>
+
+        <p>Left Motor: [[_command(vehicle.backLeft.command.value)]]</p>
+        <paper-progress class="motor" value="[[vehicle.backLeft.speed]]" min="0" max="255"></paper-progress>
+
+        <p>Right Motor: [[_command(vehicle.backRight.command.value)]]</p>
+        <paper-progress class="motor" value="[[vehicle.backRight.speed]]" min="0" max="255"></paper-progress>
+    </template>
+    <script>
+        class VehicleCluster extends Polymer.Element {
+            static get is() {
+                return 'vehicle-cluster';
+            }
+
+            static get properties() {
+                return {
+                    vehicle: Object
+                }
+            }
+
+            _command(value) {
+                if  (value === 1) {
+                    return 'Forward';
+                } else if (value === 2) {
+                    return 'Backward';
+                } else if (value === 3) {
+                    return 'Brake';
+                } else if (value === 4) {
+                    return 'Release';
+                } else {
+                    return 'Unknown';
+                }
+            }
+        }
+
+        customElements.define(VehicleCluster.is, VehicleCluster);
+    </script>
+</dom-module>

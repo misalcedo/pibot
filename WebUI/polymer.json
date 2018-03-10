@@ -3,7 +3,8 @@
   "shell": "src/my-app.html",
   "fragments": [
     "src/web-socket-data.html",
-    "src/keyboard-listener.html",
+    "src/instrument-cluster.html",
+    "src/vehicle-cluster.html",
     "src/robot-cockpit.html"
   ],
   "sources": [

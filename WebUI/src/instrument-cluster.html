@@ -9,18 +9,25 @@
             paper-progress#orientation {
                 --paper-progress-active-color: #e91e63;
                 --paper-progress-container-color: #0000FF;
+                display: inline-block;
+            }
+
+            #left {
+                color: #e91e63;
+            }
+
+            #right {
+                color: #0000FF;
             }
         </style>
 
-        <p>Direction: <span>[[_direction(orientation)]]</span></p>
-
         <p>Orientation: </p>
         <span id="left">Left</span>
-        <paper-progress id="orientation" value="[[_orientation(orientation)]]" min="0" max="180"></paper-progress>
+        <paper-progress id="orientation" value="[[_orientation(drive.orientation)]]" min="0" max="180"></paper-progress>
         <span id="right">Right</span>
 
-        <p>Throttle: </p>
-        <paper-progress id="throttle" class="red" value="[[throttle]]" min="0" max="255"></paper-progress>
+        <p>Throttle: [[_direction(drive.orientation)]]</p>
+        <paper-progress id="throttle" class="red" value="[[drive.throttle]]" min="0" max="255"></paper-progress>
     </template>
     <script>
         class InstrumentCluster extends Polymer.Element {
@@ -30,8 +37,7 @@
 
             static get properties() {
                 return {
-                    throttle: Number,
-                    orientation: Number
+                    drive: Object
                 }
             }
 
