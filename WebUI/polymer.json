@@ -2,8 +2,9 @@
   "entrypoint": "index.html",
   "shell": "src/my-app.html",
   "fragments": [
-    "src/robot-cockpit.html",
-    "src/web-socket-data.html"
+    "src/web-socket-data.html",
+    "src/keyboard-listener.html",
+    "src/robot-cockpit.html"
   ],
   "sources": [
     "src/**/*",

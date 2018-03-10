@@ -11,8 +11,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="import" href="robot-cockpit.html">
 <link rel="import" href="web-socket-data.html">
+<link rel="import" href="keyboard-listener.html">
+<link rel="import" href="robot-cockpit.html">
 
 <dom-module id="my-app">
     <template>
@@ -26,6 +27,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </style>
 
         <web-socket-data url="ws://localhost:3002/" data="{{data}}"></web-socket-data>
+        <keyboard-listener></keyboard-listener>
         <robot-cockpit name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg" data="{{data}}"></robot-cockpit>
     </template>
 

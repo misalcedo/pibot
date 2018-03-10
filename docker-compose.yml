@@ -1,12 +1,5 @@
 version: '3'
 services:
-  prometheus:
-    image: prom/prometheus
-    network_mode: "host"
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
   motor:
     build: ./Motor
     image: misalcedo/rapbot:motor-1.0
@@ -81,3 +74,25 @@ services:
       placement:
         constraints:
           - node.hostname == Fayt
+  ui:
+    build: ./WebUI
+    image: misalcedo/rapbot:ui-1.0
+    volumes:
+      - ./WebUI/src:/usr/src/app/src
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+  prometheus:
+    image: prom/prometheus
+    network_mode: "host"
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
