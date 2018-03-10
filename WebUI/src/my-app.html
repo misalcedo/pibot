@@ -26,7 +26,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
         </style>
 
-        <web-socket-data id="socket" url="ws://localhost:3002/" data="{{data}}"></web-socket-data>
+        <web-socket-data id="socket" url="ws://172.18.0.1:3002/" data="{{data}}"></web-socket-data>
         <iron-a11y-keys id="a11y" target="[[target]]" keys="up down left right space r b f"
                         on-keys-pressed="onKeyPressed"></iron-a11y-keys>
         <keyboard-listener id="listener" on-key-pressed="onKeyPressed"></keyboard-listener>

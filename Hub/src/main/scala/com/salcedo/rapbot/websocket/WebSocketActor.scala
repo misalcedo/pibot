@@ -23,7 +23,7 @@ class WebSocketActor(port: Int) extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
-    case Bound(_) ⇒ log.info("Started WebSocket server on http://localhost:{}/.", port)
+    case Bound(_) ⇒ log.info("Started WebSocket server on http://0.0.0.0:{}/.", port)
     case CommandFailed(_: Bind) => context.stop(self)
     case connected: Connected => this.connect(connected)
     case state: SystemState => this.broadcast(state)

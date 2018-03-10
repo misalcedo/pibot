@@ -23,7 +23,7 @@ object Application extends App {
     SubSystem(DriverActor.props(), "driver"),
     SubSystem(MotorActor.props(robot.withPort(3000)), "motor"),
     SubSystem(VisionActor.props(robot.withPort(3001), workingDirectory), "vision"),
-    SubSystem(WebSocketActor.props(3002), "websocket")
+    SubSystem(WebSocketActor.props(80), "websocket")
   )
 
   system.log.info("Starting system with working directory of: {}.", workingDirectory)
