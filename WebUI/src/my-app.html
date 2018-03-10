@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="my-icons.html">
 
 <link rel="import" href="web-socket-data.html">
-<link rel="import" href="keyboard-listener.html">
+<link rel="import" href="../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="robot-cockpit.html">
 
 <dom-module id="my-app">
@@ -26,15 +26,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
         </style>
 
-        <web-socket-data url="ws://localhost:3002/" data="{{data}}"></web-socket-data>
-        <keyboard-listener></keyboard-listener>
-        <robot-cockpit name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg" data="{{data}}"></robot-cockpit>
+        <web-socket-data id="socket" url="ws://localhost:3002/" data="{{data}}"></web-socket-data>
+        <iron-a11y-keys id="a11y" target="[[target]]" keys="up down left right space r b f"
+                        on-keys-pressed="onKeyPressed"></iron-a11y-keys>
+        <keyboard-listener id="listener" on-key-pressed="onKeyPressed"></keyboard-listener>
+        <robot-cockpit id="cockpit" name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg"
+                       data="{{data}}"></robot-cockpit>
     </template>
 
     <script>
         class MyApp extends Polymer.Element {
             static get is() {
                 return 'my-app';
+            }
+
+            static get properties() {
+                return {
+                    target: {
+                        type: Object,
+                        value: document.body
+                    }
+                };
+            }
+
+            onKeyPressed(event) {
+                this.$.socket.send({
+                    "event": 401, // Key Pressed in JVM (java.awt.event.KeyEvent)
+                    "keyCode": event.detail.keyboardEvent.keyCode
+                })
             }
         }
 

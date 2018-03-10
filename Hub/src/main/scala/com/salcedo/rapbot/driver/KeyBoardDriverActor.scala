@@ -2,7 +2,7 @@ package com.salcedo.rapbot.driver
 
 import java.awt.event.KeyEvent
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import com.salcedo.rapbot.driver.CommandDriverActor._
 import com.salcedo.rapbot.driver.KeyBoardDriverActor.{Key, key}
 
@@ -20,10 +20,12 @@ object KeyBoardDriverActor {
 class KeyBoardDriverActor extends Actor with ActorLogging {
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[KeyEvent])
+    context.system.eventStream.subscribe(self, classOf[Key])
   }
 
   override def receive: Receive = {
     case keyEvent: KeyEvent => drive(key(keyEvent))
+    case key: Key => drive(key)
   }
 
   def drive(key: Key): Unit = {

@@ -5,9 +5,9 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.io.Tcp.{PeerClosed, Received, Write}
 import akka.util.ByteString
 import com.google.gson.Gson
+import com.salcedo.rapbot.driver.KeyBoardDriverActor.Key
 import com.salcedo.rapbot.hub.Hub.SystemState
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
-import com.salcedo.rapbot.websocket.WebSocketConnectionActor.{Event, Refresh}
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled.wrappedBuffer
 import io.netty.channel.embedded.EmbeddedChannel
@@ -19,11 +19,6 @@ import scala.concurrent.Promise
 import scala.util.Try
 
 object WebSocketConnectionActor {
-
-  sealed case class Event(eventType: String, data: String)
-
-  object Refresh extends Event(eventType = "refresh", null)
-
   def props(connection: ActorRef): Props = Props(new WebSocketConnectionActor(connection))
 }
 
@@ -54,10 +49,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   def read(frame: TextWebSocketFrame): Unit = {
     log.debug("Parsed text frame from client data. Frame: {}", frame.text)
 
-    val event: Event = json.fromJson(frame.text, classOf[Event])
-    event match {
-      case _ => Unit
-    }
+    context.system.eventStream.publish(json.fromJson(frame.text, classOf[Key]))
 
     frame.release()
   }
