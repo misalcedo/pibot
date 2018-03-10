@@ -11,8 +11,6 @@
         <style include="shared-styles">
         </style>
 
-        <p>Data: [[_stringify(data)]]</p>
-
         <video-feed feed-url="{{feedUrl}}"></video-feed>
         <instrument-cluster drive="[[data.drive]]"></instrument-cluster>
         <vehicle-cluster vehicle="[[data.vehicle]]"></vehicle-cluster>
@@ -28,10 +26,6 @@
                     feedUrl: String,
                     data: Object
                 }
-            }
-
-            _stringify(object) {
-                return JSON.stringify(object);
             }
         }
 

@@ -32,6 +32,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <keyboard-listener id="listener" on-key-pressed="onKeyPressed"></keyboard-listener>
         <robot-cockpit id="cockpit" name="robot-cockpit" feed-url="http://192.168.1.41:3001/stream.mjpg"
                        data="{{data}}"></robot-cockpit>
+
+        <p>Full Data:</p>
+        <pre>[[_stringify(data)]]</pre>
     </template>
 
     <script>
@@ -54,6 +57,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     "event": 401, // Key Pressed in JVM (java.awt.event.KeyEvent)
                     "keyCode": event.detail.keyboardEvent.keyCode
                 })
+            }
+
+            _stringify(object) {
+                return JSON.stringify(object, null, 2);
             }
         }
 
