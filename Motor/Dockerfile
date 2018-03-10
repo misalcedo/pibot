@@ -1,4 +1,4 @@
-FROM resin/raspberrypi-python:3-onbuild
+FROM resin/raspberrypi-alpine-python:3-onbuild
 
 COPY ./src/main/python /usr/src/app
 

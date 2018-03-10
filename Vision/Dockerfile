@@ -1,7 +1,5 @@
-FROM resin/raspberrypi3-python:3-onbuild
-
-COPY ./src/main/python /usr/src/app
+FROM resin/raspberrypi3-alpine-python:3-onbuild
 
 EXPOSE 80
 
-CMD python service.py
+CMD python src/service.py

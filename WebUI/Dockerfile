@@ -1,5 +1,7 @@
-FROM resin/raspberrypi3-node:8-onbuild
+FROM resin/raspberrypi3-alpine-node:8-onbuild
+
+RUN npm install -g polymer-cli
 
 EXPOSE 80
 
-CMD /bin/bash
+CMD ["polymer", "serve", "-p 80", "-H 0.0.0.0"]
