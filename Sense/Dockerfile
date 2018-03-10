@@ -13,4 +13,6 @@ COPY ./RTIMULib.ini /etc/RTIMULib.ini
 
 ENV FLASK_APP=service.py FLASK_DEBUG=1
 
+EXPOSE 80
+
 CMD flask run --host=0.0.0.0 --port 80 --with-threads
