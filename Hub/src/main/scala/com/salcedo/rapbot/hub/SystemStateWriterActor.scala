@@ -41,8 +41,6 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
       currentWriter.println(serializer.write(state))
     } catch {
       case e: IOException => throw new UncheckedIOException(e)
-    } finally {
-      currentWriter.close()
     }
   }
 
@@ -52,6 +50,8 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
     }
 
     try {
+      currentWriter.close()
+
       val path = workingDirectory.resolve("state").resolve("snapshots.json")
       val file = createTempFile(createDirectories(path), "snapshot", ".json").toAbsolutePath
       val fileWriter = new FileWriter(file.toFile, true)
