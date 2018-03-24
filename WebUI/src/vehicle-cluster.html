@@ -7,14 +7,24 @@
         <style include="shared-styles">
             paper-progress.motor {
                 --paper-progress-active-color: #e9d400;
+                display: inline-block;
+                margin: 90pt 0 70pt 0;
+                transform: rotateZ(270deg);
+            }
+
+            span.command.right {
+                padding-left: 12pt;
             }
         </style>
 
-        <p>Left Motor: [[_command(vehicle.backLeft.command.value)]]</p>
-        <paper-progress class="motor" value="[[vehicle.backLeft.speed]]" min="0" max="255"></paper-progress>
-
-        <p>Right Motor: [[_command(vehicle.backRight.command.value)]]</p>
-        <paper-progress class="motor" value="[[vehicle.backRight.speed]]" min="0" max="255"></paper-progress>
+        <div>
+            <paper-progress class="motor" value="[[vehicle.backLeft.speed]]" min="0" max="255"></paper-progress>
+            <paper-progress class="motor" value="[[vehicle.backRight.speed]]" min="0" max="255"></paper-progress>
+        </div>
+        <div>
+            <span class="command left">Left Motor: [[_command(vehicle.backLeft.command.value)]]</span>
+            <span class="command right">Right Motor: [[_command(vehicle.backRight.command.value)]]</span>
+        </div>
     </template>
     <script>
         class VehicleCluster extends Polymer.Element {
