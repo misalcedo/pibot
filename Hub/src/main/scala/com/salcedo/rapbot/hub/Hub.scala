@@ -1,7 +1,7 @@
 package com.salcedo.rapbot.hub
 
 import akka.actor.Status.Success
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props, Terminated}
 import com.salcedo.rapbot.driver.DriverActor.Drive
 import com.salcedo.rapbot.hub.Hub.{SubSystem, SystemState}
 import com.salcedo.rapbot.motor.MotorActor.Vehicle
@@ -28,7 +28,7 @@ object Hub {
 }
 
 class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
-  private val children = subSystems.map(actorFor)
+  var children: Set[ActorRef] = subSystems.map(actorFor).toSet
   private val snapshot = context.actorOf(SnapshotTakerActor.props, "snapshot")
 
   override def preStart(): Unit = {
@@ -64,6 +64,8 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
 
   private def terminate(message: Terminated): Unit = {
     log.error("Actor terminated: {}.", message.actor)
+
+    children -= message.actor
   }
 
   def actorFor(system: SubSystem): ActorRef = {

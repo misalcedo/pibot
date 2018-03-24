@@ -2,7 +2,7 @@ package com.salcedo.rapbot
 
 import java.nio.file.Paths
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem, PoisonPill}
 import akka.http.scaladsl.model.Uri
 import com.salcedo.rapbot.driver.DriverActor
 import com.salcedo.rapbot.hub.{Hub, SystemStateWriterActor}
@@ -26,5 +26,10 @@ object Application extends App {
   )
 
   system.log.info("Starting system with working directory of: {}.", workingDirectory)
-  system.actorOf(hubProps, "hub")
+
+  val hub: ActorRef = system.actorOf(hubProps, "hub")
+
+  Runtime.getRuntime.addShutdownHook(new Thread() {
+    override def run(): Unit = hub ! PoisonPill
+  })
 }

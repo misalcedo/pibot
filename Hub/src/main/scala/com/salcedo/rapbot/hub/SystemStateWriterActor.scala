@@ -25,6 +25,10 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
     context.system.eventStream.subscribe(self, classOf[SystemState])
   }
 
+  override def postStop(): Unit = {
+    currentWriter.close()
+  }
+
   override def receive: Receive = {
     case state: SystemState => writeToFile(state)
     case _: TakeSubSystemSnapshot => sender() ! Success(None)
