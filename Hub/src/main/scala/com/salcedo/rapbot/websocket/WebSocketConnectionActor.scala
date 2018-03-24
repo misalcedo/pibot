@@ -4,10 +4,8 @@ import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import akka.io.Tcp.{PeerClosed, Received, Write}
 import akka.util.ByteString
-import com.google.gson.Gson
 import com.salcedo.rapbot.driver.KeyBoardDriverActor.Key
 import com.salcedo.rapbot.hub.Hub.SystemState
-import com.salcedo.rapbot.serialization.JSON
 import com.salcedo.rapbot.serialization.JSON.{read, write}
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 import io.netty.buffer.ByteBuf
