@@ -53,7 +53,13 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
       val fileWriter = new FileWriter(file.toFile, true)
       val bufferedWriter = new BufferedWriter(fileWriter)
 
-      log.info("Rotating file with {}/{} entries from {} to {}.", entriesInFile, entriesPerFile, file, currentFile.orNull)
+      log.info(
+        "Rotating file with {}/{} entries from {} to {}.",
+        entriesInFile,
+        entriesPerFile,
+        currentFile.getOrElse("/dev/null"),
+        file
+      )
 
       currentFile = Some(file)
       currentWriter = new PrintWriter(bufferedWriter)
