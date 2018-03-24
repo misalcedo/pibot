@@ -11,7 +11,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, FlowShape, IOResult}
 import com.salcedo.rapbot.snapshot.RemoteSnapshot
 import com.salcedo.rapbot.snapshot.SnapshotActor.TakeSubSystemSnapshot
-import com.salcedo.rapbot.vision.VisionActor.See
+import com.salcedo.rapbot.vision.VisionActor.{See, StillFrame}
 
 import scala.concurrent.{Future, Promise}
 import akka.pattern.pipe
@@ -20,6 +20,8 @@ import akka.stream.scaladsl.FileIO
 object VisionActor {
 
   case class See()
+
+  case class StillFrame(path : String)
 
   def props(uri: Uri, workingDirectory: Path): Props = Props(new VisionActor(uri, workingDirectory))
 }
@@ -40,16 +42,18 @@ final class VisionActor(val uri: Uri, val workingDirectory: Path) extends Actor 
     pipe(remoteSnapshot).to(sender(), self)
   }
 
-  override def remoteSnapshot: Future[Path] = {
+  override def remoteSnapshot: Future[StillFrame] = {
     http.singleRequest(HttpRequest(uri = uri.withPath(Uri.Path("/still.jpg"))))
       .flatMap {
         case HttpResponse(StatusCodes.OK, _, entity, _) =>
           val path = temporaryPath()
-          val promise: Promise[Path] = Futures.promise()
+          val promise: Promise[StillFrame] = Futures.promise()
 
           entity.dataBytes
             .runWith[Future[IOResult]](FileIO.toPath(path))
-            .map(_.status).map(_.map(_ => path)).map(promise.complete)
+            .map(_.status)
+            .map(_.map(_ => path).map(_.toAbsolutePath).map(_.toString).map(StillFrame))
+            .map(promise.complete)
 
           promise.future
         case HttpResponse(statusCode, _, entity, _) =>

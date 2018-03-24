@@ -1,7 +1,5 @@
 package com.salcedo.rapbot.hub
 
-import java.nio.file.Path
-
 import akka.actor.Status.Success
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import com.salcedo.rapbot.driver.DriverActor.Drive
@@ -10,6 +8,7 @@ import com.salcedo.rapbot.motor.MotorActor.Vehicle
 import com.salcedo.rapbot.snapshot.SnapshotActor.Snapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.{RegisterSubSystem, TakeSnapshot}
+import com.salcedo.rapbot.vision.VisionActor.StillFrame
 
 object Hub {
 
@@ -56,14 +55,14 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
 
     val drive = snapshots.find(_.isInstanceOf[Drive]).map(_.asInstanceOf[Drive])
     val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
-    val image: Option[Path] = snapshots.find(_.isInstanceOf[Path]).map(_.asInstanceOf[Path])
+    val image: Option[StillFrame] = snapshots.find(_.isInstanceOf[StillFrame]).map(_.asInstanceOf[StillFrame])
 
     context.system.eventStream.publish(Hub.SystemState(
       snapshot.uuid.toString,
       snapshot.duration.toMillis,
       drive.orNull,
       vehicle.orNull,
-      image.map(_.toAbsolutePath.toString).getOrElse("/dev/null")
+      image.map(_.path).getOrElse("/dev/null")
     ))
   }
 
