@@ -44,7 +44,7 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
   }
 
   private def rotateFile(): Unit = {
-    if (entriesPerFile > entriesInFile) {
+    if (entriesPerFile > entriesInFile || currentFile.isEmpty) {
       return
     }
 
