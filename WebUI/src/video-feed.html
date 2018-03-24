@@ -14,6 +14,7 @@
         </style>
 
         <img src="[[feedUrl]]"/>
+        <a href="file://[[stillFrame]]" target="_blank">Still Frame</a>
     </template>
     <script>
         // Your new element extends the Polymer.Element base class
@@ -23,7 +24,10 @@
             }
 
             static get properties() {
-                return {feedUrl: String};
+                return {
+                    feedUrl: String,
+                    stillFrame: String
+                };
             }
         }
 
