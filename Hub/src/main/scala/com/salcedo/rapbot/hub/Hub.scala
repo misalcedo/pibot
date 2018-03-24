@@ -12,6 +12,10 @@ import com.salcedo.rapbot.vision.VisionActor.StillFrame
 
 object Hub {
 
+  def props(subSystems: SubSystem*): Props = {
+    Props(new Hub(subSystems))
+  }
+
   case class SubSystem(props: Props, name: String)
 
   case class SystemState(
@@ -21,10 +25,6 @@ object Hub {
                           vehicle: Vehicle,
                           imagePath: String
                         )
-
-  def props(subSystems: SubSystem*): Props = {
-    Props(new Hub(subSystems))
-  }
 }
 
 class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
@@ -43,10 +43,6 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     case snapshot: Snapshot => this.state(snapshot)
   }
 
-  def actorFor(system: SubSystem): ActorRef = {
-    context.watch(context.actorOf(system.props, system.name))
-  }
-
   private def state(snapshot: Snapshot): Unit = {
     val snapshots = snapshot.responses.values
       .filter(_.isInstanceOf[Success])
@@ -57,7 +53,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
     val image: Option[StillFrame] = snapshots.find(_.isInstanceOf[StillFrame]).map(_.asInstanceOf[StillFrame])
 
-    context.system.eventStream.publish(Hub.SystemState(
+    context.system.eventStream.publish(SystemState(
       snapshot.uuid.toString,
       snapshot.duration.toMillis,
       drive.orNull,
@@ -68,6 +64,10 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
 
   private def terminate(message: Terminated): Unit = {
     log.error("Actor terminated: {}.", message.actor)
+  }
+
+  def actorFor(system: SubSystem): ActorRef = {
+    context.watch(context.actorOf(system.props, system.name))
   }
 }
 

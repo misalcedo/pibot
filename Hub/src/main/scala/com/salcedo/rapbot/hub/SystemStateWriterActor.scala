@@ -22,7 +22,6 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
   var entriesInFile = 0
 
   override def preStart(): Unit = {
-    rotateFile()
     context.system.eventStream.subscribe(self, classOf[SystemState])
   }
 
@@ -44,7 +43,7 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
   }
 
   private def rotateFile(): Unit = {
-    if (entriesPerFile > entriesInFile || currentFile.isEmpty) {
+    if (currentFile.isDefined && entriesPerFile > entriesInFile) {
       return
     }
 
