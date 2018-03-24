@@ -7,6 +7,8 @@ import akka.util.ByteString
 import com.google.gson.Gson
 import com.salcedo.rapbot.driver.KeyBoardDriverActor.Key
 import com.salcedo.rapbot.hub.Hub.SystemState
+import com.salcedo.rapbot.serialization.JSON
+import com.salcedo.rapbot.serialization.JSON.{read, write}
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled.wrappedBuffer
@@ -23,7 +25,6 @@ object WebSocketConnectionActor {
 }
 
 class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLogging {
-  val json = new Gson
   val channel = new EmbeddedChannel(
     new HttpServerCodec,
     new HttpObjectAggregator(2048),
@@ -38,7 +39,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
 
   override def receive: Receive = {
     case HANDSHAKE_COMPLETE => this.complete()
-    case frame: TextWebSocketFrame => this.read(frame)
+    case frame: TextWebSocketFrame => this.readFrame(frame)
     case Received(data) => this.receiveData(data)
     case PeerClosed => this.close()
     case Failure(e) => log.error("An exception occurred handling the WebSocket frame. {}", e)
@@ -51,10 +52,10 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
     context.system.eventStream.publish(TakeSnapshot)
   }
 
-  def read(frame: TextWebSocketFrame): Unit = {
+  def readFrame(frame: TextWebSocketFrame): Unit = {
     log.debug("Parsed text frame from client data. Frame: {}", frame.text)
 
-    context.system.eventStream.publish(json.fromJson(frame.text, classOf[Key]))
+    context.system.eventStream.publish(read(frame.text, classOf[Key]))
 
     frame.release()
   }
@@ -78,7 +79,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   def push(state: SystemState): Unit = {
     if (!handshake.isCompleted || !channel.isOpen) return
 
-    channel.writeOutbound(new TextWebSocketFrame(json.toJson(state)))
+    channel.writeOutbound(new TextWebSocketFrame(write(state)))
 
     readChannel()
   }
