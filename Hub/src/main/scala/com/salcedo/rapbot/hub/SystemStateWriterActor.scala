@@ -57,6 +57,8 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
       val fileWriter = new FileWriter(file.toFile, true)
       val bufferedWriter = new BufferedWriter(fileWriter)
 
+      currentWriter = new PrintWriter(bufferedWriter)
+
       log.info(
         "Rotating file with {}/{} entries from {} to {}.",
         entriesInFile,
@@ -66,7 +68,6 @@ class SystemStateWriterActor(workingDirectory: Path, serializer: Serializer, ent
       )
 
       currentFile = Some(file)
-      currentWriter = new PrintWriter(bufferedWriter)
     } catch {
       case e: IOException => throw new UncheckedIOException(e)
     }
