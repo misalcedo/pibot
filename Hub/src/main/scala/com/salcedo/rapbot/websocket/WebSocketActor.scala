@@ -37,7 +37,7 @@ class WebSocketActor(port: Int) extends Actor with ActorLogging {
     context.watch(routee)
     router = router.addRoutee(routee)
 
-    log.info("Received connection from {}.", connected.remoteAddress)
+    log.debug("Received connection from {}.", connected.remoteAddress)
 
     sender() ! Register(routee)
   }
