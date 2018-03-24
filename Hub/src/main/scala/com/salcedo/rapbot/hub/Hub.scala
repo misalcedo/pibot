@@ -3,7 +3,7 @@ package com.salcedo.rapbot.hub
 import akka.actor.Status.Success
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import com.salcedo.rapbot.driver.DriverActor.Drive
-import com.salcedo.rapbot.hub.Hub.SubSystem
+import com.salcedo.rapbot.hub.Hub.{SubSystem, SystemState}
 import com.salcedo.rapbot.motor.MotorActor.Vehicle
 import com.salcedo.rapbot.snapshot.SnapshotActor.Snapshot
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor
@@ -57,7 +57,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
     val image: Option[StillFrame] = snapshots.find(_.isInstanceOf[StillFrame]).map(_.asInstanceOf[StillFrame])
 
-    context.system.eventStream.publish(Hub.SystemState(
+    context.system.eventStream.publish(SystemState(
       snapshot.uuid.toString,
       snapshot.duration.toMillis,
       drive.orNull,
