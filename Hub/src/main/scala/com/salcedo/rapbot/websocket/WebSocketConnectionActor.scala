@@ -6,7 +6,7 @@ import akka.io.Tcp.{PeerClosed, Received, Write}
 import akka.util.ByteString
 import com.salcedo.rapbot.driver.KeyBoardDriverActor.Key
 import com.salcedo.rapbot.hub.Hub.SystemState
-import com.salcedo.rapbot.serialization.JSON.{read, write}
+import com.salcedo.rapbot.serialization.{JSON, Serializer}
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.TakeSnapshot
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled.wrappedBuffer
@@ -19,10 +19,10 @@ import scala.concurrent.Promise
 import scala.util.Try
 
 object WebSocketConnectionActor {
-  def props(connection: ActorRef): Props = Props(new WebSocketConnectionActor(connection))
+  def props(connection: ActorRef): Props = Props(new WebSocketConnectionActor(connection, JSON))
 }
 
-class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLogging {
+class WebSocketConnectionActor(connection: ActorRef, serializer: Serializer) extends Actor with ActorLogging {
   val channel = new EmbeddedChannel(
     new HttpServerCodec,
     new HttpObjectAggregator(2048),
@@ -53,7 +53,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   def readFrame(frame: TextWebSocketFrame): Unit = {
     log.debug("Parsed text frame from client data. Frame: {}", frame.text)
 
-    context.system.eventStream.publish(read(frame.text, classOf[Key]))
+    context.system.eventStream.publish(serializer.read(frame.text, classOf[Key]))
 
     frame.release()
   }
@@ -77,7 +77,7 @@ class WebSocketConnectionActor(connection: ActorRef) extends Actor with ActorLog
   def push(state: SystemState): Unit = {
     if (!handshake.isCompleted || !channel.isOpen) return
 
-    channel.writeOutbound(new TextWebSocketFrame(write(state)))
+    channel.writeOutbound(new TextWebSocketFrame(serializer.write(state)))
 
     readChannel()
   }

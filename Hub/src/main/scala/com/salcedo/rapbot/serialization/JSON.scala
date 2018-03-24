@@ -1,9 +1,9 @@
 package com.salcedo.rapbot.serialization
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 
 object JSON extends Serializer {
-  private val json = new Gson
+  private val json = new GsonBuilder().create()
 
   def read[T](serialized: String, classOf: Class[T]): T = {
     json.fromJson(serialized, classOf)

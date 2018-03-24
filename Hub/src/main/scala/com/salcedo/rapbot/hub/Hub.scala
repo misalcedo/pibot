@@ -57,7 +57,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     val vehicle: Option[Vehicle] = snapshots.find(_.isInstanceOf[Vehicle]).map(_.asInstanceOf[Vehicle])
     val image: Option[StillFrame] = snapshots.find(_.isInstanceOf[StillFrame]).map(_.asInstanceOf[StillFrame])
 
-    context.system.eventStream.publish(SystemState(
+    context.system.eventStream.publish(Hub.SystemState(
       snapshot.uuid.toString,
       snapshot.duration.toMillis,
       drive.orNull,
