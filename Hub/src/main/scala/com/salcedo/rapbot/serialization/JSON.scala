@@ -2,7 +2,7 @@ package com.salcedo.rapbot.serialization
 
 import com.google.gson.Gson
 
-object JSON {
+object JSON extends Serializer {
   private val json = new Gson
 
   def read[T](serialized: String, classOf: Class[T]): T = {
