@@ -15,7 +15,7 @@ object Application extends App {
   val system = ActorSystem("RapBot")
 
   val robot = Uri("http://192.168.1.41")
-  val workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "test")
+  val workingDirectory = Paths.get("/home", "miguel", "IdeaProjects", "RapBot", "data", "production")
 
   val hubProps = Hub.props(
     SubSystem(DriverActor.props(), "driver"),

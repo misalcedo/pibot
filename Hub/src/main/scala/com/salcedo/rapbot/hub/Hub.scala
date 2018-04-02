@@ -1,7 +1,9 @@
 package com.salcedo.rapbot.hub
 
+import java.time.Instant
+
 import akka.actor.Status.Success
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import com.salcedo.rapbot.driver.DriverActor.Drive
 import com.salcedo.rapbot.hub.Hub.{SubSystem, SystemState}
 import com.salcedo.rapbot.motor.MotorActor.Vehicle
@@ -20,16 +22,18 @@ object Hub {
 
   case class SystemState(
                           uuid: String,
+                          start: Long,
                           timeWindow: Long,
                           drive: Drive,
                           vehicle: Vehicle,
                           imagePath: String
                         )
+
 }
 
 class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
-  var children: Set[ActorRef] = subSystems.map(actorFor).toSet
   private val snapshot = context.actorOf(SnapshotTakerActor.props, "snapshot")
+  var children: Set[ActorRef] = subSystems.map(actorFor).toSet
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[Snapshot])
@@ -55,6 +59,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
 
     context.system.eventStream.publish(SystemState(
       snapshot.uuid.toString,
+      snapshot.start.toEpochMilli,
       snapshot.duration.toMillis,
       drive.orNull,
       vehicle.orNull,
