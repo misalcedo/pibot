@@ -91,6 +91,8 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
   private def createMotorRequest(leftSpeed: Int, rightSpeed: Int, command: Command): Vehicle = {
     Vehicle(
       Motor(leftSpeed, command),
+      Motor(rightSpeed, command),
+      Motor(leftSpeed, command),
       Motor(rightSpeed, command)
     )
   }

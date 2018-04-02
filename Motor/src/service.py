@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 
 from vehicles import Vehicle
 
-LOCATIONS = {"backLeft": 1, "backRight": 2}
+LOCATIONS = {"backLeft": 1, "backRight": 2, "frontLeft": 3, "frontRight": 4}
 vehicle = Vehicle()
 app = Flask(__name__)
 

@@ -29,7 +29,7 @@ object MotorActor {
 
   case class Motor(speed: Int, command: Command)
 
-  case class Vehicle(backLeft: Motor, backRight: Motor)
+  case class Vehicle(backLeft: Motor, backRight: Motor, frontLeft: Motor, frontRight: Motor)
 
   case class Pushed(version: UUID)
 
@@ -40,7 +40,7 @@ class MotorActor(val uri: Uri) extends Actor with ActorBreaker with ActorLogging
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
 
   val http = Http(context.system)
-  var vehicle = Vehicle(Motor(0, Release), Motor(0, Release))
+  var vehicle = Vehicle(Motor(0, Release), Motor(0, Release), Motor(0, Release), Motor(0, Release))
   var version: UUID = nextVersion
   var remoteCall: Future[UUID] = Future.successful(version)
 
