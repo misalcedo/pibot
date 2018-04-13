@@ -9,16 +9,6 @@ services:
       - 3000:80
     devices:
       - /dev/i2c-1
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
   vision:
     build: ./Vision
     image: misalcedo/rapbot:vision-1.0
@@ -28,16 +18,6 @@ services:
       - 3001:80
     devices:
       - /dev/vchiq
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
   hub:
     build: ./Hub
     image: misalcedo/rapbot:hub-1.0
@@ -45,19 +25,6 @@ services:
       - ./Hub/build:/usr/src/app/build
     ports:
       - 3002:80
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      placement:
-        constraints:
-          - node.hostname == Fayt
   ui:
     build: ./WebUI
     image: misalcedo/rapbot:ui-1.0
@@ -65,13 +32,11 @@ services:
       - ./WebUI/src:/usr/src/app/src
     ports:
       - 3003:80
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+  learn:
+      build: ./Learn
+      image: misalcedo/rapbot:learn-1.0
+      volumes:
+        - ./Learn/src:/home/jovyan/notebooks
+        - ./data/:/home/jovyan/data
+      ports:
+        - 3004:8888
