@@ -53,7 +53,7 @@ final class DriverActor(val orientationRange: Range, val throttleRange: Range) e
     drive = drive.copy(modulo(drive.orientation), bound(drive.throttle))
 
     context.system.eventStream.publish(vehicle(drive))
-    context.system.eventStream.publish(TakeSnapshot)
+    context.system.eventStream.publish(TakeSnapshot(self.path.name))
 
     log.debug("Changed desired drive state to {}.", drive)
   }

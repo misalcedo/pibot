@@ -13,12 +13,12 @@ object SnapshotActor {
 
   case class TakeSubSystemSnapshot(uuid: UUID)
 
-  case class Snapshot(uuid: UUID, responses: Map[ActorRef, Status], duration: Duration, start: Instant)
+  case class Snapshot(trigger: String, uuid: UUID, responses: Map[ActorRef, Status], duration: Duration, start: Instant)
 
-  def props(uuid: UUID, subsystems: Set[ActorRef]): Props = Props(new SnapshotActor(uuid, subsystems))
+  def props(trigger: String, uuid: UUID, subsystems: Set[ActorRef]): Props = Props(new SnapshotActor(trigger, uuid, subsystems))
 }
 
-class SnapshotActor(val uuid: UUID, subsystems: Set[ActorRef]) extends Actor with ActorLogging {
+class SnapshotActor(val trigger: String, val uuid: UUID, subsystems: Set[ActorRef]) extends Actor with ActorLogging {
   var responses = Map.empty[ActorRef, Status]
   private val start = Instant.now
 
@@ -60,7 +60,7 @@ class SnapshotActor(val uuid: UUID, subsystems: Set[ActorRef]) extends Actor wit
 
     val duration = java.time.Duration.between(start, Instant.now)
 
-    context.system.eventStream.publish(Snapshot(uuid, responses, Duration.fromNanos(duration.toNanos), start))
+    context.system.eventStream.publish(Snapshot(trigger, uuid, responses, Duration.fromNanos(duration.toNanos), start))
     context.stop(self)
   }
 

@@ -21,6 +21,7 @@ object Hub {
   case class SubSystem(props: Props, name: String)
 
   case class SystemState(
+                          trigger: String,
                           uuid: String,
                           start: Long,
                           timeWindow: Long,
@@ -39,7 +40,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     context.system.eventStream.subscribe(self, classOf[Snapshot])
 
     children.foreach(snapshot ! RegisterSubSystem(_))
-    snapshot ! TakeSnapshot
+    snapshot ! TakeSnapshot(self.path.name)
   }
 
   override def receive: PartialFunction[Any, Unit] = {
@@ -58,6 +59,7 @@ class Hub(subSystems: Seq[SubSystem]) extends Actor with ActorLogging {
     val image: Option[StillFrame] = snapshots.find(_.isInstanceOf[StillFrame]).map(_.asInstanceOf[StillFrame])
 
     context.system.eventStream.publish(SystemState(
+      snapshot.trigger,
       snapshot.uuid.toString,
       snapshot.start.toEpochMilli,
       snapshot.duration.toMillis,

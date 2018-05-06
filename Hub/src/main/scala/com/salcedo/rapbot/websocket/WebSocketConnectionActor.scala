@@ -47,7 +47,7 @@ class WebSocketConnectionActor(connection: ActorRef, serializer: Serializer) ext
 
   def complete(): Unit = {
     handshake.complete(Try(Unit))
-    context.system.eventStream.publish(TakeSnapshot)
+    context.system.eventStream.publish(TakeSnapshot("websocket"))
   }
 
   def readFrame(frame: TextWebSocketFrame): Unit = {
