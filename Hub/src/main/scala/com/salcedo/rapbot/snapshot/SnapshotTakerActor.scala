@@ -6,6 +6,8 @@ import akka.actor._
 import akka.routing.{BroadcastRoutingLogic, Router}
 import com.salcedo.rapbot.snapshot.SnapshotTakerActor.{RegisterSubSystem, TakeSnapshot}
 
+import scala.concurrent.duration.{Duration, MILLISECONDS}
+
 
 object SnapshotTakerActor {
 
@@ -23,6 +25,11 @@ class SnapshotTakerActor() extends Actor with ActorLogging {
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[TakeSnapshot])
     context.system.eventStream.subscribe(self, classOf[RegisterSubSystem])
+    scheduleSnapshot()
+  }
+
+  private def scheduleSnapshot(): Cancellable = {
+    context.system.scheduler.scheduleOnce(Duration(100, MILLISECONDS), self, TakeSnapshot(self.path.name))(context.dispatcher)
   }
 
   override def receive: PartialFunction[Any, Unit] = {
@@ -57,6 +64,10 @@ class SnapshotTakerActor() extends Actor with ActorLogging {
 
   private def complete(message: Terminated): Unit = {
     router = router.removeRoutee(message.actor)
+
+    if (router.routees.isEmpty) {
+      scheduleSnapshot()
+    }
   }
 
   private def register(message: RegisterSubSystem): Unit = {
