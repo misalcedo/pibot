@@ -4,7 +4,9 @@
   "devDependencies": {
     "eslint": "^3.19.0",
     "eslint-config-google": "^0.7.0",
-    "eslint-plugin-html": "^2.0.0"
+    "eslint-plugin-html": "^2.0.0",
+    "bower": "^1.8.4",
+    "polymer-cli": "^1.7.4"
   },
   "scripts": {
     "lint": "npm run lint:javascript && polymer lint",
