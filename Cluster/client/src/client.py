@@ -1,20 +1,26 @@
 import asyncio
+from echo_pb2 import Envelope
+
 
 class EchoClientProtocol:
-    def __init__(self, message, loop):
-        self.message = message
+    def __init__(self, loop):
+        self.envelope = Envelope()
+        self.envelope.message = "Hello World!"
         self.loop = loop
         self.transport = None
 
     def connection_made(self, transport):
         self.transport = transport
-        print('Send:', self.message)
-        self.transport.sendto(self.message.encode())
+        print('Send:', self.envelope.message)
+        self.transport.sendto(self.envelope.SerializeToString())
 
     def datagram_received(self, data, address):
-        print("Received:", data.decode())
+        envelope = Envelope()
+        envelope.ParseFromString(data)
 
+        print("Received:", envelope.message)
         print("Close the socket")
+
         self.transport.close()
 
     def error_received(self, exc):
@@ -25,9 +31,9 @@ class EchoClientProtocol:
         loop = asyncio.get_event_loop()
         loop.stop()
 
+
 loop = asyncio.get_event_loop()
-message = "Hello World!"
-connect = loop.create_datagram_endpoint(lambda: EchoClientProtocol(message, loop), remote_addr=('server', 80))
+connect = loop.create_datagram_endpoint(lambda: EchoClientProtocol(loop), remote_addr=('server', 80))
 transport, protocol = loop.run_until_complete(connect)
 loop.run_forever()
 transport.close()

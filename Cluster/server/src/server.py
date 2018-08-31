@@ -1,14 +1,20 @@
 import asyncio
+from echo_pb2 import Envelope
+
 
 class EchoServerProtocol:
     def connection_made(self, transport):
         self.transport = transport
 
     def datagram_received(self, data, address):
-        message = data.decode()
-        print('Received %r from %s' % (message, address))
-        print('Send %r to %s' % (message, address))
+        envelope = Envelope()
+        envelope.ParseFromString(data)
+
+        print('Received %r from %s' % (envelope.message, address))
+        print('Send %r to %s' % (envelope.message, address))
+
         self.transport.sendto(data, address)
+
 
 loop = asyncio.get_event_loop()
 print("Starting UDP server")
