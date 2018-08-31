@@ -8,3 +8,6 @@ services:
     build: ./client
     ports:
       - 3001:80
+  protoc:
+    build: ./protoc
+    image: misalcedo/rapbot:protoc-1.0
