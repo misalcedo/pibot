@@ -1,5 +1,7 @@
 # Gradle
 .gradle
+wrapper
+gradle
 build/
 
 # IntelliJ
