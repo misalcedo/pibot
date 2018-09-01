@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package motor;
+
+message Vehicle {
+    message Motor {
+        enum Gear {
+            NEUTRAL = 0;
+            PARK = 1;
+            DRIVE = 2;
+            REVERSE = 3;
+        }
+
+        Gear gear = 1;
+        uint32 throttle = 2;
+    }
+
+    repeated Motor motors = 1;
+}
