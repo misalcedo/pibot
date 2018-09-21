@@ -1,6 +1,8 @@
 FROM node:9-onbuild
 
 RUN npm install polymer-cli
+RUN npm install bower 
+RUN node node_modules/bower/bin/bower install --allow-root
 
 EXPOSE 80
 

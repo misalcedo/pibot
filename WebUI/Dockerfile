@@ -1,5 +1,6 @@
-FROM resin/raspberrypi3-alpine-node:8-onbuild
+FROM resin/raspberrypi3-alpine-node:9-onbuild
 
+RUN npm install polymer-cli
 RUN bower install
 
 EXPOSE 80
