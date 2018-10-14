@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/misalcedo/pibot/distributed"
 	"time"
+
+	"github.com/misalcedo/pibot/cluster"
 )
 
 func main() {
-	cluster := distributed.New("Raspberry Pi Robot (PiBot)")
+	system := cluster.New("Raspberry Pi Robot (PiBot)")
 
-	node := distributed.NewNode()
-	peer := distributed.NewNode()
+	node := cluster.NewNode()
+	peer := cluster.NewNode()
 
-	cluster.Join(node)
-	cluster.Join(peer)
+	system.Join(node)
+	system.Join(peer)
 
 	time.Sleep(3 * time.Second)
 }

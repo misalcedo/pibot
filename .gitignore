@@ -17,3 +17,6 @@ data/
 WebUI/bower_components/
 WebUI/build/
 WebUI/node_modules/
+
+# ProtoBuf
+models/
