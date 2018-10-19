@@ -1,1 +1,0 @@
-./protobuf/bin/protoc -I=./prototypes --go_out=./models prototypes/*.proto
