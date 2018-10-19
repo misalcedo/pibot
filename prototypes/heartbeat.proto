@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package models;
-
-message HeartBeat {
-  string from = 1;
-  map<string, int32> clocks = 2;
-}

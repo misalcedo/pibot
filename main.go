@@ -1,19 +1,7 @@
 package main
 
-import (
-	"time"
-
-	"github.com/misalcedo/pibot/cluster"
-)
+import "github.com/misalcedo/pibot/cmd"
 
 func main() {
-	system := cluster.New("Raspberry Pi Robot (PiBot)")
-
-	node := cluster.NewNode()
-	peer := cluster.NewNode()
-
-	system.Join(node)
-	system.Join(peer)
-
-	time.Sleep(3 * time.Second)
+	cmd.Execute()
 }
