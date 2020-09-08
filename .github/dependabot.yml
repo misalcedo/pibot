@@ -10,10 +10,14 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/Sence" # Location of package manifests
+    directory: "/Sense" # Location of package manifests
     schedule:
       interval: "daily"
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/Vision" # Location of package manifests
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/WebUI" # Location of package manifests
     schedule:
       interval: "daily"
